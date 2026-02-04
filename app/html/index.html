@@ -7,29 +7,382 @@
     <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
-    <div class="container">
-        <header>
-            <h1>D&D Bastion Manager</h1>
-            <p class="subtitle">Verwalte deine Bastion und ihre Einrichtungen</p>
+    <div class="app-container">
+        <!-- HEADER (Global) -->
+        <header class="app-header">
+            <div class="header-left">
+                <h1>D&D Bastion Manager</h1>
+            </div>
+            <div class="header-center" id="session-info">
+                <span class="session-name">[No Session]</span> | 
+                <span class="turn-counter">Turn: 0</span>
+            </div>
+            <div class="header-right">
+                <button class="btn btn-small" onclick="saveSession()">💾 Save</button>
+                <button class="btn btn-small" onclick="loadSession()">📂 Load</button>
+            </div>
         </header>
 
-        <main>
-            <aside class="sidebar">
-                <h2>Einrichtungen</h2>
-                <div id="facilities-list" class="facilities-list">
-                    <p class="loading">Laden...</p>
-                </div>
-            </aside>
+        <!-- MAIN CONTENT -->
+        <main class="app-main">
 
-            <section class="content">
-                <div id="content-area">
-                    <div class="welcome">
-                        <h2>Willkommen!</h2>
-                        <p>Wähle eine Einrichtung aus der Liste auf der linken Seite, um sie zu bearbeiten.</p>
+            <!-- ===== VIEW 1: SESSION WIZARD ===== -->
+            <div id="view-1" class="view active">
+                <div class="wizard-container">
+                    <h2>Neue Session erstellen</h2>
+                    
+                    <div class="wizard-form">
+                        <!-- Session Info -->
+                        <fieldset>
+                            <legend>Session-Informationen</legend>
+                            <div class="form-group">
+                                <label for="session-name">Session-Name:</label>
+                                <input type="text" id="session-name" placeholder="z.B. 'Campaign Session 1'" />
+                            </div>
+                        </fieldset>
+
+                        <!-- Bastion Config -->
+                        <fieldset>
+                            <legend>Bastion-Konfiguration</legend>
+                            <div class="form-group">
+                                <label for="bastion-name">Bastion-Name:</label>
+                                <input type="text" id="bastion-name" placeholder="z.B. 'Morningstar Haven'" />
+                            </div>
+                            <div class="form-group">
+                                <label for="bastion-type">Bastion-Typ:</label>
+                                <input type="text" id="bastion-type" placeholder="z.B. 'Taverne, Geheime Base'" />
+                            </div>
+                            <div class="form-group">
+                                <label for="bastion-region">Region:</label>
+                                <input type="text" id="bastion-region" placeholder="z.B. 'Sword Coast'" />
+                            </div>
+                            <div class="form-group">
+                                <label for="bastion-story">Wie gefunden / Story:</label>
+                                <textarea id="bastion-story" placeholder="Narrative Kontext..."></textarea>
+                            </div>
+                        </fieldset>
+
+                        <!-- Player Registry -->
+                        <fieldset>
+                            <legend>Spieler registrieren</legend>
+                            <div id="players-list" class="players-list">
+                                <!-- Dynamic: filled by JS -->
+                            </div>
+                            <div class="form-group">
+                                <label for="player-name">Character-Name:</label>
+                                <input type="text" id="player-name" placeholder="Character Name" />
+                            </div>
+                            <div class="form-group">
+                                <label for="player-class">Klasse:</label>
+                                <input type="text" id="player-class" placeholder="z.B. Rogue, Wizard" />
+                            </div>
+                            <div class="form-group">
+                                <label for="player-level">Level (optional):</label>
+                                <input type="number" id="player-level" placeholder="5" min="1" max="20" />
+                            </div>
+                            <button class="btn btn-secondary" onclick="addPlayer()">+ Add Player</button>
+                        </fieldset>
+
+                        <button class="btn btn-primary" onclick="createSession()">Neue Session erstellen</button>
                     </div>
                 </div>
-            </section>
+            </div>
+
+            <!-- ===== VIEW 2: BUILD QUEUE ===== -->
+            <div id="view-2" class="view">
+                <div class="build-container">
+                    <div class="build-header">
+                        <h2>Bastion bauen</h2>
+                        <button class="btn btn-small" onclick="switchView(3)">← Zurück zu View 3</button>
+                    </div>
+
+                    <div class="build-grid">
+                        <!-- LEFT: Facility Catalog -->
+                        <div class="build-catalog">
+                            <h3>Facility Katalog</h3>
+                            
+                            <div class="filters">
+                                <input type="text" id="facility-search" placeholder="Suche..." />
+                                <select id="filter-pack">
+                                    <option value="">Alle Packs</option>
+                                </select>
+                                <select id="filter-tier">
+                                    <option value="">Alle Tiers</option>
+                                </select>
+                            </div>
+
+                            <div id="facility-list" class="facility-catalog-list">
+                                <div class="placeholder-item">
+                                    <strong>[Facility 1]</strong>
+                                    <p>250g | 1 Turn | Slots: 1</p>
+                                    <button class="btn btn-small" onclick="addToQueue(1)">+ Add to Queue</button>
+                                </div>
+                                <div class="placeholder-item">
+                                    <strong>[Facility 2]</strong>
+                                    <p>500g | 2 Turns | Slots: 2</p>
+                                    <button class="btn btn-small" onclick="addToQueue(2)">+ Add to Queue</button>
+                                </div>
+                                <div class="placeholder-item">
+                                    <strong>[Facility 3]</strong>
+                                    <p>1000g | 3 Turns | Slots: 1</p>
+                                    <button class="btn btn-small" onclick="addToQueue(3)">+ Add to Queue</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- RIGHT: Build Queue -->
+                        <div class="build-queue">
+                            <h3>Build Queue</h3>
+                            
+                            <div id="queue-list" class="queue-items">
+                                <div class="queue-item">
+                                    <div class="queue-item-info">
+                                        <strong>[Facility 1]</strong>
+                                        <p>250g | 1 Turn</p>
+                                    </div>
+                                    <button class="btn btn-danger" onclick="removeFromQueue(1)">Remove</button>
+                                </div>
+                            </div>
+
+                            <div class="queue-summary">
+                                <p>Total Cost: <strong id="total-cost">250g</strong></p>
+                                <p>Remaining Budget: <strong id="remaining-budget">-250g</strong></p>
+                            </div>
+
+                            <button class="btn btn-primary" onclick="startBuilding()">Bauen starten</button>
+                            <button class="btn btn-secondary" onclick="clearQueue()">Queue löschen</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ===== VIEW 3: TURN CONSOLE ===== -->
+            <div id="view-3" class="view">
+                <div class="turn-console">
+                    <!-- TOP: Session Info Bar (already in header) -->
+
+                    <div class="console-grid">
+                        <!-- LEFT: Facility List -->
+                        <aside class="facilities-sidebar">
+                            <h3>Facilities</h3>
+                            <div id="facilities-left-panel" class="facilities-list">
+                                <div class="facility-list-item" onclick="selectFacility(1)">
+                                    <span class="facility-name">Garden ★</span>
+                                    <span class="facility-status">[idle]</span>
+                                </div>
+                                <div class="facility-list-item" onclick="selectFacility(2)">
+                                    <span class="facility-name">Workshop ★★★</span>
+                                    <span class="facility-status">[upgrading]</span>
+                                </div>
+                                <div class="facility-list-item" onclick="selectFacility(3)">
+                                    <span class="facility-name">Whisper Office ★★</span>
+                                    <span class="facility-status">[busy]</span>
+                                </div>
+                            </div>
+
+                            <div class="sidebar-actions">
+                                <button class="btn btn-secondary" onclick="switchView(2)">+ New Facility</button>
+                                <button class="btn btn-secondary" onclick="openNPCModal()">👥 Manage NPCs</button>
+                            </div>
+                        </aside>
+
+                        <!-- CENTER: Facility Detail Panel (Tabs) -->
+                        <section class="facility-detail-panel">
+                            <div class="tabs">
+                                <button class="tab-btn active" onclick="switchTab('details')">Details</button>
+                                <button class="tab-btn" onclick="switchTab('npcs')">NPCs</button>
+                                <button class="tab-btn" onclick="switchTab('orders')">Orders</button>
+                            </div>
+
+                            <!-- TAB: Details -->
+                            <div id="tab-details" class="tab-content active">
+                                <h3>Facility Details</h3>
+                                <div class="detail-info">
+                                    <p><strong>Name:</strong> <span id="detail-name">[Facility Name]</span></p>
+                                    <p><strong>Beschreibung:</strong> <span id="detail-desc">[Placeholder]</span></p>
+                                    <p><strong>Tier:</strong> <span id="detail-tier">★★</span></p>
+                                    <p><strong>NPC Slots:</strong> <span id="detail-slots">2/3</span></p>
+                                    <p><strong>Status:</strong> <span id="detail-status">idle</span></p>
+                                </div>
+
+                                <div class="upgrade-section">
+                                    <h4>Upgrade</h4>
+                                    <p>Cost: 500g | Duration: 2 Turns</p>
+                                    <button class="btn btn-secondary">Upgrade</button>
+                                </div>
+                            </div>
+
+                            <!-- TAB: NPCs -->
+                            <div id="tab-npcs" class="tab-content">
+                                <h3>Assigned NPCs</h3>
+                                <table class="npcs-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Name</th>
+                                            <th>Profession</th>
+                                            <th>Level</th>
+                                            <th>XP</th>
+                                            <th>Upkeep</th>
+                                            <th>Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td>Rook</td>
+                                            <td>Spy</td>
+                                            <td>Experienced</td>
+                                            <td>7/10</td>
+                                            <td>20g</td>
+                                            <td><button class="btn btn-danger btn-small">Fire</button></td>
+                                        </tr>
+                                        <tr>
+                                            <td>Mara</td>
+                                            <td>Informant</td>
+                                            <td>Master</td>
+                                            <td>12/10</td>
+                                            <td>50g</td>
+                                            <td><button class="btn btn-danger btn-small">Fire</button></td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                                <button class="btn btn-secondary" onclick="openHireModal()">+ Hire NPC</button>
+                            </div>
+
+                            <!-- TAB: Orders -->
+                            <div id="tab-orders" class="tab-content">
+                                <h3>Orders</h3>
+                                
+                                <div class="order-current">
+                                    <h4>Aktive Order:</h4>
+                                    <p><strong>Gather Rumors</strong></p>
+                                    <p>Remaining: 2 Turns</p>
+                                    
+                                    <div class="roll-section">
+                                        <h5>Roll Results</h5>
+                                        <div class="form-group">
+                                            <label for="manual-roll">Manual Roll:</label>
+                                            <input type="number" id="manual-roll" min="1" max="20" placeholder="15" />
+                                        </div>
+                                        <button class="btn btn-secondary" onclick="autoRoll()">🎲 Auto Roll</button>
+                                        <button class="btn btn-primary" onclick="resolveOrder()">Resolve</button>
+                                    </div>
+                                </div>
+
+                                <div class="order-preview">
+                                    <h5>Outcome Preview:</h5>
+                                    <p class="placeholder">[Effects preview: +20 gold, +1 Heat, Event: ...]</p>
+                                </div>
+                            </div>
+                        </section>
+                    </div>
+
+                    <!-- BOTTOM: Turn Controls & Log -->
+                    <footer class="turn-controls">
+                        <div class="controls-buttons">
+                            <button class="btn btn-primary" onclick="advanceTurn()">⏭️ Advance Turn</button>
+                            <button class="btn btn-secondary" onclick="switchView(2)">+ Build New Facility</button>
+                            <button class="btn btn-secondary" onclick="openNPCModal()">👥 Manage NPCs</button>
+                            <button class="btn btn-success" onclick="saveSession()">💾 Save Session</button>
+                        </div>
+
+                        <div class="turn-log">
+                            <h4>Turn Log</h4>
+                            <div id="log-content" class="log-messages">
+                                <p class="log-entry success">✓ Garden +20 gold</p>
+                                <p class="log-entry event">⚠ Office agent killed (event)</p>
+                                <p class="log-entry success">✓ Shrine +1 reputation</p>
+                                <p class="log-entry fail">✗ Workshop craft failed</p>
+                            </div>
+                        </div>
+                    </footer>
+                </div>
+            </div>
+
         </main>
+    </div>
+
+    <!-- ===== MODALS ===== -->
+    
+    <!-- NPC Management Modal -->
+    <div id="npc-modal" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>NPC Management</h3>
+                <button class="modal-close" onclick="closeModal('npc-modal')">×</button>
+            </div>
+
+            <div class="modal-tabs">
+                <button class="modal-tab-btn active" onclick="switchModalTab('hired')">Angestellt</button>
+                <button class="modal-tab-btn" onclick="switchModalTab('hire')">Neue Anstellung</button>
+                <button class="modal-tab-btn" onclick="switchModalTab('roster')">Roster</button>
+            </div>
+
+            <!-- Hired NPCs -->
+            <div id="modal-tab-hired" class="modal-tab-content active">
+                <table class="npcs-table">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Facility</th>
+                            <th>Level</th>
+                            <th>Upkeep/Turn</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Rook</td>
+                            <td>Whisper Office</td>
+                            <td>Experienced</td>
+                            <td>20g</td>
+                            <td><button class="btn btn-danger btn-small" onclick="fireNPC()">Fire</button></td>
+                        </tr>
+                    </tbody>
+                </table>
+                <p class="text-muted">Total Upkeep: 20g</p>
+            </div>
+
+            <!-- Hire New NPC -->
+            <div id="modal-tab-hire" class="modal-tab-content">
+                <div class="form-group">
+                    <label for="hire-name">NPC-Name:</label>
+                    <input type="text" id="hire-name" placeholder="z.B. 'Rook'" />
+                </div>
+                <div class="form-group">
+                    <label for="hire-profession">Profession:</label>
+                    <select id="hire-profession">
+                        <option>Spy</option>
+                        <option>Gardener</option>
+                        <option>Craftsman</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="hire-level">Level:</label>
+                    <select id="hire-level">
+                        <option>Apprentice</option>
+                        <option>Experienced</option>
+                        <option>Master</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="hire-upkeep">Upkeep pro Turn:</label>
+                    <input type="text" id="hire-upkeep" placeholder="z.B. '20g' oder '5 silver'" />
+                </div>
+                <div class="form-group">
+                    <label for="hire-facility">Facility:</label>
+                    <select id="hire-facility">
+                        <option>[Facility 1]</option>
+                        <option>[Facility 2]</option>
+                    </select>
+                </div>
+                <button class="btn btn-primary" onclick="hireNPC()">Hire</button>
+            </div>
+
+            <!-- Roster -->
+            <div id="modal-tab-roster" class="modal-tab-content">
+                <p class="placeholder">[Available NPCs in world - to be filled]</p>
+            </div>
+        </div>
     </div>
 
     <script src="js/app.js"></script>
