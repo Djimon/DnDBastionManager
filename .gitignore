@@ -35,3 +35,4 @@ wheels/
 *.log
 session_log.csv
 Session_save.json
+sessions/

@@ -37,3 +37,5 @@ Zentrale Dokumentation aller vereinbarten Projekt-Regeln und Commitments zwische
 ## GitHub Issues
 
 - Issues immer per Commit-Referenz schliessen (z. B. Fixes #1), nicht direkt per CLI schliessen
+
+- Push-Flow: Nach einem Commit erst kurzer Test/Abnahme durch den User, dann Push

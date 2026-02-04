@@ -14,7 +14,7 @@ class Api:
     
     def __init__(self):
         logger.info("Initializing Api...")
-        self.data_dir = str(Path(__file__).parent / "core")
+        self.data_dir = str(Path(__file__).parent / "core" / "facilities")
         self.sessions_dir = str(Path(__file__).parent / "sessions")
         
         # Slice 1: Session Management

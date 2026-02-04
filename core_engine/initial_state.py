@@ -1,6 +1,6 @@
 """
 Session State Structure & Initial State Generator
-Basiert auf Leitplanke: Session_save.json
+Basiert auf Leitplanke: docs/examples/Session_save.json
 """
 import json
 from typing import Dict, List, Any
@@ -26,7 +26,7 @@ class InitialStateGenerator:
     ) -> Dict[str, Any]:
         """
         Erstelle einen neuen Session-State mit all den leeren/initialen Werten.
-        Struktur basiert auf Session_save.json als Leitplanke.
+        Struktur basiert auf docs/examples/Session_save.json als Leitplanke.
         
         Args:
             session_name: Name der Session
