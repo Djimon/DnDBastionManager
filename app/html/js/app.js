@@ -139,31 +139,62 @@ function removePlayer(element) {
 }
 
 function createSession() {
+    const dmName = document.getElementById('dm-name').value;
     const sessionName = document.getElementById('session-name').value;
     const bastionName = document.getElementById('bastion-name').value;
-    const bastionType = document.getElementById('bastion-type').value;
-    const bastionRegion = document.getElementById('bastion-region').value;
-    const bastionStory = document.getElementById('bastion-story').value;
+    const bastionLocation = document.getElementById('bastion-location').value;
+    const bastionDescription = document.getElementById('bastion-description').value;
     
-    if (!sessionName || !bastionName) {
-        alert('Please fill in Session Name and Bastion Name');
+    if (!dmName || !sessionName || !bastionName) {
+        alert('Please fill in DM Name, Session Name and Bastion Name');
         return;
     }
     
-    // Update state
-    appState.session.name = `${sessionName} (${bastionName})`;
-    appState.session.bastion = {
-        name: bastionName,
-        type: bastionType,
-        region: bastionRegion,
-        story: bastionStory
-    };
+    // Sammle Players
+    const playerElements = document.querySelectorAll('.player-item');
+    const players = Array.from(playerElements).map(el => {
+        const text = el.querySelector('span').textContent;
+        const match = text.match(/(.+?)\s*\((.+?),\s*Level\s+(\d+)\)/);
+        if (match) {
+            return {
+                name: match[1],
+                class: match[2],
+                level: parseInt(match[3])
+            };
+        }
+        return null;
+    }).filter(p => p !== null);
     
-    // Update header
-    document.querySelector('.session-name').textContent = appState.session.name;
-    
-    // Switch to View 2 (Build)
-    switchView(2);
+    // Rufe API auf
+    if (window.pywebview && window.pywebview.api) {
+        window.pywebview.api.create_session(
+            sessionName, bastionName, bastionLocation, bastionDescription, dmName, players
+        ).then(response => {
+            if (response.success) {
+                appState.session = response.session_state;
+                document.querySelector('.session-name').textContent = 
+                    `${sessionName} (${bastionName})`;
+                alert('Session created!');
+                switchView(2);
+            } else {
+                alert('Error: ' + response.message);
+            }
+        });
+    } else {
+        // Fallback: lokales Frontend-Only Testing
+        appState.session.name = `${sessionName} (${bastionName})`;
+        appState.session.dm_name = dmName;
+        appState.session.bastion = { 
+            name: bastionName, 
+            location: bastionLocation, 
+            description: bastionDescription 
+        };
+        appState.session.players = players;
+        
+        document.querySelector('.session-name').textContent = `${sessionName} (${bastionName})`;
+        alert('Session created (local mode)');
+        switchView(2);
+    }
 }
 
 // ===== VIEW 2: BUILD QUEUE =====
@@ -281,13 +312,46 @@ function addLogEntry(message, type = 'success') {
 }
 
 function saveSession() {
-    const sessionJson = JSON.stringify(appState.session, null, 2);
-    console.log('Session saved:', sessionJson);
-    alert('Session saved (see console)');
+    if (window.pywebview && window.pywebview.api) {
+        window.pywebview.api.save_session(appState.session).then(response => {
+            alert(response.message);
+        });
+    } else {
+        const sessionJson = JSON.stringify(appState.session, null, 2);
+        console.log('Session saved:', sessionJson);
+        alert('Session saved (see console)');
+    }
 }
 
 function loadSession() {
-    alert('Load session - implement file picker');
+    if (window.pywebview && window.pywebview.api) {
+        window.pywebview.api.list_sessions().then(response => {
+            if (response.sessions.length === 0) {
+                alert('No sessions available');
+                return;
+            }
+            
+            // Simple prompt (kann später verbessert werden)
+            const filename = prompt('Enter session filename:\n' + response.sessions.join('\n'));
+            if (!filename) return;
+            
+            window.pywebview.api.load_session(filename).then(loadResponse => {
+                if (loadResponse.success) {
+                    appState.session = loadResponse.session_state;
+                    const sessionName = loadResponse.session_state?.metadata?.session_name || '[Loaded]';
+                    document.querySelector('.session-name').textContent = sessionName;
+                    document.querySelector('.turn-counter').textContent = 
+                        `Turn: ${loadResponse.session_state?.turn || 0}`;
+                    alert('Session loaded!');
+                    switchView(3); // Gehe zu Turn Console
+                } else {
+                    alert('Error: ' + loadResponse.message);
+                }
+            });
+        });
+    } else {
+        alert('Load session - implement file picker');
+    }
 }
 
 // ===== NPC MANAGEMENT =====
