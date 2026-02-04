@@ -2,7 +2,8 @@ import webview
 import json
 import os
 from pathlib import Path
-from core_engine import SessionManager, InitialStateGenerator
+from core_engine.session_manager import SessionManager
+from core_engine.initial_state import InitialStateGenerator
 
 class Api:
     """API für die Kommunikation zwischen Frontend und Backend"""
@@ -12,8 +13,9 @@ class Api:
         self.sessions_dir = str(Path(__file__).parent / "sessions")
         
         # Slice 1: Session Management
-        self.session_manager = SessionManager(self.sessions_dir)
-        self.initial_state_gen = InitialStateGenerator()
+        # WICHTIG: Nicht als self.xxx speichern - pywebview kann Path-Objekte nicht serialisieren!
+        self._session_manager = SessionManager(self.sessions_dir)
+        self._initial_state_gen = InitialStateGenerator()
         
         # Current loaded session (in-memory)
         self.current_session = None
@@ -30,7 +32,7 @@ class Api:
         """
         try:
             # Generiere Initial State
-            state = self.initial_state_gen.generate_session_state(
+            state = self._initial_state_gen.generate_session_state(
                 session_name=session_name,
                 bastion_name=bastion_name,
                 bastion_location=bastion_location,
@@ -40,7 +42,7 @@ class Api:
             )
             
             # Validiere State
-            is_valid, errors = self.initial_state_gen.validate_initial_state(state)
+            is_valid, errors = self._initial_state_gen.validate_initial_state(state)
             if not is_valid:
                 return {
                     "success": False,
@@ -49,7 +51,7 @@ class Api:
                 }
             
             # Speichere Session
-            success, message = self.session_manager.create_session(state)
+            success, message = self._session_manager.create_session(state)
             
             # Lade Session in Memory
             if success:
@@ -81,7 +83,7 @@ class Api:
             if not state_to_save:
                 return {"success": False, "message": "No session to save"}
             
-            success, message = self.session_manager.create_session(state_to_save)
+            success, message = self._session_manager.create_session(state_to_save)
             return {"success": success, "message": message}
         
         except Exception as e:
@@ -95,7 +97,7 @@ class Api:
             {success: bool, message: str, session_state: dict or None}
         """
         try:
-            success, session_state, message = self.session_manager.load_session(filename)
+            success, session_state, message = self._session_manager.load_session(filename)
             
             if success:
                 self.current_session = session_state
@@ -121,7 +123,7 @@ class Api:
             {success: bool, sessions: list, message: str}
         """
         try:
-            success, sessions, message = self.session_manager.list_sessions()
+            success, sessions, message = self._session_manager.list_sessions()
             return {
                 "success": success,
                 "sessions": sessions,
