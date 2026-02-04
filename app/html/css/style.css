@@ -81,7 +81,8 @@ body {
 /* ===== VIEW 1: WIZARD ===== */
 
 .wizard-container {
-    max-width: 600px;
+    max-width: 90%;
+    width: 100%;
     margin: 0 auto;
 }
 
@@ -89,12 +90,17 @@ body {
     color: var(--primary);
     margin-bottom: 2rem;
     text-align: center;
+    grid-column: 1 / -1;
 }
 
 .wizard-form {
-    display: flex;
-    flex-direction: column;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
     gap: 2rem;
+}
+
+.wizard-form > .btn {
+    grid-column: 1 / -1;
 }
 
 fieldset {
@@ -102,6 +108,7 @@ fieldset {
     border-radius: 4px;
     padding: 1.5rem;
     background: var(--bg-light);
+    grid-column: auto;
 }
 
 legend {
@@ -152,6 +159,7 @@ legend {
     border: 1px dashed var(--border);
     border-radius: 4px;
     min-height: 60px;
+    grid-column: 1 / -1;
 }
 
 .player-item {
@@ -807,5 +815,9 @@ legend {
 
     .btn {
         width: 100%;
+    }
+
+    .wizard-form {
+        grid-template-columns: 1fr;
     }
 }
