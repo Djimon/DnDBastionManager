@@ -5,6 +5,7 @@ from pathlib import Path
 from core_engine.session_manager import SessionManager
 from core_engine.initial_state import InitialStateGenerator
 from core_engine.ledger import Ledger
+from core_engine.stats_registry import StatsRegistryLoader
 from core_engine.logger import setup_logger
 from core_engine.pack_validator import PackValidator
 
@@ -24,6 +25,7 @@ class Api:
         self._session_manager = SessionManager(self.sessions_dir)
         self._initial_state_gen = InitialStateGenerator()
         self._ledger = Ledger(Path(__file__).parent)
+        self._stats_registry = StatsRegistryLoader(Path(__file__).parent)
         self._pack_validator = PackValidator(Path(__file__).parent)
         
         # Current loaded session (in-memory)
@@ -44,6 +46,7 @@ class Api:
             logger.info(f"Creating session: {session_name} (Bastion: {bastion_name}, DM: {dm_name}, Players: {len(players)})")
             
             # Generiere Initial State
+            # Registriere Custom Stats aus Packs
             state = self._initial_state_gen.generate_session_state(
                 session_name=session_name,
                 bastion_name=bastion_name,
@@ -52,6 +55,7 @@ class Api:
                 dm_name=dm_name,
                 players=players
             )
+            self._stats_registry.apply_to_session(state)
             logger.debug(f"Generated state with session_id: {state.get('session_id')}")
             
             # Validiere State
@@ -117,6 +121,7 @@ class Api:
             
             if success:
                 self.current_session = session_state
+                self._stats_registry.apply_to_session(self.current_session)
             
             return {
                 "success": success,
