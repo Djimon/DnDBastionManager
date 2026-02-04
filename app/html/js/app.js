@@ -33,6 +33,7 @@ document.addEventListener('DOMContentLoaded', function() {
     console.log('window.pywebview available:', !!window.pywebview);
     logClient('info', 'App initialized');
     switchView(1); // Start with View 1 (Wizard)
+    renderAuditLog();
 });
 
 // Zusätzlich: Warte auf pywebview wenn noch nicht ready
@@ -156,16 +157,94 @@ function validatePacks(showAlert = true) {
     }
 }
 
+function getCurrentFacilityName() {
+    const nameEl = document.getElementById('detail-name');
+    if (nameEl && nameEl.textContent && !nameEl.textContent.includes('[Facility')) {
+        return nameEl.textContent.trim();
+    }
+    if (appState.selectedFacilityId !== null && appState.selectedFacilityId !== undefined) {
+        return `[Facility ${appState.selectedFacilityId}]`;
+    }
+    return '*';
+}
+
+function getCurrentOrderName() {
+    const orderEl = document.querySelector('#tab-orders .order-current strong');
+    if (orderEl && orderEl.textContent) {
+        return orderEl.textContent.trim();
+    }
+    return '';
+}
+
+function buildRollSourceId() {
+    const facilityName = getCurrentFacilityName();
+    const orderName = getCurrentOrderName();
+    return orderName ? `${facilityName}: ${orderName}` : facilityName;
+}
+
 function logAuditEvent(event) {
+    const entry = event || {};
+    if (entry.turn === undefined || entry.turn === null) {
+        entry.turn = appState.session.current_turn || appState.session.turn || 0;
+    }
+
+    const log = appState.session.audit_log || [];
+    log.push(entry);
+    appState.session.audit_log = log;
+    renderAuditLog();
+
     if (window.pywebview && window.pywebview.api && window.pywebview.api.add_audit_entry) {
-        window.pywebview.api.add_audit_entry(event).catch(err => {
+        window.pywebview.api.add_audit_entry(entry).catch(err => {
             console.error('Failed to add audit entry:', err);
         });
-    } else {
-        const log = appState.session.audit_log || [];
-        log.push(event);
-        appState.session.audit_log = log;
     }
+}
+
+function formatAuditFallback(entry) {
+    const parts = [];
+    if (entry.event_type) parts.push(entry.event_type);
+    if (entry.source_type) parts.push(entry.source_type);
+    if (entry.source_id) parts.push(entry.source_id);
+    if (entry.action) parts.push(entry.action);
+    if (entry.roll && entry.roll !== '-') parts.push(`roll ${entry.roll}`);
+    if (entry.changes) parts.push(entry.changes);
+    return parts.join(' | ');
+}
+
+function renderAuditLog() {
+    const logContent = document.getElementById('log-content');
+    if (!logContent) return;
+
+    const entries = appState.session.audit_log || [];
+    logContent.innerHTML = '';
+
+    if (entries.length === 0) {
+        const placeholder = document.createElement('p');
+        placeholder.className = 'log-entry event';
+        placeholder.textContent = 'No log entries yet.';
+        logContent.appendChild(placeholder);
+        return;
+    }
+
+    const recent = entries.slice(-50);
+    recent.forEach(entry => {
+        const result = (entry.result || '').toString().toLowerCase();
+        let cssType = 'event';
+        if (result.includes('success')) {
+            cssType = 'success';
+        } else if (result.includes('fail') || result.includes('error')) {
+            cssType = 'fail';
+        }
+
+        const line = document.createElement('p');
+        line.className = `log-entry ${cssType}`;
+        const turnText = entry.turn !== undefined ? `Turn ${entry.turn}` : 'Turn ?';
+        const text = entry.log_text || formatAuditFallback(entry);
+        line.textContent = `${turnText} ${text}`.trim();
+        logContent.appendChild(line);
+    });
+
+    logContent.scrollTop = logContent.scrollHeight;
 }
 
 // ===== VIEW 1: SESSION WIZARD =====
@@ -242,6 +321,7 @@ function createSession() {
             if (response.success) {
                 logClient('info', 'Session created successfully');
                 appState.session = response.session_state;
+                renderAuditLog();
                 document.querySelector('.session-name').textContent = 
                     `${sessionName} (${bastionName})`;
                 alert('Session created!');
@@ -266,6 +346,7 @@ function createSession() {
         appState.session.players = players;
         
         document.querySelector('.session-name').textContent = `${sessionName} (${bastionName})`;
+        renderAuditLog();
         alert('Session created (local mode)');
         switchView(2);
     }
@@ -356,14 +437,15 @@ function resolveOrder() {
         return;
     }
     
+    const sourceId = buildRollSourceId();
     logAuditEvent({
         event_type: "roll",
         source_type: "facility",
-        source_id: appState.selectedFacilityId ? `[Facility ${appState.selectedFacilityId}]` : "*",
+        source_id: sourceId,
         action: "resolve_order",
         roll: String(manualRoll),
         result: "resolved",
-        log_text: `Resolved order with roll: ${manualRoll}`
+        log_text: `${sourceId} rolled ${manualRoll}`
     });
     alert(`Resolved order with roll: ${manualRoll}`);
     addLogEntry('Order resolved', 'success');
@@ -372,14 +454,15 @@ function resolveOrder() {
 function autoRoll() {
     const roll = Math.floor(Math.random() * 20) + 1;
     document.getElementById('manual-roll').value = roll;
+    const sourceId = buildRollSourceId();
     logAuditEvent({
         event_type: "roll",
         source_type: "facility",
-        source_id: appState.selectedFacilityId ? `[Facility ${appState.selectedFacilityId}]` : "*",
+        source_id: sourceId,
         action: "auto_roll",
         roll: String(roll),
         result: "rolled",
-        log_text: `Auto roll: ${roll}`
+        log_text: `${sourceId} rolled ${roll}`
     });
 }
 
@@ -462,6 +545,7 @@ function loadSessionFile(filename) {
             if (response.success) {
                 logClient('info', `Session loaded successfully: ${filename}`);
                 appState.session = response.session_state;
+                renderAuditLog();
                 document.querySelector('.session-name').textContent = 
                     filename.replace('session_', '').replace('.json', '');
                 alert(`Session loaded: ${filename}`);
