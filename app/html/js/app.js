@@ -29,10 +29,19 @@ let appState = {
 // ===== INITIALIZATION =====
 
 document.addEventListener('DOMContentLoaded', function() {
+    console.log('DOMContentLoaded fired - App initializing...');
+    console.log('window.pywebview available:', !!window.pywebview);
     logClient('info', 'App initialized');
     switchView(1); // Start with View 1 (Wizard)
 });
-});
+
+// Zusätzlich: Warte auf pywebview wenn noch nicht ready
+if (window.addEventListener && typeof window.pywebviewready === 'undefined') {
+    window.addEventListener('pywebviewready', function() {
+        console.log('PyWebView ready event fired');
+        logClient('info', 'PyWebView connection established');
+    });
+}
 
 // ===== VIEW NAVIGATION =====
 
