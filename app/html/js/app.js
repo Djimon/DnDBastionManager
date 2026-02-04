@@ -354,33 +354,67 @@ function saveSession() {
 }
 
 function loadSession() {
+    logClient('info', 'Opening load session dialog');
+    
     if (window.pywebview && window.pywebview.api) {
+        // Lade Liste der verfügbaren Sessions
         window.pywebview.api.list_sessions().then(response => {
-            if (response.sessions.length === 0) {
+            if (!response.success || response.sessions.length === 0) {
                 alert('No sessions available');
                 return;
             }
             
-            // Simple prompt (kann später verbessert werden)
-            const filename = prompt('Enter session filename:\n' + response.sessions.join('\n'));
-            if (!filename) return;
+            // Zeige Modal mit Session-Liste
+            const sessionsList = document.getElementById('sessions-list');
+            sessionsList.innerHTML = '';
             
-            window.pywebview.api.load_session(filename).then(loadResponse => {
-                if (loadResponse.success) {
-                    appState.session = loadResponse.session_state;
-                    const sessionName = loadResponse.session_state?.metadata?.session_name || '[Loaded]';
-                    document.querySelector('.session-name').textContent = sessionName;
-                    document.querySelector('.turn-counter').textContent = 
-                        `Turn: ${loadResponse.session_state?.turn || 0}`;
-                    alert('Session loaded!');
-                    switchView(3); // Gehe zu Turn Console
-                } else {
-                    alert('Error: ' + loadResponse.message);
-                }
+            response.sessions.forEach(filename => {
+                const div = document.createElement('div');
+                div.className = 'session-item';
+                div.style.cssText = 'padding: 10px; border: 1px solid #ccc; margin: 5px 0; cursor: pointer; border-radius: 4px;';
+                div.innerHTML = `
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <strong>${filename}</strong>
+                        <button class="btn btn-primary btn-small" onclick="loadSessionFile('${filename}')">Load</button>
+                    </div>
+                `;
+                sessionsList.appendChild(div);
             });
+            
+            const modal = document.getElementById('load-session-modal');
+            modal.classList.remove('hidden');
+        }).catch(err => {
+            logClient('error', `Failed to load session list: ${err}`);
+            alert('Error loading sessions');
         });
     } else {
-        alert('Load session - implement file picker');
+        alert('PyWebView not available');
+    }
+}
+
+function loadSessionFile(filename) {
+    logClient('info', `Loading session: ${filename}`);
+    
+    if (window.pywebview && window.pywebview.api) {
+        window.pywebview.api.load_session(filename).then(response => {
+            if (response.success) {
+                logClient('info', `Session loaded successfully: ${filename}`);
+                appState.session = response.session_state;
+                document.querySelector('.session-name').textContent = 
+                    filename.replace('session_', '').replace('.json', '');
+                alert(`Session loaded: ${filename}`);
+                closeModal('load-session-modal');
+                switchView(3);  // Gehe zu Turn Console
+            } else {
+                logClient('error', `Failed to load session: ${response.message}`);
+                alert('Error: ' + response.message);
+            }
+        }).catch(err => {
+            logClient('error', `Failed to load session file: ${err}`);
+            alert('Error: ' + err);
+        });
+    } else {
+        alert('PyWebView not available');
     }
 }
 

@@ -385,6 +385,24 @@
         </div>
     </div>
 
+    <!-- Load Session Modal -->
+    <div id="load-session-modal" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Load Session</h3>
+                <button class="modal-close" onclick="closeModal('load-session-modal')">×</button>
+            </div>
+
+            <div id="sessions-list" class="sessions-list">
+                <p class="placeholder">Loading sessions...</p>
+            </div>
+
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal('load-session-modal')">Cancel</button>
+            </div>
+        </div>
+    </div>
+
     <script src="/js/app.js"></script>
 </body>
 </html>
