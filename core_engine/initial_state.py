@@ -64,6 +64,8 @@ class InitialStateGenerator:
                 },
                 
                 "inventory": [],  # [{ item, qty }, ...]
+
+                "stats": {},  # { stat_name: value }
                 
                 "facilities": [],  # [{ facility_id, built_turn, build_status, current_order, custom_stats, assigned_npcs }, ...]
                 

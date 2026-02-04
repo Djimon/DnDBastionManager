@@ -1,4 +1,5 @@
 import json
+from fractions import Fraction
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Set, Tuple
@@ -60,7 +61,7 @@ class PackValidator:
         all_facility_ids: Set[str] = set()
 
         for pack_file in sorted(self.facilities_dir.glob("*.json")):
-            pack_result, pack_id, facility_ids = self._validate_pack_file(pack_file, config)
+            pack_result, pack_id, facility_ids, skip_counts = self._sanitize_pack_file(pack_file, config)
             logger.info(f"Pack file: {pack_file}")
             if pack_result.errors:
                 for err in pack_result.errors:
@@ -77,6 +78,9 @@ class PackValidator:
                     "errors": pack_result.errors,
                     "warnings": pack_result.warnings,
                     "facility_count": len(facility_ids),
+                    "skipped_facilities": skip_counts.get("facilities", 0),
+                    "skipped_orders": skip_counts.get("orders", 0),
+                    "skipped_effects": skip_counts.get("effects", 0),
                 }
             )
             if pack_id:
@@ -167,6 +171,10 @@ class PackValidator:
             if not isinstance(conversion, list):
                 result.add_warning("currency.conversion missing or not list.")
             else:
+                known_types = set(types) if isinstance(types, list) else set()
+                to_set = set()
+                adjacency = {t: [] for t in known_types}
+
                 for idx, entry in enumerate(conversion):
                     if not isinstance(entry, dict):
                         result.add_warning(f"currency.conversion[{idx}] must be object.")
@@ -174,8 +182,54 @@ class PackValidator:
                     if "from" not in entry or "to" not in entry or "rate" not in entry:
                         result.add_warning(f"currency.conversion[{idx}] missing from/to/rate.")
                         continue
-                    if not isinstance(entry.get("rate"), int) or entry.get("rate") <= 0:
+                    src = entry.get("from")
+                    dst = entry.get("to")
+                    rate = entry.get("rate")
+                    if not isinstance(rate, int) or rate <= 0:
                         result.add_warning(f"currency.conversion[{idx}].rate must be positive int.")
+                        continue
+                    if src not in known_types or dst not in known_types:
+                        result.add_warning(f"currency.conversion[{idx}] references unknown type.")
+                        continue
+
+                    to_set.add(dst)
+                    adjacency[src].append((dst, Fraction(rate, 1)))
+                    adjacency[dst].append((src, Fraction(1, rate)))
+
+                if known_types:
+                    base_candidates = [t for t in types if t not in to_set]
+                    if len(base_candidates) == 0:
+                        result.add_error("currency has no base (every type appears as 'to').")
+                        base = types[0]
+                    elif len(base_candidates) > 1:
+                        result.add_warning(
+                            f"currency has multiple base candidates: {', '.join(base_candidates)}."
+                        )
+                        base = base_candidates[0]
+                    else:
+                        base = base_candidates[0]
+
+                    factors = {base: Fraction(1, 1)}
+                    stack = [base]
+                    while stack:
+                        cur = stack.pop()
+                        for nxt, mult in adjacency.get(cur, []):
+                            if nxt in factors:
+                                if factors[nxt] != factors[cur] * mult:
+                                    result.add_error(
+                                        f"currency conversion inconsistent for '{nxt}'."
+                                    )
+                                continue
+                            factors[nxt] = factors[cur] * mult
+                            stack.append(nxt)
+
+                    for t in types:
+                        if t not in factors:
+                            result.add_error(f"currency '{t}' not connected to base '{base}'.")
+                        elif factors[t].denominator != 1:
+                            result.add_error(
+                                f"currency '{t}' has non-integer factor to base ({factors[t]})."
+                            )
 
         return data, result
 
@@ -294,6 +348,347 @@ class PackValidator:
                 result.add_warning(f"{pack_file}: unknown custom_mechanics type '{mech_type}'.")
 
         return result, index
+
+
+    def _sanitize_pack_file(
+        self, pack_file: Path, config: Dict[str, Any]
+    ) -> Tuple[ValidationResult, Optional[str], Set[str], Dict[str, int]]:
+        result = ValidationResult()
+        skip_counts = {"facilities": 0, "orders": 0, "effects": 0}
+
+        data, error = self._load_json(pack_file)
+        if error:
+            result.add_error(error)
+            return result, None, set(), skip_counts
+
+        if not isinstance(data, dict):
+            result.add_error(f"{pack_file} must be a JSON object.")
+            return result, None, set(), skip_counts
+
+        pack_id = data.get("pack_id")
+        if not pack_id or not isinstance(pack_id, str):
+            result.add_error(f"{pack_file}: missing or invalid 'pack_id'.")
+        elif " " in pack_id:
+            result.add_warning(f"{pack_file}: pack_id contains spaces ('{pack_id}').")
+
+        if "name" not in data or not isinstance(data["name"], str):
+            result.add_error(f"{pack_file}: missing or invalid 'name'.")
+
+        if "version" not in data:
+            result.add_warning(f"{pack_file}: missing 'version'.")
+
+        facilities = data.get("facilities")
+        if not isinstance(facilities, list):
+            result.add_error(f"{pack_file}: 'facilities' must be a list.")
+            return result, pack_id, set(), skip_counts
+        if len(facilities) == 0:
+            result.add_warning(f"{pack_file}: facilities list is empty.")
+
+        custom_mechanics = data.get("custom_mechanics", [])
+        mechanics_result, mechanics_index = self._validate_custom_mechanics(custom_mechanics, pack_file)
+        result.extend(mechanics_result)
+
+        facility_ids: Set[str] = set()
+        sanitized_facilities = []
+
+        for idx, facility in enumerate(facilities):
+            fac_res, fac_data, fac_id, fac_tier = self._sanitize_facility(
+                facility,
+                pack_file=pack_file,
+                index=idx,
+                config=config,
+                mechanics_index=mechanics_index,
+                path=f"facilities[{idx}]",
+                skip_counts=skip_counts,
+            )
+            result.extend(fac_res)
+            if fac_data is None or not fac_id:
+                skip_counts["facilities"] += 1
+                continue
+            if fac_id in facility_ids:
+                result.add_error(f"{pack_file.name}: facilities[{idx}].id duplicate '{fac_id}'.")
+                skip_counts["facilities"] += 1
+                continue
+            facility_ids.add(fac_id)
+            sanitized_facilities.append(fac_data)
+
+        # Parent validation (skip invalid facilities)
+        removed = True
+        while removed:
+            removed = False
+            valid_ids = {f.get("id") for f in sanitized_facilities if isinstance(f, dict)}
+            new_list = []
+            for fac in sanitized_facilities:
+                path = fac.pop("__path", "facilities[?]") if isinstance(fac, dict) else "facilities[?]"
+                fac["__path"] = path
+                tier = fac.get("tier") if isinstance(fac, dict) else None
+                parent = fac.get("parent") if isinstance(fac, dict) else None
+                if tier == 1 and parent is not None:
+                    result.add_error(f"{pack_file.name}: {path}.parent must be null for tier 1.")
+                    skip_counts["facilities"] += 1
+                    removed = True
+                    continue
+                if isinstance(parent, str) and parent not in valid_ids:
+                    result.add_error(f"{pack_file.name}: {path}.parent '{parent}' not found in pack.")
+                    skip_counts["facilities"] += 1
+                    removed = True
+                    continue
+                new_list.append(fac)
+            sanitized_facilities = new_list
+
+        # Remove internal path marker
+        for fac in sanitized_facilities:
+            if isinstance(fac, dict) and "__path" in fac:
+                fac.pop("__path", None)
+
+        return result, pack_id, facility_ids, skip_counts
+
+    def _sanitize_facility(
+        self,
+        facility: Any,
+        pack_file: Path,
+        index: int,
+        config: Dict[str, Any],
+        mechanics_index: Dict[str, Set[str]],
+        path: str,
+        skip_counts: Dict[str, int],
+    ) -> Tuple[ValidationResult, Optional[Dict[str, Any]], Optional[str], Optional[int]]:
+        result = ValidationResult()
+        facility_errors = False
+
+        if not isinstance(facility, dict):
+            result.add_error(f"{pack_file.name}: {path} must be an object.")
+            return result, None, None, None
+
+        facility_id = facility.get("id")
+        if not facility_id or not isinstance(facility_id, str):
+            result.add_error(f"{pack_file.name}: {path}.id missing or invalid.")
+            facility_errors = True
+        elif " " in facility_id:
+            result.add_warning(f"{pack_file.name}: {path}.id contains spaces ('{facility_id}').")
+
+        name = facility.get("name")
+        if not name or not isinstance(name, str):
+            result.add_error(f"{pack_file.name}: {path}.name missing or invalid.")
+            facility_errors = True
+
+        tier = facility.get("tier")
+        if not isinstance(tier, int):
+            result.add_error(f"{pack_file.name}: {path}.tier missing or invalid.")
+            facility_errors = True
+
+        parent = facility.get("parent")
+        if isinstance(tier, int) and tier != 1 and parent is None:
+            result.add_error(f"{pack_file.name}: {path}.parent missing for tier {tier}.")
+            facility_errors = True
+
+        build = facility.get("build")
+        if not isinstance(build, dict):
+            result.add_error(f"{pack_file.name}: {path}.build missing or invalid.")
+            facility_errors = True
+        else:
+            cost = build.get("cost")
+            if not isinstance(cost, dict):
+                result.add_error(f"{pack_file.name}: {path}.build.cost must be object.")
+                facility_errors = True
+            duration = build.get("duration_turns")
+            if not isinstance(duration, int) or duration <= 0:
+                result.add_error(
+                    f"{pack_file.name}: {path}.build.duration_turns must be positive int."
+                )
+                facility_errors = True
+
+        npc_slots = facility.get("npc_slots")
+        if not isinstance(npc_slots, int) or npc_slots < 0:
+            result.add_error(f"{pack_file.name}: {path}.npc_slots must be >= 0 int.")
+            facility_errors = True
+
+        npc_allowed = facility.get("npc_allowed_professions")
+        if npc_allowed is not None and not isinstance(npc_allowed, list):
+            result.add_error(f"{pack_file.name}: {path}.npc_allowed_professions must be list.")
+            facility_errors = True
+
+        orders = facility.get("orders")
+        if not isinstance(orders, list):
+            result.add_error(f"{pack_file.name}: {path}.orders must be list.")
+            facility_errors = True
+
+        if facility_errors:
+            return result, None, facility_id, tier if isinstance(tier, int) else None
+
+        sanitized_orders = []
+        order_ids: Set[str] = set()
+        for o_idx, order in enumerate(orders):
+            o_result, o_data, o_id = self._sanitize_order(
+                order,
+                pack_file=pack_file,
+                config=config,
+                mechanics_index=mechanics_index,
+                path=f"{path}.orders[{o_idx}]",
+                skip_counts=skip_counts,
+            )
+            result.extend(o_result)
+            if o_data is None or not o_id:
+                skip_counts["orders"] += 1
+                continue
+            if o_id in order_ids:
+                result.add_error(f"{pack_file.name}: {path}.orders duplicate id '{o_id}'.")
+                skip_counts["orders"] += 1
+                continue
+            order_ids.add(o_id)
+            sanitized_orders.append(o_data)
+
+        sanitized_facility = dict(facility)
+        sanitized_facility["orders"] = sanitized_orders
+        sanitized_facility["__path"] = path
+
+        return result, sanitized_facility, facility_id, tier if isinstance(tier, int) else None
+
+    def _sanitize_order(
+        self,
+        order: Any,
+        pack_file: Path,
+        config: Dict[str, Any],
+        mechanics_index: Dict[str, Set[str]],
+        path: str,
+        skip_counts: Dict[str, int],
+    ) -> Tuple[ValidationResult, Optional[Dict[str, Any]], Optional[str]]:
+        result = ValidationResult()
+        order_errors = False
+
+        if not isinstance(order, dict):
+            result.add_error(f"{pack_file.name}: {path} must be object.")
+            return result, None, None
+
+        order_id = order.get("id")
+        if not order_id or not isinstance(order_id, str):
+            result.add_error(f"{pack_file.name}: {path}.id missing.")
+            order_errors = True
+        elif " " in order_id:
+            result.add_warning(f"{pack_file.name}: {path}.id contains spaces ('{order_id}').")
+
+        if "name" not in order or not isinstance(order["name"], str):
+            result.add_error(f"{pack_file.name}: {path}.name missing.")
+            order_errors = True
+
+        duration = order.get("duration_turns")
+        if not isinstance(duration, int) or duration <= 0:
+            result.add_error(f"{pack_file.name}: {path}.duration_turns must be positive int.")
+            order_errors = True
+
+        outcome = order.get("outcome")
+        if not isinstance(outcome, dict):
+            result.add_error(f"{pack_file.name}: {path}.outcome missing or invalid.")
+            order_errors = True
+
+        if order_errors:
+            return result, None, order_id
+
+        check_profile = outcome.get("check_profile")
+        if check_profile is not None:
+            profiles = config.get("check_profiles", {})
+            if check_profile not in profiles:
+                result.add_error(
+                    f"{pack_file.name}: {path}.outcome.check_profile unknown '{check_profile}'."
+                )
+                return result, None, order_id
+
+        sanitized_outcome = dict(outcome)
+        for block_key in [
+            "on_success",
+            "on_failure",
+            "on_critical_success",
+            "on_critical_failure",
+        ]:
+            block = outcome.get(block_key)
+            if block is None:
+                continue
+            if not isinstance(block, dict):
+                result.add_error(f"{pack_file.name}: {path}.outcome.{block_key} must be object.")
+                return result, None, order_id
+            effects = block.get("effects")
+            if not isinstance(effects, list):
+                result.add_error(f"{pack_file.name}: {path}.outcome.{block_key}.effects must be list.")
+                return result, None, order_id
+
+            sanitized_effects = []
+            for e_idx, effect in enumerate(effects):
+                e_result, e_data = self._sanitize_effect(
+                    effect,
+                    pack_file=pack_file,
+                    mechanics_index=mechanics_index,
+                    path=f"{path}.outcome.{block_key}.effects[{e_idx}]",
+                )
+                result.extend(e_result)
+                if e_data is None:
+                    skip_counts["effects"] += 1
+                    continue
+                sanitized_effects.append(e_data)
+
+            new_block = dict(block)
+            new_block["effects"] = sanitized_effects
+            sanitized_outcome[block_key] = new_block
+
+        sanitized_order = dict(order)
+        sanitized_order["outcome"] = sanitized_outcome
+
+        return result, sanitized_order, order_id
+
+    def _sanitize_effect(
+        self,
+        effect: Any,
+        pack_file: Path,
+        mechanics_index: Dict[str, Set[str]],
+        path: str,
+    ) -> Tuple[ValidationResult, Optional[Dict[str, Any]]]:
+        result = ValidationResult()
+        if not isinstance(effect, dict):
+            result.add_error(f"{pack_file.name}: {path} must be object.")
+            return result, None
+
+        keys = set(effect.keys())
+        if "currency" in keys or "amount" in keys:
+            result.add_warning(
+                f"{pack_file.name}: {path} uses currency/amount; prefer configured currency keys."
+            )
+
+        known_keys = {"gold", "silver", "copper", "item", "qty", "stat", "delta", "log", "event", "random_event", "trigger"}
+        if not keys & known_keys:
+            result.add_warning(
+                f"{pack_file.name}: {path} unknown effect keys: {', '.join(sorted(keys))}."
+            )
+
+        if "event" in effect:
+            event_id = effect.get("event")
+            if isinstance(event_id, str):
+                if event_id not in mechanics_index["event_ids"]:
+                    result.add_error(
+                        f"{pack_file.name}: {path}.event '{event_id}' not found in event_table."
+                    )
+                    return result, None
+        if "random_event" in effect:
+            ref = effect.get("random_event")
+            if isinstance(ref, str):
+                if ref.startswith("group:"):
+                    group_id = ref[len("group:"):]
+                    if group_id not in mechanics_index["event_groups"]:
+                        result.add_error(
+                            f"{pack_file.name}: {path}.random_event group '{group_id}' not found."
+                        )
+                        return result, None
+                else:
+                    result.add_warning(
+                        f"{pack_file.name}: {path}.random_event '{ref}' should be 'group:<id>'."
+                    )
+        if "trigger" in effect:
+            trigger_id = effect.get("trigger")
+            if isinstance(trigger_id, str):
+                if trigger_id not in mechanics_index["formula_ids"]:
+                    result.add_warning(
+                        f"{pack_file.name}: {path}.trigger '{trigger_id}' not found in formula_engine mechanics."
+                    )
+
+        return result, effect
 
     def _index_event_table(
         self,

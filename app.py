@@ -4,6 +4,7 @@ import os
 from pathlib import Path
 from core_engine.session_manager import SessionManager
 from core_engine.initial_state import InitialStateGenerator
+from core_engine.ledger import Ledger
 from core_engine.logger import setup_logger
 from core_engine.pack_validator import PackValidator
 
@@ -22,6 +23,7 @@ class Api:
         # WICHTIG: Nicht als self.xxx speichern - pywebview kann Path-Objekte nicht serialisieren!
         self._session_manager = SessionManager(self.sessions_dir)
         self._initial_state_gen = InitialStateGenerator()
+        self._ledger = Ledger(Path(__file__).parent)
         self._pack_validator = PackValidator(Path(__file__).parent)
         
         # Current loaded session (in-memory)
@@ -151,6 +153,21 @@ class Api:
                 "message": f"Error listing sessions: {str(e)}"
             }
     
+    def apply_effects(self, effects: list) -> dict:
+        """
+        Apply ledger effects to current session.
+
+        Returns:
+            {success: bool, errors: list, entries: list, session_state: dict}
+        """
+        try:
+            if not self.current_session:
+                return {"success": False, "errors": ["No session loaded"], "entries": []}
+            result = self._ledger.apply_effects(self.current_session, effects)
+            return result
+        except Exception as e:
+            return {"success": False, "errors": [str(e)], "entries": []}
+
     # ===== DEBUGGING & LOGGING =====
     
     def log_client(self, level: str, message: str) -> dict:
