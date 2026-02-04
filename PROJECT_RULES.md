@@ -14,7 +14,7 @@ Zentrale Dokumentation aller vereinbarten Projekt-Regeln und Commitments zwische
 - Python: Alle Module loggen via `core_engine.logger.setup_logger()`
 - JavaScript: Frontend loggt via `logClient(level, message)` → Server API
 - Log-Dateien: `logs/app.log`, `logs/session_manager.log`, etc.
-- User prüft Logs zur Fehleranalyse nach manuellen Tests
+- Agent und user prüfen regelmäßig Logs zur Fehleranalyse nach manuellen Tests
 
 ## Development Workflow
 
@@ -33,3 +33,7 @@ Zentrale Dokumentation aller vereinbarten Projekt-Regeln und Commitments zwische
 - Kurze, prägnante Zusammenfassungen
 - Deutsche Sprache (wie User schreibt)
 - Bei Pausen: Kurze Status-Updates statt ausführliche Erklärungen
+
+## GitHub Issues
+
+- Issues immer per Commit-Referenz schliessen (z. B. Fixes #1), nicht direkt per CLI schliessen
