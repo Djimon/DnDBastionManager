@@ -259,6 +259,24 @@ class Api:
         """
         return self.current_session or {}
 
+    def get_currency_model(self) -> dict:
+        """
+        Return currency model (types, base currency, factor map).
+        """
+        try:
+            return {
+                "types": self._ledger.currency_types,
+                "base_currency": self._ledger.base_currency,
+                "factor_to_base": self._ledger.factor_to_base,
+            }
+        except Exception as e:
+            return {
+                "types": ["[Curr]"],
+                "base_currency": "[Curr]",
+                "factor_to_base": {"[Curr]": 1},
+                "error": str(e),
+            }
+
     # ===== SLICE 2: PACK VALIDATION =====
 
     def validate_packs(self) -> dict:
