@@ -80,6 +80,7 @@ class InitialStateGenerator:
             
             # ===== LOGS (für Slice 6) =====
             "turn_log": [],  # [{ turn, facility_id, message, type }, ...]
+            "audit_log": [],  # [{ turn, event_type, source_type, source_id, action, roll, result, changes, log_text }, ...]
         }
         
         logger.debug(f"Generated state with {len(players or [])} players and initial treasury")

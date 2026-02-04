@@ -156,6 +156,18 @@ function validatePacks(showAlert = true) {
     }
 }
 
+function logAuditEvent(event) {
+    if (window.pywebview && window.pywebview.api && window.pywebview.api.add_audit_entry) {
+        window.pywebview.api.add_audit_entry(event).catch(err => {
+            console.error('Failed to add audit entry:', err);
+        });
+    } else {
+        const log = appState.session.audit_log || [];
+        log.push(event);
+        appState.session.audit_log = log;
+    }
+}
+
 // ===== VIEW 1: SESSION WIZARD =====
 
 function addPlayer() {
@@ -344,6 +356,15 @@ function resolveOrder() {
         return;
     }
     
+    logAuditEvent({
+        event_type: "roll",
+        source_type: "facility",
+        source_id: appState.selectedFacilityId ? `[Facility ${appState.selectedFacilityId}]` : "*",
+        action: "resolve_order",
+        roll: String(manualRoll),
+        result: "resolved",
+        log_text: `Resolved order with roll: ${manualRoll}`
+    });
     alert(`Resolved order with roll: ${manualRoll}`);
     addLogEntry('Order resolved', 'success');
 }
@@ -351,6 +372,15 @@ function resolveOrder() {
 function autoRoll() {
     const roll = Math.floor(Math.random() * 20) + 1;
     document.getElementById('manual-roll').value = roll;
+    logAuditEvent({
+        event_type: "roll",
+        source_type: "facility",
+        source_id: appState.selectedFacilityId ? `[Facility ${appState.selectedFacilityId}]` : "*",
+        action: "auto_roll",
+        roll: String(roll),
+        result: "rolled",
+        log_text: `Auto roll: ${roll}`
+    });
 }
 
 function advanceTurn() {

@@ -4,6 +4,7 @@ from pathlib import Path
 from typing import Any, Dict, List, Tuple
 
 from .logger import setup_logger
+from .audit_log import AuditLog
 
 logger = setup_logger("ledger")
 
@@ -13,6 +14,7 @@ class Ledger:
         self.config_path = root_dir / "core" / "config" / "bastion_config.json"
         self.config = self._load_config()
         self.currency_types, self.base_currency, self.factor_to_base = self._build_currency_model()
+        self._audit_log = AuditLog()
 
     def _load_config(self) -> Dict[str, Any]:
         try:
@@ -87,7 +89,7 @@ class Ledger:
     def _fallback_currency(self) -> Tuple[List[str], str, Dict[str, int]]:
         return ["[Curr]"], "[Curr]", {"[Curr]": 1}
 
-    def apply_effects(self, session_state: Dict[str, Any], effects: List[Dict[str, Any]]) -> Dict[str, Any]:
+    def apply_effects(self, session_state: Dict[str, Any], effects: List[Dict[str, Any]], context: Dict[str, Any] = None) -> Dict[str, Any]:
         if not session_state:
             return {"success": False, "errors": ["No session state provided"], "entries": []}
 
@@ -153,6 +155,29 @@ class Ledger:
         bastion["treasury_base"] = treasury_base
         self._update_wallet_from_base(wallet, treasury_base)
 
+        turn = int(session_state.get("current_turn", 0))
+        ctx = context or {}
+        event_type = ctx.get("event_type", "ledger_apply")
+        source_type = ctx.get("source_type", "system")
+        source_id = ctx.get("source_id", "*")
+        action = ctx.get("action", "apply_effects")
+        roll = ctx.get("roll", "-")
+        result = ctx.get("result", "applied" if not errors else "error")
+        changes = ctx.get("changes") or self._format_changes(entries)
+        log_text = ctx.get("log_text") or self._format_log_text(entries)
+        self._audit_log.add_entry(
+            session_state,
+            turn,
+            event_type,
+            source_type,
+            source_id,
+            action,
+            roll,
+            result,
+            changes,
+            log_text,
+        )
+
         return {
             "success": len(errors) == 0,
             "errors": errors,
@@ -208,6 +233,21 @@ class Ledger:
             amount = remaining // factor
             remaining = remaining % factor
             wallet[currency] = amount
+
+    def _format_changes(self, entries: List[Dict[str, Any]]) -> str:
+        parts = []
+        for entry in entries:
+            if entry.get("type") == "currency":
+                parts.append(f"currency:{entry.get('currency')}:{entry.get('delta')}")
+            elif entry.get("type") == "item":
+                parts.append(f"item:{entry.get('item')}:{entry.get('qty')}")
+            elif entry.get("type") == "stat":
+                parts.append(f"stat:{entry.get('stat')}:{entry.get('delta')}")
+        return "|".join(parts)
+
+    def _format_log_text(self, entries: List[Dict[str, Any]]) -> str:
+        logs = [e.get("message") for e in entries if e.get("type") == "log" and e.get("message")]
+        return " | ".join(logs)
 
     def _apply_item_delta(self, inventory: List[Dict[str, Any]], item: str, qty: int) -> None:
         for entry in inventory:

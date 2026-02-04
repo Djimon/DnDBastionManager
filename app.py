@@ -6,6 +6,7 @@ from core_engine.session_manager import SessionManager
 from core_engine.initial_state import InitialStateGenerator
 from core_engine.ledger import Ledger
 from core_engine.stats_registry import StatsRegistryLoader
+from core_engine.audit_log import AuditLog
 from core_engine.logger import setup_logger
 from core_engine.pack_validator import PackValidator
 
@@ -27,6 +28,7 @@ class Api:
         self._ledger = Ledger(Path(__file__).parent)
         self._stats_registry = StatsRegistryLoader(Path(__file__).parent)
         self._pack_validator = PackValidator(Path(__file__).parent)
+        self._audit_log = AuditLog()
         
         # Current loaded session (in-memory)
         self.current_session = None
@@ -158,7 +160,7 @@ class Api:
                 "message": f"Error listing sessions: {str(e)}"
             }
     
-    def apply_effects(self, effects: list) -> dict:
+    def apply_effects(self, effects: list, context: dict = None) -> dict:
         """
         Apply ledger effects to current session.
 
@@ -168,10 +170,24 @@ class Api:
         try:
             if not self.current_session:
                 return {"success": False, "errors": ["No session loaded"], "entries": []}
-            result = self._ledger.apply_effects(self.current_session, effects)
+            result = self._ledger.apply_effects(self.current_session, effects, context)
             return result
         except Exception as e:
             return {"success": False, "errors": [str(e)], "entries": []}
+
+    def add_audit_entry(self, event: dict) -> dict:
+        """
+        Add a custom audit log entry.
+
+        event fields: turn, event_type, source_type, source_id, action, roll, result, changes, log_text
+        """
+        try:
+            if not self.current_session:
+                return {"success": False, "message": "No session loaded"}
+            self._audit_log.add_entry_from_event(self.current_session, event or {})
+            return {"success": True}
+        except Exception as e:
+            return {"success": False, "message": str(e)}
 
     # ===== DEBUGGING & LOGGING =====
     
