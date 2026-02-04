@@ -27,6 +27,9 @@ class ValidationResult:
 
 
 class PackValidator:
+    def _path(self, pack_file: Path, suffix: str) -> str:
+        return f"{pack_file.name}:{suffix}"
+
     def __init__(self, root_dir: Path):
         self.root_dir = root_dir
         self.facilities_dir = root_dir / "core" / "facilities"
@@ -133,6 +136,47 @@ class PackValidator:
                     if "npc_level" not in entry:
                         result.add_warning(f"check_profile '{profile_name}.{level_key}' missing 'npc_level'.")
 
+
+        # npc_progression checks
+        npc_prog = data.get("npc_progression")
+        if npc_prog is None:
+            result.add_warning("bastion_config.json missing npc_progression.")
+        elif not isinstance(npc_prog, dict):
+            result.add_error("bastion_config.json npc_progression must be an object.")
+        else:
+            if "xp_per_success" not in npc_prog or not isinstance(npc_prog.get("xp_per_success"), int):
+                result.add_warning("npc_progression.xp_per_success missing or not int.")
+            level_thresholds = npc_prog.get("level_thresholds")
+            if not isinstance(level_thresholds, dict):
+                result.add_warning("npc_progression.level_thresholds missing or not object.")
+            level_names = npc_prog.get("level_names")
+            if not isinstance(level_names, dict):
+                result.add_warning("npc_progression.level_names missing or not object.")
+
+        # currency checks
+        currency = data.get("currency")
+        if currency is None:
+            result.add_warning("bastion_config.json missing currency.")
+        elif not isinstance(currency, dict):
+            result.add_error("bastion_config.json currency must be an object.")
+        else:
+            types = currency.get("types")
+            if not isinstance(types, list) or not types:
+                result.add_warning("currency.types missing or not list.")
+            conversion = currency.get("conversion")
+            if not isinstance(conversion, list):
+                result.add_warning("currency.conversion missing or not list.")
+            else:
+                for idx, entry in enumerate(conversion):
+                    if not isinstance(entry, dict):
+                        result.add_warning(f"currency.conversion[{idx}] must be object.")
+                        continue
+                    if "from" not in entry or "to" not in entry or "rate" not in entry:
+                        result.add_warning(f"currency.conversion[{idx}] missing from/to/rate.")
+                        continue
+                    if not isinstance(entry.get("rate"), int) or entry.get("rate") <= 0:
+                        result.add_warning(f"currency.conversion[{idx}].rate must be positive int.")
+
         return data, result
 
     def _validate_pack_file(
@@ -181,16 +225,17 @@ class PackValidator:
                 index=idx,
                 config=config,
                 mechanics_index=mechanics_index,
+                path=f"facilities[{idx}]"
             )
             result.extend(f_result)
             if f_id:
                 if f_id in facility_ids:
-                    result.add_error(f"{pack_file}: duplicate facility id '{f_id}'.")
+                    result.add_error(f"{pack_file.name}: facilities[{idx}].id duplicate '{f_id}'.")
                 facility_ids.add(f_id)
                 if f_tier is not None:
                     facility_id_to_tier[f_id] = f_tier
 
-        for facility in facilities:
+        for idx, facility in enumerate(facilities):
             if not isinstance(facility, dict):
                 continue
             f_id = facility.get("id")
@@ -199,18 +244,17 @@ class PackValidator:
             if tier == 1:
                 if parent_id is not None:
                     result.add_error(
-                        f"{pack_file}: facility '{f_id}' tier 1 must have parent = null."
+                        f"{pack_file.name}: facilities[{idx}].parent must be null for tier 1."
                     )
             if isinstance(parent_id, str):
                 if parent_id not in facility_ids:
                     result.add_error(
-                        f"{pack_file}: facility '{f_id}' parent '{parent_id}' not found in pack."
+                        f"{pack_file.name}: facilities[{idx}].parent '{parent_id}' not found in pack."
                     )
                 elif f_id in facility_id_to_tier and parent_id in facility_id_to_tier:
                     if facility_id_to_tier[parent_id] >= facility_id_to_tier[f_id]:
                         result.add_warning(
-                            f"{pack_file}: facility '{f_id}' tier {facility_id_to_tier[f_id]} "
-                            f"has parent with tier {facility_id_to_tier[parent_id]}."
+                            f"{pack_file.name}: facilities[{idx}].parent tier >= child tier."
                         )
 
         return result, pack_id, facility_ids
@@ -282,66 +326,67 @@ class PackValidator:
         index: int,
         config: Dict[str, Any],
         mechanics_index: Dict[str, Set[str]],
+        path: str,
     ) -> Tuple[ValidationResult, Optional[str], Optional[int]]:
         result = ValidationResult()
         if not isinstance(facility, dict):
-            result.add_error(f"{pack_file}: facility[{index}] must be an object.")
+            result.add_error(f"{pack_file.name}: {path} must be an object.")
             return result, None, None
 
         facility_id = facility.get("id")
         if not facility_id or not isinstance(facility_id, str):
-            result.add_error(f"{pack_file}: facility[{index}] missing or invalid 'id'.")
+            result.add_error(f"{pack_file.name}: {path}.id missing or invalid.")
         elif " " in facility_id:
-            result.add_warning(f"{pack_file}: facility id contains spaces ('{facility_id}').")
+            result.add_warning(f"{pack_file.name}: {path}.id contains spaces ('{facility_id}').")
 
         name = facility.get("name")
         if not name or not isinstance(name, str):
-            result.add_error(f"{pack_file}: facility[{index}] missing or invalid 'name'.")
+            result.add_error(f"{pack_file.name}: {path}.name missing or invalid.")
 
         tier = facility.get("tier")
         if not isinstance(tier, int):
-            result.add_error(f"{pack_file}: facility[{index}] missing or invalid 'tier'.")
+            result.add_error(f"{pack_file.name}: {path}.tier missing or invalid.")
 
         parent = facility.get("parent")
         if tier != 1 and parent is None:
-            result.add_error(f"{pack_file}: facility '{facility_id}' tier {tier} missing 'parent'.")
+            result.add_error(f"{pack_file.name}: {path}.parent missing for tier {tier}.")
 
         build = facility.get("build")
         if not isinstance(build, dict):
-            result.add_error(f"{pack_file}: facility '{facility_id}' missing or invalid 'build'.")
+            result.add_error(f"{pack_file.name}: {path}.build missing or invalid.")
         else:
             cost = build.get("cost")
             if not isinstance(cost, dict):
-                result.add_error(f"{pack_file}: facility '{facility_id}' build.cost must be object.")
+                result.add_error(f"{pack_file.name}: {path}.build.cost must be object.")
             duration = build.get("duration_turns")
             if not isinstance(duration, int) or duration <= 0:
                 result.add_error(
-                    f"{pack_file}: facility '{facility_id}' build.duration_turns must be positive int."
+                    f"{pack_file.name}: {path}.build.duration_turns must be positive int."
                 )
 
         npc_slots = facility.get("npc_slots")
         if not isinstance(npc_slots, int) or npc_slots < 0:
-            result.add_error(f"{pack_file}: facility '{facility_id}' npc_slots must be >= 0 int.")
+            result.add_error(f"{pack_file.name}: {path}.npc_slots must be >= 0 int.")
 
         npc_allowed = facility.get("npc_allowed_professions")
         if npc_allowed is not None and not isinstance(npc_allowed, list):
-            result.add_error(f"{pack_file}: facility '{facility_id}' npc_allowed_professions must be list.")
+            result.add_error(f"{pack_file.name}: {path}.npc_allowed_professions must be list.")
 
         orders = facility.get("orders")
         if not isinstance(orders, list):
-            result.add_error(f"{pack_file}: facility '{facility_id}' orders must be list.")
+            result.add_error(f"{pack_file.name}: {path}.orders must be list.")
             return result, facility_id, tier if isinstance(tier, int) else None
 
         order_ids: Set[str] = set()
         for o_idx, order in enumerate(orders):
             o_result, o_id = self._validate_order(
-                order, pack_file, facility_id, o_idx, config, mechanics_index
+                order, pack_file, facility_id, o_idx, config, mechanics_index, f"{path}.orders[{o_idx}]"
             )
             result.extend(o_result)
             if o_id:
                 if o_id in order_ids:
                     result.add_error(
-                        f"{pack_file}: facility '{facility_id}' duplicate order id '{o_id}'."
+                        f"{pack_file.name}: {path}.orders duplicate id '{o_id}'."
                     )
                 order_ids.add(o_id)
 
@@ -355,32 +400,33 @@ class PackValidator:
         index: int,
         config: Dict[str, Any],
         mechanics_index: Dict[str, Set[str]],
+        path: str,
     ) -> Tuple[ValidationResult, Optional[str]]:
         result = ValidationResult()
         if not isinstance(order, dict):
-            result.add_error(f"{pack_file}: order[{index}] in facility '{facility_id}' must be object.")
+            result.add_error(f"{pack_file.name}: {path} must be object.")
             return result, None
 
         order_id = order.get("id")
         if not order_id or not isinstance(order_id, str):
-            result.add_error(f"{pack_file}: facility '{facility_id}' order[{index}] missing 'id'.")
+            result.add_error(f"{pack_file.name}: {path}.id missing.")
         elif " " in order_id:
             result.add_warning(
-                f"{pack_file}: facility '{facility_id}' order id contains spaces ('{order_id}')."
+                f"{pack_file.name}: {path}.id contains spaces ('{order_id}')."
             )
 
         if "name" not in order or not isinstance(order["name"], str):
-            result.add_error(f"{pack_file}: facility '{facility_id}' order '{order_id}' missing name.")
+            result.add_error(f"{pack_file.name}: {path}.name missing.")
 
         duration = order.get("duration_turns")
         if not isinstance(duration, int) or duration <= 0:
             result.add_error(
-                f"{pack_file}: facility '{facility_id}' order '{order_id}' duration_turns must be positive int."
+                f"{pack_file.name}: {path}.duration_turns must be positive int."
             )
 
         outcome = order.get("outcome")
         if not isinstance(outcome, dict):
-            result.add_error(f"{pack_file}: facility '{facility_id}' order '{order_id}' missing outcome.")
+            result.add_error(f"{pack_file.name}: {path}.outcome missing or invalid.")
             return result, order_id
 
         check_profile = outcome.get("check_profile")
@@ -388,8 +434,7 @@ class PackValidator:
             profiles = config.get("check_profiles", {})
             if check_profile not in profiles:
                 result.add_error(
-                    f"{pack_file}: facility '{facility_id}' order '{order_id}' "
-                    f"unknown check_profile '{check_profile}'."
+                    f"{pack_file.name}: {path}.outcome.check_profile unknown '{check_profile}'."
                 )
 
         for block_key in [
@@ -403,18 +448,18 @@ class PackValidator:
                 continue
             if not isinstance(block, dict):
                 result.add_error(
-                    f"{pack_file}: facility '{facility_id}' order '{order_id}' {block_key} must be object."
+                    f"{pack_file.name}: {path}.outcome.{block_key} must be object."
                 )
                 continue
             effects = block.get("effects")
             if not isinstance(effects, list):
                 result.add_error(
-                    f"{pack_file}: facility '{facility_id}' order '{order_id}' {block_key}.effects must be list."
+                    f"{pack_file.name}: {path}.outcome.{block_key}.effects must be list."
                 )
                 continue
             for e_idx, effect in enumerate(effects):
                 e_result = self._validate_effect(
-                    effect, pack_file, facility_id, order_id, block_key, e_idx, mechanics_index
+                    effect, pack_file, facility_id, order_id, block_key, e_idx, mechanics_index, f"{path}.outcome.{block_key}.effects[{e_idx}]"
                 )
                 result.extend(e_result)
 
@@ -429,26 +474,25 @@ class PackValidator:
         block_key: str,
         index: int,
         mechanics_index: Dict[str, Set[str]],
+        path: str,
     ) -> ValidationResult:
         result = ValidationResult()
         if not isinstance(effect, dict):
             result.add_error(
-                f"{pack_file}: facility '{facility_id}' order '{order_id}' {block_key}.effects[{index}] must be object."
+                f"{pack_file.name}: {path} must be object."
             )
             return result
 
         keys = set(effect.keys())
         if "currency" in keys or "amount" in keys:
             result.add_warning(
-                f"{pack_file}: facility '{facility_id}' order '{order_id}' "
-                f"{block_key}.effects[{index}] uses currency/amount; prefer gold/silver/copper."
+                f"{pack_file.name}: {path} uses currency/amount; prefer gold/silver/copper."
             )
 
         known_keys = {"gold", "silver", "copper", "item", "qty", "stat", "delta", "log", "event", "random_event", "trigger"}
         if not keys & known_keys:
             result.add_warning(
-                f"{pack_file}: facility '{facility_id}' order '{order_id}' {block_key}.effects[{index}] "
-                f"unknown effect keys: {', '.join(sorted(keys))}."
+                f"{pack_file.name}: {path} unknown effect keys: {', '.join(sorted(keys))}."
             )
 
         if "event" in effect:
@@ -456,8 +500,7 @@ class PackValidator:
             if isinstance(event_id, str):
                 if event_id not in mechanics_index["event_ids"]:
                     result.add_error(
-                        f"{pack_file}: facility '{facility_id}' order '{order_id}' "
-                        f"event '{event_id}' not found in event_table."
+                        f"{pack_file.name}: {path}.event '{event_id}' not found in event_table."
                     )
         if "random_event" in effect:
             ref = effect.get("random_event")
@@ -466,21 +509,18 @@ class PackValidator:
                     group_id = ref[len("group:") :]
                     if group_id not in mechanics_index["event_groups"]:
                         result.add_error(
-                            f"{pack_file}: facility '{facility_id}' order '{order_id}' "
-                            f"random_event group '{group_id}' not found."
+                            f"{pack_file.name}: {path}.random_event group '{group_id}' not found."
                         )
                 else:
                     result.add_warning(
-                        f"{pack_file}: facility '{facility_id}' order '{order_id}' "
-                        f"random_event '{ref}' should be 'group:<id>'."
+                        f"{pack_file.name}: {path}.random_event '{ref}' should be 'group:<id>'."
                     )
         if "trigger" in effect:
             trigger_id = effect.get("trigger")
             if isinstance(trigger_id, str):
                 if trigger_id not in mechanics_index["formula_ids"]:
                     result.add_warning(
-                        f"{pack_file}: facility '{facility_id}' order '{order_id}' "
-                        f"trigger '{trigger_id}' not found in formula_engine mechanics."
+                        f"{pack_file.name}: {path}.trigger '{trigger_id}' not found in formula_engine mechanics."
                     )
 
         return result
