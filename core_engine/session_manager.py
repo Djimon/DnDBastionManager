@@ -7,6 +7,9 @@ from pathlib import Path
 from typing import Dict, Any, Optional, Tuple
 from datetime import datetime
 import shutil
+from .logger import setup_logger
+
+logger = setup_logger("session_manager")
 
 class SessionManager:
     """Verwaltet Session-Dateien (Speichern, Laden, Migrationen)"""
@@ -23,6 +26,7 @@ class SessionManager:
         sessions_path.mkdir(parents=True, exist_ok=True)
         self.sessions_dir = str(sessions_path)
         self._sessions_path = sessions_path  # Interne Path-Referenz für Operationen
+        logger.info(f"SessionManager initialized with sessions_dir: {self.sessions_dir}")
     
     def create_session(self, session_state: Dict[str, Any]) -> Tuple[bool, str]:
         """
@@ -38,20 +42,25 @@ class SessionManager:
         try:
             # Erstelle Dateinamen mit Timestamp
             timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-            session_name = session_state.get('metadata', {}).get('session_name', 'unnamed')
+            # FIXED: Nutze 'bastion.name' nicht 'metadata.session_name'
+            session_name = session_state.get('bastion', {}).get('name', 'unnamed')
+            logger.debug(f"Creating session file with bastion name: {session_name}")
             
             # Sanitize filename
             safe_name = "".join(c for c in session_name if c.isalnum() or c in (' ', '_', '-')).rstrip()
             filename = f"session_{safe_name}_{timestamp}.json"
             filepath = self._sessions_path / filename
+            logger.debug(f"Session file path: {filepath}")
             
             # Speichere JSON
             with open(filepath, 'w', encoding='utf-8') as f:
                 json.dump(session_state, f, indent=2, ensure_ascii=False)
             
+            logger.info(f"Session successfully saved to: {filename}")
             return (True, f"Session saved: {filename}")
         
         except Exception as e:
+            logger.error(f"Error saving session: {str(e)}", exc_info=True)
             return (False, f"Error saving session: {str(e)}")
     
     def load_session(self, filename: str) -> Tuple[bool, Optional[Dict[str, Any]], str]:

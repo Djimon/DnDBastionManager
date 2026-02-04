@@ -5,6 +5,9 @@ Basiert auf Leitplanke: Session_save.json
 import json
 from typing import Dict, List, Any
 from datetime import datetime
+from .logger import setup_logger
+
+logger = setup_logger("initial_state")
 
 class InitialStateGenerator:
     """Generiert den initialen State für eine neue Session"""
@@ -37,9 +40,10 @@ class InitialStateGenerator:
         Returns:
             Kompletter Session-State als Dict
         """
+        logger.info(f"Generating initial state for session '{session_name}' with bastion '{bastion_name}'")
         today = datetime.now().strftime("%Y-%m-%d")
         
-        return {
+        state = {
             # ===== METADATA =====
             "session_id": f"session_{session_name.lower().replace(' ', '_')}_{datetime.now().strftime('%Y%m%d_%H%M%S')}",
             "dm_name": dm_name,
@@ -75,6 +79,9 @@ class InitialStateGenerator:
             # ===== LOGS (für Slice 6) =====
             "turn_log": [],  # [{ turn, facility_id, message, type }, ...]
         }
+        
+        logger.debug(f"Generated state with {len(players or [])} players and initial treasury")
+        return state
     
     @staticmethod
     def validate_initial_state(state: Dict[str, Any]) -> tuple[bool, List[str]]:

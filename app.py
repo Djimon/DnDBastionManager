@@ -4,11 +4,16 @@ import os
 from pathlib import Path
 from core_engine.session_manager import SessionManager
 from core_engine.initial_state import InitialStateGenerator
+from core_engine.logger import setup_logger
+
+# Initialisiere Logger
+logger = setup_logger("app")
 
 class Api:
     """API für die Kommunikation zwischen Frontend und Backend"""
     
     def __init__(self):
+        logger.info("Initializing Api...")
         self.data_dir = str(Path(__file__).parent / "core")
         self.sessions_dir = str(Path(__file__).parent / "sessions")
         
@@ -19,6 +24,7 @@ class Api:
         
         # Current loaded session (in-memory)
         self.current_session = None
+        logger.info("Api initialized successfully")
     
     # ===== SLICE 1: SESSION LIFECYCLE =====
     
@@ -31,6 +37,8 @@ class Api:
             {success: bool, message: str, session_state: dict or None}
         """
         try:
+            logger.info(f"Creating session: {session_name} (Bastion: {bastion_name}, DM: {dm_name}, Players: {len(players)})")
+            
             # Generiere Initial State
             state = self._initial_state_gen.generate_session_state(
                 session_name=session_name,
@@ -40,10 +48,12 @@ class Api:
                 dm_name=dm_name,
                 players=players
             )
+            logger.debug(f"Generated state with session_id: {state.get('session_id')}")
             
             # Validiere State
             is_valid, errors = self._initial_state_gen.validate_initial_state(state)
             if not is_valid:
+                logger.error(f"State validation failed: {errors}")
                 return {
                     "success": False,
                     "message": f"Invalid state: {', '.join(errors)}",
@@ -52,10 +62,12 @@ class Api:
             
             # Speichere Session
             success, message = self._session_manager.create_session(state)
+            logger.info(f"Session save result: {success} - {message}")
             
             # Lade Session in Memory
             if success:
                 self.current_session = state
+                logger.info("Session loaded into memory")
             
             return {
                 "success": success,
@@ -136,6 +148,31 @@ class Api:
                 "sessions": [],
                 "message": f"Error listing sessions: {str(e)}"
             }
+    
+    # ===== DEBUGGING & LOGGING =====
+    
+    def log_client(self, level: str, message: str) -> dict:
+        """
+        Schreibe Logs vom Client in die Logdatei.
+        
+        Args:
+            level: 'info', 'warn', 'error', 'debug'
+            message: Log-Nachricht vom Client
+        """
+        try:
+            if level == "error":
+                logger.error(f"[CLIENT] {message}")
+            elif level == "warn":
+                logger.warning(f"[CLIENT] {message}")
+            elif level == "debug":
+                logger.debug(f"[CLIENT] {message}")
+            else:
+                logger.info(f"[CLIENT] {message}")
+            
+            return {"success": True}
+        except Exception as e:
+            logger.error(f"Error logging client message: {str(e)}")
+            return {"success": False}
     
     def get_current_session(self) -> dict:
         """

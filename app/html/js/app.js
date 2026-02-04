@@ -1,3 +1,14 @@
+// ===== LOGGING UTILITY =====
+
+function logClient(level, message) {
+    console.log(`[${level.toUpperCase()}] ${message}`);
+    if (window.pywebview && window.pywebview.api) {
+        window.pywebview.api.log_client(level, message).catch(err => {
+            console.error('Failed to send log to server:', err);
+        });
+    }
+}
+
 // ===== APP STATE =====
 
 let appState = {
@@ -18,7 +29,7 @@ let appState = {
 // ===== INITIALIZATION =====
 
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('App initialized');
+    logClient('info', 'App initialized');
     switchView(1); // Start with View 1 (Wizard)
 });
 });
@@ -145,7 +156,10 @@ function createSession() {
     const bastionLocation = document.getElementById('bastion-location').value;
     const bastionDescription = document.getElementById('bastion-description').value;
     
+    logClient('info', `Creating session: ${sessionName} with bastion: ${bastionName}`);
+    
     if (!dmName || !sessionName || !bastionName) {
+        logClient('warn', 'Form incomplete - missing required fields');
         alert('Please fill in DM Name, Session Name and Bastion Name');
         return;
     }
@@ -165,20 +179,27 @@ function createSession() {
         return null;
     }).filter(p => p !== null);
     
+    logClient('debug', `Calling API with ${players.length} players`);
+    
     // Rufe API auf
     if (window.pywebview && window.pywebview.api) {
         window.pywebview.api.create_session(
             sessionName, bastionName, bastionLocation, bastionDescription, dmName, players
         ).then(response => {
             if (response.success) {
+                logClient('info', 'Session created successfully');
                 appState.session = response.session_state;
                 document.querySelector('.session-name').textContent = 
                     `${sessionName} (${bastionName})`;
                 alert('Session created!');
                 switchView(2);
             } else {
+                logClient('error', `Session creation failed: ${response.message}`);
                 alert('Error: ' + response.message);
             }
+        }).catch(err => {
+            logClient('error', `API call error: ${err}`);
+            alert('API Error: ' + err);
         });
     } else {
         // Fallback: lokales Frontend-Only Testing
