@@ -1,7 +1,7 @@
 import json
 from fractions import Fraction
 from pathlib import Path
-from typing import Any, Dict, List, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 
 from .logger import setup_logger
 from .audit_log import AuditLog
@@ -184,6 +184,14 @@ class Ledger:
             "entries": entries,
             "session_state": session_state,
         }
+
+    def get_treasury_base(self, session_state: Dict[str, Any]) -> Optional[int]:
+        if not session_state:
+            return None
+        bastion = session_state.setdefault("bastion", {})
+        wallet = bastion.setdefault("treasury", {})
+        errors: List[str] = []
+        return self._ensure_treasury_base(bastion, wallet, errors)
 
     def _ensure_treasury_base(self, bastion: Dict[str, Any], wallet: Dict[str, Any], errors: List[str]) -> int:
         if isinstance(bastion.get("treasury_base"), int):

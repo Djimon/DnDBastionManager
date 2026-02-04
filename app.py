@@ -5,6 +5,7 @@ from pathlib import Path
 from core_engine.session_manager import SessionManager
 from core_engine.initial_state import InitialStateGenerator
 from core_engine.ledger import Ledger
+from core_engine.facility_manager import FacilityManager
 from core_engine.stats_registry import StatsRegistryLoader
 from core_engine.audit_log import AuditLog
 from core_engine.logger import setup_logger
@@ -27,6 +28,7 @@ class Api:
         self._initial_state_gen = InitialStateGenerator()
         self._ledger = Ledger(Path(__file__).parent)
         self._stats_registry = StatsRegistryLoader(Path(__file__).parent)
+        self._facility_manager = FacilityManager(Path(__file__).parent, self._ledger)
         self._pack_validator = PackValidator(Path(__file__).parent)
         self._audit_log = AuditLog()
         
@@ -186,6 +188,43 @@ class Api:
                 return {"success": False, "message": "No session loaded"}
             self._audit_log.add_entry_from_event(self.current_session, event or {})
             return {"success": True}
+        except Exception as e:
+            return {"success": False, "message": str(e)}
+
+    def add_build_facility(self, facility_id: str, allow_negative: bool = False) -> dict:
+        """Start building a facility by id."""
+        try:
+            if not self.current_session:
+                return {"success": False, "message": "No session loaded"}
+            return self._facility_manager.add_build_facility(self.current_session, facility_id, allow_negative)
+        except Exception as e:
+            return {"success": False, "message": str(e)}
+
+    def add_upgrade_facility(self, facility_id: str, allow_negative: bool = False) -> dict:
+        """Start upgrading a facility by id."""
+        try:
+            if not self.current_session:
+                return {"success": False, "message": "No session loaded"}
+            return self._facility_manager.add_upgrade_facility(self.current_session, facility_id, allow_negative)
+        except Exception as e:
+            return {"success": False, "message": str(e)}
+
+    def get_facility_states(self) -> dict:
+        """Return resolved facility states."""
+        try:
+            if not self.current_session:
+                return {"success": False, "message": "No session loaded", "states": []}
+            states = self._facility_manager.resolve_facility_states(self.current_session)
+            return {"success": True, "states": states}
+        except Exception as e:
+            return {"success": False, "message": str(e), "states": []}
+
+    def advance_turn(self) -> dict:
+        """Advance turn and resolve build/upgrade completion."""
+        try:
+            if not self.current_session:
+                return {"success": False, "message": "No session loaded"}
+            return self._facility_manager.advance_turn(self.current_session)
         except Exception as e:
             return {"success": False, "message": str(e)}
 
