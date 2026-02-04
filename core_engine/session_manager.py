@@ -30,8 +30,8 @@ class SessionManager:
     
     def create_session(self, session_state: Dict[str, Any]) -> Tuple[bool, str]:
         """
-        Speichere eine neue Session.
-        Dateiname: sessions/session_<timestamp>.json
+        Speichere eine Session (neu oder Update).
+        Dateiname bleibt stabil, wenn bereits bekannt.
         
         Args:
             session_state: Der komplette Session-State von InitialStateGenerator
@@ -40,15 +40,25 @@ class SessionManager:
             (success: bool, message: str)
         """
         try:
-            # Erstelle Dateinamen mit Timestamp
-            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-            # FIXED: Nutze 'bastion.name' nicht 'metadata.session_name'
-            session_name = session_state.get('bastion', {}).get('name', 'unnamed')
-            logger.debug(f"Creating session file with bastion name: {session_name}")
-            
-            # Sanitize filename
-            safe_name = "".join(c for c in session_name if c.isalnum() or c in (' ', '_', '-')).rstrip()
-            filename = f"session_{safe_name}_{timestamp}.json"
+            filename = session_state.get("_session_filename")
+
+            if not filename:
+                session_id = session_state.get("session_id")
+                if isinstance(session_id, str) and session_id.strip():
+                    filename = f"{session_id}.json"
+                else:
+                    # Erstelle Dateinamen mit Timestamp (Fallback)
+                    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+                    # FIXED: Nutze 'bastion.name' nicht 'metadata.session_name'
+                    session_name = session_state.get('bastion', {}).get('name', 'unnamed')
+                    logger.debug(f"Creating session file with bastion name: {session_name}")
+
+                    # Sanitize filename
+                    safe_name = "".join(c for c in session_name if c.isalnum() or c in (' ', '_', '-')).rstrip()
+                    filename = f"session_{safe_name}_{timestamp}.json"
+
+            # Merke Dateiname im State, damit Saves stabil bleiben
+            session_state["_session_filename"] = filename
             filepath = self._sessions_path / filename
             logger.debug(f"Session file path: {filepath}")
             
@@ -93,6 +103,10 @@ class SessionManager:
             success, migrated_state = self._migrate_if_needed(session_state)
             if not success:
                 return (False, None, f"Migration failed: {migrated_state}")
+            
+            # Merke Dateiname im State, damit Save denselben Namen nutzt
+            if isinstance(migrated_state, dict):
+                migrated_state["_session_filename"] = filepath.name
             
             return (True, migrated_state, f"Session loaded: {filename}")
         
