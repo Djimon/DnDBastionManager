@@ -1,0 +1,91 @@
+{
+  "pack_id": "djih.pub",
+  "name": "Pub",
+  "version": 1,
+  "author" : "Djih",
+
+  "custom_mechanic": [
+    {
+    "name": "pub_management", 
+    "type": "formula_engine",
+    "config": {
+        "inputs": [
+        {"name": "beer_stock", "source": "item:beer:qty"},
+        {"name": "food_stock", "source": "item:food:qty"},
+        {"name": "reputation", "source": "stat:reputation"},
+        {"name": "base_income", "value": 10}
+        ],
+        "calculations": [
+          {
+            "name": "consumption",
+            "formula": "1d6+reputation"
+          },
+          {
+            "name": "satisfaction",
+            "formula": "(beer_stock - consumption) + (food_stock - consumption)"
+          },
+          {
+            "name": "final_income",
+            "formula": "satisfaction * base_income"
+          },
+          {
+            "name": "reputation_delta",
+            "conditions": [
+              {"if": "satisfaction < 0", "then": -1},
+              {"if": "satisfaction > 10", "then": 1},
+              {"else": 0}
+            ]
+          }
+          ],
+        "effects": [
+        {"item": "beer", "qty": "-${consumption}"},
+        {"item": "food", "qty": "-${consumption}"},
+        {"currency": "gold", "amount": "+${final_income}"},
+        {"stat": "reputation", "delta": "+${reputation_delta}"}
+        ]
+    }
+  }
+  ],
+
+  "custom_mechanic":[
+  {
+    "name": "Ancient Text Collection",
+    "type": "stat_counter",
+    "config": {
+        "custom_stat_name": "ancient_texts_collected",
+        "min_value": 0,
+        "max_value": 10 // completion threshold
+    }
+  }],
+
+  "custom_mechanic":[
+  {
+  "type": "timer_based",
+  "config": {
+    "direction": "countdown",  // or "countup"
+    "auto_update": true,       // countdown: -1, countup: +1
+    "slots": 2  //paralel counter
+  }
+  }],
+
+
+  "custom_mechanic": [
+  {
+    "name": "Church of Light Favor",
+    "type": "stat_counter",
+    "config": {
+        "custom_stat_name": "favor_church_light",
+        "min_value": -100,
+        "max_value": 100
+    }
+  },
+  {
+    "name": "Church of Dark Sun",
+    "type": "stat_counter",
+    "config": {
+        "custom_stat_name": "favor_church_dark",
+        "min_value": -100,
+        "max_value": 100
+    }
+  }]
+}

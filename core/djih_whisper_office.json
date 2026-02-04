@@ -1,0 +1,282 @@
+{
+  "pack_id": "core.extended.whisperoffice",
+  "name": "Whisper Office",
+  "version": 4,
+  "author": "Djih",
+  "custom_mechanics": [
+    {
+      "id": "heat",
+      "type": "stat_counter",
+      "config": {
+        "start": 0,
+        "min": -10,
+        "max": 10,
+        "name": "Heat",
+        "description": "Higher activity increases danger. High heat may trigger complications."
+      }
+    },
+    {
+      "id": "whisperoffice_events",
+      "type": "event_table",
+      "config": {
+        "groups": [
+          {
+            "id": "whisperoffice.breakthroughs",
+            "name": "Breakthroughs",
+            "entries": [
+              { "id": "whisperoffice.breakthrough", "weight": 2, "text": "A major intelligence breakthrough shifts the balance." },
+              { "id": "whisperoffice.cipher_broken", "weight": 2, "text": "Your network breaks a cipher and gains access to hidden correspondence." },
+              { "id": "whisperoffice.leverage_stockpile", "weight": 1, "text": "You secure overwhelming leverage on key figures." },
+              { "id": "whisperoffice.case_closed", "weight": 1, "text": "Loose ends are tied up; the operation disappears without a trace." }
+            ]
+          },
+          {
+            "id": "whisperoffice.safehouse",
+            "name": "Safehouse Complications",
+            "entries": [
+              { "id": "whisperoffice.safehouse_compromised", "weight": 3, "text": "A safehouse is compromised." },
+              { "id": "whisperoffice.false_trail_planted", "weight": 2, "text": "You plant a false trail successfully." },
+              { "id": "whisperoffice.mole_suspected", "weight": 1, "text": "Someone suspects a mole inside the network." }
+            ]
+          },
+          {
+            "id": "whisperoffice.ops_disaster",
+            "name": "Operational Disasters",
+            "entries": [
+              { "id": "whisperoffice.agent_killed", "weight": 2, "text": "An agent is killed during the operation." },
+              { "id": "whisperoffice.trail_exposed", "weight": 3, "text": "Your methods are exposed." },
+              { "id": "whisperoffice.guards_investigate", "weight": 4, "text": "The guards begin an investigation." },
+              { "id": "whisperoffice.rival_countermove", "weight": 2, "text": "A rival faction counter-moves and turns the tables." },
+              { "id": "whisperoffice.leak", "weight": 3, "text": "A leak spreads rumors about your operation." }
+            ]
+          }
+        ]
+      }
+    }
+  ],
+  "facilities": [
+    {
+      "id": "core.whisperoffice:office:t1",
+      "name": "Whisper Office",
+      "description": "A small network of informants and street ears gathering rumors.",
+      "tier": 1,
+      "parent": null,
+      "build": {
+        "cost": { "gold": 80 },
+        "duration_turns": 2
+      },
+      "npc_slots": 1,
+      "npc_allowed_professions": ["spy", "informant"],
+      "npc_base_upkeep": { "silver": 5 },
+      "orders": [
+        {
+          "id": "gather_rumors",
+          "name": "Gather Rumors",
+          "description": "Collect street talk and minor secrets.",
+          "min_npc_level": 1,
+          "duration_turns": 1,
+          "outcome": {
+            "check_profile": "d20",
+            "on_success": {
+              "effects": [
+                { "gold": 10 },
+                { "stat": "heat", "delta": 1 },
+                { "log": "Useful rumors acquired." }
+              ]
+            },
+            "on_critical_success": {
+              "effects": [
+                { "gold": 20 },
+                { "item": "secret_document", "qty": 1 },
+                { "stat": "heat", "delta": 1 },
+                { "random_event": "group:whisperoffice.breakthroughs" },
+                { "log": "Major intelligence breakthrough!" }
+              ]
+            },
+            "on_failure": {
+              "effects": [
+                { "log": "Nothing noteworthy found." }
+              ]
+            },
+            "on_critical_failure": {
+              "effects": [
+                { "stat": "heat", "delta": 5 },
+                { "gold": -20 },
+                { "random_event": "group:whisperoffice.ops_disaster" },
+                { "log": "Catastrophic exposure! The operation blows back hard." }
+              ]
+            }
+          }
+        },
+        {
+          "id": "lay_low",
+          "name": "Lay Low",
+          "description": "Reduce suspicion and cool things down.",
+          "min_npc_level": 2,
+          "duration_turns": 1,
+          "outcome": {
+            "check_profile": "d20",
+            "on_success": {
+              "effects": [
+                { "stat": "heat", "delta": -2 },
+                { "log": "Heat reduced." }
+              ]
+            },
+            "on_critical_success": {
+              "effects": [
+                { "stat": "heat", "delta": -4 },
+                { "event": "whisperoffice.false_trail_planted" },
+                { "log": "Perfect misdirection. Heat drops sharply." }
+              ]
+            },
+            "on_failure": {
+              "effects": [
+                { "stat": "heat", "delta": 1 },
+                { "log": "Someone got suspicious…" }
+              ]
+            },
+            "on_critical_failure": {
+              "effects": [
+                { "stat": "heat", "delta": 2 },
+                { "random_event": "group:whisperoffice.safehouse" },
+                { "log": "Trouble while trying to lay low." }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "core.whisperoffice:office:t2",
+      "name": "Whisper Office – Network Hub",
+      "description": "A larger intelligence network with deeper reach and bigger risks.",
+      "tier": 2,
+      "parent": "core.whisperoffice:office:t1",
+      "build": {
+        "cost": { "gold": 250 },
+        "duration_turns": 2
+      },
+      "npc_slots": 2,
+      "npc_allowed_professions": ["spy", "informant", "rogue"],
+      "npc_base_upkeep": { "silver": 10 },
+      "orders": [
+        {
+          "id": "intercept_letters",
+          "name": "Intercept Letters",
+          "description": "Intercept and decode private correspondence.",
+          "min_npc_level": 1,
+          "duration_turns": 1,
+          "outcome": {
+            "check_profile": "d20",
+            "on_success": {
+              "effects": [
+                { "gold": 15 },
+                { "item": "intercepted_letter", "qty": 1 },
+                { "stat": "heat", "delta": 1 },
+                { "log": "The courier route was exploited successfully." }
+              ]
+            },
+            "on_critical_success": {
+              "effects": [
+                { "gold": 25 },
+                { "item": "intercepted_letter", "qty": 2 },
+                { "item": "cipher_key", "qty": 1 },
+                { "stat": "heat", "delta": 2 },
+                { "event": "whisperoffice.cipher_broken" },
+                { "log": "You cracked an encrypted exchange and secured a cipher key." }
+              ]
+            },
+            "on_failure": {
+              "effects": [
+                { "stat": "heat", "delta": 1 },
+                { "log": "The courier noticed something was off." }
+              ]
+            },
+            "on_critical_failure": {
+              "effects": [
+                { "stat": "heat", "delta": 3 },
+                { "gold": -10 },
+                { "event": "whisperoffice.trail_exposed" },
+                { "log": "The interception backfired. Your methods are exposed." }
+              ]
+            }
+          }
+        },
+        {
+          "id": "blackmail_target",
+          "name": "Blackmail Target",
+          "description": "Exploit secrets for leverage or payment.",
+          "min_npc_level": 2,
+          "duration_turns": 1,
+          "outcome": {
+            "check_profile": "d20_hard",
+            "on_success": {
+              "effects": [
+                { "gold": 40 },
+                { "stat": "heat", "delta": 2 },
+                { "log": "Target paid to keep quiet." }
+              ]
+            },
+            "on_critical_success": {
+              "effects": [
+                { "gold": 80 },
+                { "stat": "heat", "delta": 3 },
+                { "event": "whisperoffice.leverage_stockpile" },
+                { "log": "You gained overwhelming leverage and extracted a huge payout." }
+              ]
+            },
+            "on_failure": {
+              "effects": [
+                { "stat": "heat", "delta": 3 },
+                { "log": "Operation exposed!" }
+              ]
+            },
+            "on_critical_failure": {
+              "effects": [
+                { "stat": "heat", "delta": 5 },
+                { "gold": -30 },
+                { "event": "whisperoffice.rival_countermove" },
+                { "log": "A rival turns the tables. You suffer losses and major heat." }
+              ]
+            }
+          }
+        },
+        {
+          "id": "cooldown_network",
+          "name": "Cooldown Network",
+          "description": "Reduce activities and avoid detection.",
+          "min_npc_level": 3,
+          "duration_turns": 1,
+          "outcome": {
+            "check_profile": "d20",
+            "on_success": {
+              "effects": [
+                { "stat": "heat", "delta": -3 },
+                { "log": "The trail goes cold." }
+              ]
+            },
+            "on_critical_success": {
+              "effects": [
+                { "stat": "heat", "delta": -5 },
+                { "event": "whisperoffice.case_closed" },
+                { "log": "You cleanly close open threads and erase your footprint." }
+              ]
+            },
+            "on_failure": {
+              "effects": [
+                { "log": "No meaningful change." }
+              ]
+            },
+            "on_critical_failure": {
+              "effects": [
+                { "stat": "heat", "delta": 2 },
+                { "random_event": "group:whisperoffice.ops_disaster" },
+                { "log": "A new complication hits the network." }
+              ]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

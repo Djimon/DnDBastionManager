@@ -1,0 +1,144 @@
+{
+  "version": "1.0.0",
+  "game_name": "D&D Bastion Manager",
+  "turn_duration": "1 week",
+  
+  "check_profiles": {
+    "d20": {
+      "apprentice": {
+        "npc_level": 1,
+        "dc": 10,
+        "crit_success": 20,
+        "crit_fail": [1, 2]
+      },
+      "experienced": {
+        "npc_level": 2,
+        "dc": 8,
+        "crit_success": 20,
+        "crit_fail": 1
+      },
+      "master": {
+        "npc_level": 3,
+        "dc": 5,
+        "crit_success": [19, 20],
+        "crit_fail": 1
+      }
+    },
+    "d20_hard": {
+      "apprentice": {
+        "npc_level": 1,
+        "dc": 15,
+        "crit_success": 20,
+        "crit_fail": [1, 2, 3]
+      },
+      "experienced": {
+        "npc_level": 2,
+        "dc": 12,
+        "crit_success": 20,
+        "crit_fail": [1, 2]
+      },
+      "master": {
+        "npc_level": 3,
+        "dc": 10,
+        "crit_success": [19, 20],
+        "crit_fail": 1
+      }
+    },
+    "d20_easy": {
+      "apprentice": {
+        "npc_level": 1,
+        "dc": 7,
+        "crit_success": [19, 20],
+        "crit_fail": 1
+      },
+      "experienced": {
+        "npc_level": 2,
+        "dc": 5,
+        "crit_success": [18, 19, 20],
+        "crit_fail": 1
+      },
+      "master": {
+        "npc_level": 3,
+        "dc": 3,
+        "crit_success": [17, 18, 19, 20],
+        "crit_fail": 1
+      }
+    },
+    "d10": {
+      "apprentice": {
+        "npc_level": 1,
+        "dc": 6,
+        "crit_success": 99,
+        "crit_fail": 0
+      },
+      "experienced": {
+        "npc_level": 2,
+        "dc": 5,
+        "crit_success": 99,
+        "crit_fail": 0
+      },
+      "master": {
+        "npc_level": 3,
+        "dc": 4,
+        "crit_success": 10,
+        "crit_fail": 0
+      }
+    },
+    "d6": {
+      "apprentice": {
+        "npc_level": 1,
+        "dc": 4,
+        "crit_success": 99,
+        "crit_fail": 0
+      },
+      "experienced": {
+        "npc_level": 2,
+        "dc": 3,
+        "crit_success": 99,
+        "crit_fail": 0
+      },
+      "master": {
+        "npc_level": 3,
+        "dc": 2,
+        "crit_success": 99,
+        "crit_fail": 0
+      }
+    }
+  },
+  
+  "npc_progression": {
+    "xp_per_success": 1,
+    "level_thresholds": {
+      "apprentice_to_experienced": 5,
+      "experienced_to_master": 10
+    },
+    "level_names": {
+      "1": "apprentice",
+      "2": "experienced",
+      "3": "master"
+    }
+  },
+  
+  "currency": {
+    "types": ["copper", "silver", "gold"],
+    "conversion": [
+      {"from": "copper", "to": "silver", "rate": 10},
+      {"from": "silver", "to": "gold", "rate": 10}
+    ]
+  },
+  
+  "default_build_costs": {
+    "new_facility": {
+      "gold": 250,
+      "duration_turns": 1
+    },
+    "upgrade_tier_1": {
+      "gold": 500,
+      "duration_turns": 2
+    },
+    "upgrade_tier_2": {
+      "gold": 1000,
+      "duration_turns": 3
+    }
+  }
+}

@@ -1,0 +1,389 @@
+{
+  "pack_id": "core.arcanestudy",
+  "name": "Arcane Study",
+  "version": 1,
+  "author": "Djih",
+
+  "facilities": [
+    {
+      "id": "core.arcanestudy:study:t1",
+      "name": "Arcane Study",
+      "description": "A modest library and laboratory for magical research and study.",
+      "tier": 1,
+      "parent": null,
+      "build": {
+        "cost": {"gold": 250},
+        "duration_turns": 1
+      },
+      "npc_slots": 1,
+      "npc_allowed_professions": ["scholar", "mage", "archivist"],
+      "npc_base_upkeep": {"silver": 5},
+
+      "orders": [
+        {
+          "id": "research_spell",
+          "name": "Research Spell",
+          "description": "Study arcane texts to learn about a specific spell or magical theory.",
+          "min_npc_level": 1,
+          "duration_turns": 2,
+          "outcome": {
+            "check_profile": "d20",
+            "on_success": {
+              "effects": [
+                {"item": "spell_notes", "qty": 1},
+                {"log": "Research successful. New magical knowledge gained."}
+              ]
+            },
+            "on_critical_success": {
+              "effects": [
+                {"item": "spell_scroll", "qty": 1},
+                {"item": "spell_notes", "qty": 1},
+                {"log": "Breakthrough! Discovered a complete spell scroll."}
+              ]
+            },
+            "on_failure": {
+              "effects": [
+                {"log": "Research inconclusive this week."}
+              ]
+            },
+            "on_critical_failure": {
+              "effects": [
+                {"gold": -10},
+                {"log": "Magical mishap damaged some books and equipment!"}
+              ]
+            }
+          }
+        },
+        {
+          "id": "identify_item",
+          "name": "Identify Magic Item",
+          "description": "Use arcane knowledge to identify the properties of a magical item.",
+          "min_npc_level": 1,
+          "duration_turns": 1,
+          "outcome": {
+            "check_profile": "d20",
+            "on_success": {
+              "effects": [
+                {"item": "unidentified_item", "qty": -1},
+                {"item": "identified_item", "qty": 1},
+                {"gold": 15},
+                {"log": "Item identified successfully. Customer paid for the service."}
+              ]
+            },
+            "on_critical_success": {
+              "effects": [
+                {"item": "unidentified_item", "qty": -1},
+                {"item": "identified_item", "qty": 1},
+                {"item": "magical_insight", "qty": 1},
+                {"gold": 30},
+                {"log": "Not only identified, but gained deeper understanding of its magic!"}
+              ]
+            },
+            "on_failure": {
+              "effects": [
+                {"log": "No items brought in for identification this week."}
+              ]
+            }
+          }
+        },
+        {
+          "id": "copy_spell",
+          "name": "Copy Spell Scroll",
+          "description": "Transcribe a spell scroll to create duplicates.",
+          "min_npc_level": 2,
+          "duration_turns": 1,
+          "outcome": {
+            "check_profile": "d20",
+            "on_success": {
+              "effects": [
+                {"item": "blank_scroll", "qty": -1},
+                {"item": "ink_magical", "qty": -1},
+                {"item": "spell_scroll_fireball", "qty": 1},
+                {"log": "Spell scroll copied successfully."}
+              ]
+            },
+            "on_critical_success": {
+              "effects": [
+                {"item": "blank_scroll", "qty": -1},
+                {"item": "ink_magical", "qty": -1},
+                {"item": "spell_scroll_fireball", "qty": 2},
+                {"log": "Perfect transcription! Created an extra copy."}
+              ]
+            },
+            "on_failure": {
+              "effects": [
+                {"item": "blank_scroll", "qty": -1},
+                {"item": "ink_magical", "qty": -1},
+                {"log": "Transcription error. Materials wasted."}
+              ]
+            },
+            "on_critical_failure": {
+              "effects": [
+                {"item": "blank_scroll", "qty": -1},
+                {"item": "ink_magical", "qty": -1},
+                {"gold": -15},
+                {"log": "The spell backfired during copying! Minor magical damage."}
+              ]
+            }
+          }
+        },
+        {
+          "id": "study_lore",
+          "name": "Study Ancient Lore",
+          "description": "Research historical and magical knowledge from ancient texts.",
+          "min_npc_level": 1,
+          "duration_turns": 1,
+          "outcome": {
+            "check_profile": "d20",
+            "on_success": {
+              "effects": [
+                {"item": "lore_fragment", "qty": 1},
+                {"log": "Discovered interesting historical information."}
+              ]
+            },
+            "on_critical_success": {
+              "effects": [
+                {"item": "ancient_prophecy", "qty": 1},
+                {"log": "Found a fragment of an ancient prophecy! This could be significant."}
+              ]
+            },
+            "on_failure": {
+              "effects": [
+                {"log": "Nothing of note discovered this week."}
+              ]
+            }
+          }
+        }
+      ]
+    },
+
+    {
+      "id": "core.arcanestudy:study:t2",
+      "name": "Arcane Library",
+      "description": "An expanded library with rare tomes and advanced magical research facilities.",
+      "tier": 2,
+      "parent": "core.arcanestudy:study:t1",
+      "build": {
+        "cost": {"gold": 500},
+        "duration_turns": 2
+      },
+      "npc_slots": 2,
+      "npc_allowed_professions": ["scholar", "mage", "archivist", "wizard"],
+      "npc_base_upkeep": {"silver": 10},
+
+      "orders": [
+        {
+          "id": "research_advanced_magic",
+          "name": "Research Advanced Magic",
+          "description": "Delve into complex magical theories and rare spell formulas.",
+          "min_npc_level": 2,
+          "duration_turns": 3,
+          "outcome": {
+            "check_profile": "d20",
+            "on_success": {
+              "effects": [
+                {"item": "advanced_spell_notes", "qty": 1},
+                {"item": "arcane_formula", "qty": 1},
+                {"log": "Advanced research completed successfully."}
+              ]
+            },
+            "on_critical_success": {
+              "effects": [
+                {"item": "advanced_spell_notes", "qty": 2},
+                {"item": "arcane_formula", "qty": 1},
+                {"item": "spell_scroll_rare", "qty": 1},
+                {"log": "Major breakthrough! Discovered a rare spell."}
+              ]
+            },
+            "on_failure": {
+              "effects": [
+                {"log": "Research progressing slowly."}
+              ]
+            },
+            "on_critical_failure": {
+              "effects": [
+                {"gold": -25},
+                {"log": "Experimental magic went awry! Damaged several rare books."}
+              ]
+            }
+          }
+        },
+        {
+          "id": "enchant_item",
+          "name": "Enchant Item",
+          "description": "Imbue a mundane item with magical properties.",
+          "min_npc_level": 2,
+          "duration_turns": 2,
+          "outcome": {
+            "check_profile": "d20",
+            "on_success": {
+              "effects": [
+                {"item": "mundane_weapon", "qty": -1},
+                {"item": "arcane_catalyst", "qty": -1},
+                {"item": "enchanted_weapon_plus1", "qty": 1},
+                {"gold": 50},
+                {"log": "Item enchanted successfully and sold."}
+              ]
+            },
+            "on_critical_success": {
+              "effects": [
+                {"item": "mundane_weapon", "qty": -1},
+                {"item": "arcane_catalyst", "qty": -1},
+                {"item": "enchanted_weapon_plus2", "qty": 1},
+                {"gold": 150},
+                {"log": "Exceptional enchantment! The weapon glows with power."}
+              ]
+            },
+            "on_failure": {
+              "effects": [
+                {"item": "mundane_weapon", "qty": -1},
+                {"item": "arcane_catalyst", "qty": -1},
+                {"log": "Enchantment failed. Materials consumed."}
+              ]
+            },
+            "on_critical_failure": {
+              "effects": [
+                {"item": "mundane_weapon", "qty": -1},
+                {"item": "arcane_catalyst", "qty": -1},
+                {"gold": -20},
+                {"log": "The enchantment backfired, destroying the item and damaging the lab!"}
+              ]
+            }
+          }
+        },
+        {
+          "id": "decipher_ancient_text",
+          "name": "Decipher Ancient Text",
+          "description": "Translate and understand texts in dead or magical languages.",
+          "min_npc_level": 2,
+          "duration_turns": 2,
+          "outcome": {
+            "check_profile": "d20",
+            "on_success": {
+              "effects": [
+                {"item": "ancient_manuscript", "qty": -1},
+                {"item": "translated_text", "qty": 1},
+                {"log": "Text successfully deciphered."}
+              ]
+            },
+            "on_critical_success": {
+              "effects": [
+                {"item": "ancient_manuscript", "qty": -1},
+                {"item": "translated_text", "qty": 1},
+                {"item": "lost_spell", "qty": 1},
+                {"log": "The text contained a long-lost spell!"}
+              ]
+            },
+            "on_failure": {
+              "effects": [
+                {"log": "The language proves too difficult to decipher at this time."}
+              ]
+            }
+          }
+        },
+        {
+          "id": "consult_spirits",
+          "name": "Consult Spirits",
+          "description": "Use divination magic to seek answers from otherworldly beings.",
+          "min_npc_level": 3,
+          "duration_turns": 1,
+          "outcome": {
+            "check_profile": "d20_hard",
+            "on_success": {
+              "effects": [
+                {"item": "incense_rare", "qty": -1},
+                {"item": "spirit_message", "qty": 1},
+                {"log": "The spirits have spoken."}
+              ]
+            },
+            "on_critical_success": {
+              "effects": [
+                {"item": "incense_rare", "qty": -1},
+                {"item": "spirit_message", "qty": 1},
+                {"item": "prophecy_fragment", "qty": 1},
+                {"log": "A powerful entity revealed a prophecy!"}
+              ]
+            },
+            "on_failure": {
+              "effects": [
+                {"item": "incense_rare", "qty": -1},
+                {"log": "The spirits remain silent."}
+              ]
+            },
+            "on_critical_failure": {
+              "effects": [
+                {"item": "incense_rare", "qty": -1},
+                {"gold": -30},
+                {"log": "An angry spirit lashed out! Psychic damage to the researcher."}
+              ]
+            }
+          }
+        }
+      ]
+    },
+
+    {
+      "id": "core.arcanestudy:study:t3",
+      "name": "Arcane Sanctum",
+      "description": "A powerful magical nexus for the most advanced arcane research and spellcraft.",
+      "tier": 3,
+      "parent": "core.arcanestudy:study:t2",
+      "build": {
+        "cost": {"gold": 1000},
+        "duration_turns": 3
+      },
+      "npc_slots": 3,
+      "npc_allowed_professions": ["scholar", "mage", "wizard", "archmage"],
+      "npc_base_upkeep": {"gold": 1},
+
+      "orders": [
+        {
+          "id": "create_legendary_spell",
+          "name": "Create Legendary Spell",
+          "description": "Attempt to craft an entirely new spell of legendary power.",
+          "min_npc_level": 3,
+          "duration_turns": 8,
+          "outcome": {
+            "check_profile": "d20_hard",
+            "on_success": {
+              "effects": [
+                {"item": "essence_of_magic", "qty": -5},
+                {"item": "dragon_scale", "qty": -2},
+                {"item": "celestial_ink", "qty": -1},
+                {"item": "legendary_spell_scroll", "qty": 1},
+                {"log": "A new spell of immense power has been created!"}
+              ]
+            },
+            "on_critical_success": {
+              "effects": [
+                {"item": "essence_of_magic", "qty": -5},
+                {"item": "dragon_scale", "qty": -2},
+                {"item": "celestial_ink", "qty": -1},
+                {"item": "legendary_spell_scroll", "qty": 1},
+                {"item": "spell_formula_original", "qty": 1},
+                {"log": "The spell resonates with the Weave itself! Your name will be remembered in magical history."}
+              ]
+            },
+            "on_failure": {
+              "effects": [
+                {"item": "essence_of_magic", "qty": -5},
+                {"item": "dragon_scale", "qty": -2},
+                {"item": "celestial_ink", "qty": -1},
+                {"log": "The spell is unstable. More research needed."}
+              ]
+            },
+            "on_critical_failure": {
+              "effects": [
+                {"item": "essence_of_magic", "qty": -5},
+                {"item": "dragon_scale", "qty": -2},
+                {"item": "celestial_ink", "qty": -1},
+                {"gold": -150},
+                {"log": "Catastrophic magical feedback! The sanctum itself was damaged by wild magic."}
+              ]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
