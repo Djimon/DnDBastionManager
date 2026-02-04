@@ -40,6 +40,7 @@ if (window.addEventListener && typeof window.pywebviewready === 'undefined') {
     window.addEventListener('pywebviewready', function() {
         console.log('PyWebView ready event fired');
         logClient('info', 'PyWebView connection established');
+        validatePacks(false);
     });
 }
 
@@ -123,6 +124,37 @@ window.addEventListener('click', function(event) {
         }
     });
 });
+
+function validatePacks(showAlert = true) {
+    if (window.pywebview && window.pywebview.api) {
+        window.pywebview.api.validate_packs().then(report => {
+            const errors = (report && report.errors) ? report.errors : [];
+            const warnings = (report && report.warnings) ? report.warnings : [];
+            const configErrors = report && report.config && report.config.errors ? report.config.errors : [];
+            const configWarnings = report && report.config && report.config.warnings ? report.config.warnings : [];
+            const summary = `Pack Validation: ${errors.length} errors, ${warnings.length} warnings` +
+                (configErrors.length ? ` | Config errors: ${configErrors.length}` : ``) +
+                (configWarnings.length ? ` | Config warnings: ${configWarnings.length}` : ``);
+
+            logClient(errors.length ? "error" : (warnings.length ? "warn" : "info"), summary);
+
+            if (showAlert) {
+                if (errors.length === 0 && warnings.length === 0) {
+                    alert("Pack Validation: OK (0 errors, 0 warnings)");
+                } else {
+                    alert(summary + "\nDetails stehen im Log.");
+                }
+            }
+        }).catch(err => {
+            logClient("error", `Pack validation failed: ${err}`);
+            if (showAlert) {
+                alert("Pack Validation failed. Check logs.");
+            }
+        });
+    } else if (showAlert) {
+        alert("PyWebView not available");
+    }
+}
 
 // ===== VIEW 1: SESSION WIZARD =====
 

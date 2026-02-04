@@ -279,6 +279,7 @@
                     <!-- BOTTOM: Turn Controls & Log -->
                     <footer class="turn-controls">
                         <div class="controls-buttons">
+                            <button class="btn btn-small btn-secondary" onclick="validatePacks()">Validate Packs</button>
                             <button class="btn btn-primary" onclick="advanceTurn()">⏭️ Advance Turn</button>
                             <button class="btn btn-secondary" onclick="switchView(2)">+ Build New Facility</button>
                             <button class="btn btn-secondary" onclick="openNPCModal()">👥 Manage NPCs</button>
@@ -299,6 +300,10 @@
             </div>
 
         </main>
+        <!-- GLOBAL DEV FOOTER -->
+        <footer class="global-dev-footer">
+            <button class="dev-validate-btn" onclick="validatePacks()">Validate Packs</button>
+        </footer>
     </div>
 
     <!-- ===== MODALS ===== -->

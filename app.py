@@ -5,6 +5,7 @@ from pathlib import Path
 from core_engine.session_manager import SessionManager
 from core_engine.initial_state import InitialStateGenerator
 from core_engine.logger import setup_logger
+from core_engine.pack_validator import PackValidator
 
 # Initialisiere Logger
 logger = setup_logger("app")
@@ -21,6 +22,7 @@ class Api:
         # WICHTIG: Nicht als self.xxx speichern - pywebview kann Path-Objekte nicht serialisieren!
         self._session_manager = SessionManager(self.sessions_dir)
         self._initial_state_gen = InitialStateGenerator()
+        self._pack_validator = PackValidator(Path(__file__).parent)
         
         # Current loaded session (in-memory)
         self.current_session = None
@@ -176,9 +178,30 @@ class Api:
     
     def get_current_session(self) -> dict:
         """
-        Gebe die aktuell geladene Session zurück.
+        Gebe die aktuell geladene Session zurueck.
         """
         return self.current_session or {}
+
+    # ===== SLICE 2: PACK VALIDATION =====
+
+    def validate_packs(self) -> dict:
+        """
+        Validiere alle Pack-Dateien und die bastion_config.json.
+
+        Returns:
+            {success: bool, errors: list, warnings: list, config: dict, packs: list}
+        """
+        try:
+            report = self._pack_validator.validate_all()
+            return report
+        except Exception as e:
+            return {
+                "success": False,
+                "errors": [f"Validator error: {str(e)}"],
+                "warnings": [],
+                "config": {"errors": [], "warnings": []},
+                "packs": [],
+            }
     
     # ===== FACILITY LOADING (Legacy) =====
     
