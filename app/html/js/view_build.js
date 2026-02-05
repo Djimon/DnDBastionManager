@@ -481,6 +481,7 @@ async function startBuilding() {
         alert(t('alerts.build_errors', { errors: errors.join('\n') }));
     }
     if (builtCount > 0) {
+        await autoSaveSession('start_build');
         switchView(3); // Go to Turn Console
     }
 }

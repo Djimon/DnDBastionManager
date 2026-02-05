@@ -127,6 +127,29 @@ class SessionManager:
             return (True, sessions, f"Found {len(sessions)} sessions")
         except Exception as e:
             return (False, [], f"Error listing sessions: {str(e)}")
+
+    def get_latest_session_filename(self) -> Optional[str]:
+        """
+        Returns filename of most recently modified session file, or None.
+        """
+        try:
+            files = list(self._sessions_path.glob("session_*.json"))
+            if not files:
+                return None
+            latest = max(files, key=lambda f: f.stat().st_mtime)
+            return latest.name
+        except Exception as e:
+            logger.error(f"Error getting latest session: {str(e)}")
+            return None
+
+    def load_latest_session(self) -> Tuple[bool, Optional[Dict[str, Any]], str]:
+        """
+        Load most recently modified session file.
+        """
+        filename = self.get_latest_session_filename()
+        if not filename:
+            return (False, None, "No sessions available")
+        return self.load_session(filename)
     
     def delete_session(self, filename: str) -> Tuple[bool, str]:
         """

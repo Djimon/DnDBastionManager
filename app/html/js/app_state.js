@@ -381,9 +381,22 @@ function normalizeBaseToWallet(baseValue, model) {
     }
 
     if (baseValue < 0) {
-        if (baseCurrency && baseCurrency in wallet) {
-            wallet[baseCurrency] = baseValue;
-        }
+        const ordered = [...model.types].sort((a, b) => {
+            const fa = factorToBase[a] || 0;
+            const fb = factorToBase[b] || 0;
+            return fb - fa;
+        });
+        let remaining = Math.abs(baseValue);
+        ordered.forEach(currency => {
+            const factor = factorToBase[currency] || 0;
+            if (factor <= 0) {
+                wallet[currency] = 0;
+                return;
+            }
+            const amount = Math.floor(remaining / factor);
+            remaining = remaining % factor;
+            wallet[currency] = -amount;
+        });
         return wallet;
     }
 

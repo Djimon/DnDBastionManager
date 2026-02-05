@@ -3,7 +3,6 @@
   "name": "Observatory",
   "version": 1,
   "author": "Djih",
-
   "facilities": [
     {
       "id": "core.observatory:observatory:t1",
@@ -12,13 +11,20 @@
       "tier": 1,
       "parent": null,
       "build": {
-        "cost": {"gold": 250},
+        "cost": {
+          "gold": 250
+        },
         "duration_turns": 1
       },
       "npc_slots": 1,
-      "npc_allowed_professions": ["astrologer", "sage", "diviner"],
-      "npc_base_upkeep": {"silver": 5},
-
+      "npc_allowed_professions": [
+        "astrologer",
+        "sage",
+        "diviner"
+      ],
+      "npc_base_upkeep": {
+        "silver": 5
+      },
       "orders": [
         {
           "id": "observe_stars",
@@ -30,20 +36,35 @@
             "check_profile": "d20",
             "on_success": {
               "effects": [
-                {"item": "star_chart", "qty": 1},
-                {"log": "The stars reveal subtle patterns."}
+                {
+                  "item": "star_chart",
+                  "qty": 1
+                },
+                {
+                  "log": "The stars reveal subtle patterns."
+                }
               ]
             },
             "on_critical_success": {
               "effects": [
-                {"item": "star_chart", "qty": 1},
-                {"item": "cosmic_omen", "qty": 1},
-                {"log": "A rare celestial alignment! A powerful omen has been observed."}
+                {
+                  "item": "star_chart",
+                  "qty": 1
+                },
+                {
+                  "item": "cosmic_omen",
+                  "qty": 1
+                },
+                {
+                  "log": "A rare celestial alignment! A powerful omen has been observed."
+                }
               ]
             },
             "on_failure": {
               "effects": [
-                {"log": "Clouds obscure the sky this week."}
+                {
+                  "log": "Clouds obscure the sky this week."
+                }
               ]
             }
           }
@@ -58,27 +79,41 @@
             "check_profile": "d20",
             "on_success": {
               "effects": [
-                {"item": "weather_forecast", "qty": 1},
-                {"gold": 10},
-                {"log": "Accurate forecast provided to local farmers and merchants."}
+                {
+                  "item": "weather_forecast",
+                  "qty": 1
+                },
+                {
+                  "log": "Accurate forecast provided to local farmers and merchants."
+                }
               ]
             },
             "on_critical_success": {
               "effects": [
-                {"item": "weather_forecast", "qty": 1},
-                {"gold": 25},
-                {"log": "Predicted a major storm days in advance! Saved lives and property."}
+                {
+                  "item": "weather_forecast",
+                  "qty": 1
+                },
+                {
+                  "log": "Predicted a major storm days in advance! Saved lives and property."
+                }
               ]
             },
             "on_failure": {
               "effects": [
-                {"log": "Weather patterns unclear this week."}
+                {
+                  "log": "Weather patterns unclear this week."
+                }
               ]
             },
             "on_critical_failure": {
               "effects": [
-                {"gold": -5},
-                {"log": "Prediction was completely wrong! Reputation damaged."}
+                {
+                  "gold": -5
+                },
+                {
+                  "log": "Prediction was completely wrong! Reputation damaged."
+                }
               ]
             }
           }
@@ -93,20 +128,27 @@
             "check_profile": "d20",
             "on_success": {
               "effects": [
-                {"gold": 15},
-                {"log": "Clients paid for fortune readings."}
+                {
+                  "log": "Clients paid for fortune readings."
+                }
               ]
             },
             "on_critical_success": {
               "effects": [
-                {"gold": 40},
-                {"item": "grateful_patron_token", "qty": 1},
-                {"log": "Your reading came true spectacularly! A wealthy patron is now a believer."}
+                {
+                  "item": "grateful_patron_token",
+                  "qty": 1
+                },
+                {
+                  "log": "Your reading came true spectacularly! A wealthy patron is now a believer."
+                }
               ]
             },
             "on_failure": {
               "effects": [
-                {"log": "Few clients this week."}
+                {
+                  "log": "Few clients this week."
+                }
               ]
             }
           }
@@ -121,27 +163,41 @@
             "check_profile": "d20",
             "on_success": {
               "effects": [
-                {"item": "celestial_observation", "qty": 1},
-                {"log": "Event successfully tracked and documented."}
+                {
+                  "item": "celestial_observation",
+                  "qty": 1
+                },
+                {
+                  "log": "Event successfully tracked and documented."
+                }
               ]
             },
             "on_critical_success": {
               "effects": [
-                {"item": "celestial_observation", "qty": 1},
-                {"item": "cosmic_revelation", "qty": 1},
-                {"log": "The event revealed something unprecedented!"}
+                {
+                  "item": "celestial_observation",
+                  "qty": 1
+                },
+                {
+                  "item": "cosmic_revelation",
+                  "qty": 1
+                },
+                {
+                  "log": "The event revealed something unprecedented!"
+                }
               ]
             },
             "on_failure": {
               "effects": [
-                {"log": "Atmospheric conditions prevented clear observation."}
+                {
+                  "log": "Atmospheric conditions prevented clear observation."
+                }
               ]
             }
           }
         }
       ]
     },
-
     {
       "id": "core.observatory:observatory:t2",
       "name": "Celestial Observatory",
@@ -149,13 +205,21 @@
       "tier": 2,
       "parent": "core.observatory:observatory:t1",
       "build": {
-        "cost": {"gold": 500},
+        "cost": {
+          "gold": 500
+        },
         "duration_turns": 2
       },
       "npc_slots": 2,
-      "npc_allowed_professions": ["astrologer", "sage", "diviner", "prophet"],
-      "npc_base_upkeep": {"silver": 10},
-
+      "npc_allowed_professions": [
+        "astrologer",
+        "sage",
+        "diviner",
+        "prophet"
+      ],
+      "npc_base_upkeep": {
+        "silver": 10
+      },
       "orders": [
         {
           "id": "interpret_omen",
@@ -167,26 +231,42 @@
             "check_profile": "d20",
             "on_success": {
               "effects": [
-                {"item": "omen_interpretation", "qty": 1},
-                {"log": "The omen's meaning becomes clear."}
+                {
+                  "item": "omen_interpretation",
+                  "qty": 1
+                },
+                {
+                  "log": "The omen's meaning becomes clear."
+                }
               ]
             },
             "on_critical_success": {
               "effects": [
-                {"item": "omen_interpretation", "qty": 1},
-                {"item": "prophecy", "qty": 1},
-                {"log": "The omen reveals a prophecy of great importance!"}
+                {
+                  "item": "omen_interpretation",
+                  "qty": 1
+                },
+                {
+                  "item": "prophecy",
+                  "qty": 1
+                },
+                {
+                  "log": "The omen reveals a prophecy of great importance!"
+                }
               ]
             },
             "on_failure": {
               "effects": [
-                {"log": "The omen's meaning remains mysterious."}
+                {
+                  "log": "The omen's meaning remains mysterious."
+                }
               ]
             },
             "on_critical_failure": {
               "effects": [
-                {"gold": -10},
-                {"log": "Misinterpreted the omen badly. Caused unnecessary panic."}
+                {
+                  "log": "Misinterpreted the omen badly. Caused unnecessary panic."
+                }
               ]
             }
           }
@@ -201,26 +281,42 @@
             "check_profile": "d20",
             "on_success": {
               "effects": [
-                {"item": "scrying_vision", "qty": 1},
-                {"log": "Glimpsed events in a distant location."}
+                {
+                  "item": "scrying_vision",
+                  "qty": 1
+                },
+                {
+                  "log": "Glimpsed events in a distant location."
+                }
               ]
             },
             "on_critical_success": {
               "effects": [
-                {"item": "scrying_vision", "qty": 1},
-                {"item": "urgent_warning", "qty": 1},
-                {"log": "Saw an imminent threat! This information could save lives."}
+                {
+                  "item": "scrying_vision",
+                  "qty": 1
+                },
+                {
+                  "item": "urgent_warning",
+                  "qty": 1
+                },
+                {
+                  "log": "Saw an imminent threat! This information could save lives."
+                }
               ]
             },
             "on_failure": {
               "effects": [
-                {"log": "The vision was too unclear to discern details."}
+                {
+                  "log": "The vision was too unclear to discern details."
+                }
               ]
             },
             "on_critical_failure": {
               "effects": [
-                {"gold": -15},
-                {"log": "Hostile entity detected the scrying and retaliated!"}
+                {
+                  "log": "Hostile entity detected the scrying and retaliated!"
+                }
               ]
             }
           }
@@ -235,27 +331,45 @@
             "check_profile": "d20_hard",
             "on_success": {
               "effects": [
-                {"item": "future_vision", "qty": 1},
-                {"log": "Foreseen a significant event weeks in advance."}
+                {
+                  "item": "future_vision",
+                  "qty": 1
+                },
+                {
+                  "log": "Foreseen a significant event weeks in advance."
+                }
               ]
             },
             "on_critical_success": {
               "effects": [
-                {"item": "future_vision", "qty": 1},
-                {"item": "detailed_prophecy", "qty": 1},
-                {"gold": 100},
-                {"log": "Incredibly accurate prediction! Powerful individuals pay handsomely for this knowledge."}
+                {
+                  "item": "future_vision",
+                  "qty": 1
+                },
+                {
+                  "item": "detailed_prophecy",
+                  "qty": 1
+                },
+                {
+                  "log": "Incredibly accurate prediction! Powerful individuals pay handsomely for this knowledge."
+                }
               ]
             },
             "on_failure": {
               "effects": [
-                {"log": "The future remains clouded."}
+                {
+                  "log": "The future remains clouded."
+                }
               ]
             },
             "on_critical_failure": {
               "effects": [
-                {"gold": -25},
-                {"log": "The prediction was catastrophically wrong. Trust damaged."}
+                {
+                  "gold": -25
+                },
+                {
+                  "log": "The prediction was catastrophically wrong. Trust damaged."
+                }
               ]
             }
           }
@@ -270,33 +384,48 @@
             "check_profile": "d20_hard",
             "on_success": {
               "effects": [
-                {"item": "cosmic_wisdom", "qty": 1},
-                {"log": "The stars speak in cryptic whispers."}
+                {
+                  "item": "cosmic_wisdom",
+                  "qty": 1
+                },
+                {
+                  "log": "The stars speak in cryptic whispers."
+                }
               ]
             },
             "on_critical_success": {
               "effects": [
-                {"item": "cosmic_wisdom", "qty": 1},
-                {"item": "star_blessing", "qty": 1},
-                {"log": "A celestial entity has taken notice and granted a blessing!"}
+                {
+                  "item": "cosmic_wisdom",
+                  "qty": 1
+                },
+                {
+                  "item": "divine_favor",
+                  "qty": 1
+                },
+                {
+                  "log": "A celestial entity has taken notice and granted a blessing!"
+                }
               ]
             },
             "on_failure": {
               "effects": [
-                {"log": "The cosmos remains silent."}
+                {
+                  "log": "The cosmos remains silent."
+                }
               ]
             },
             "on_critical_failure": {
               "effects": [
-                {"gold": -20},
-                {"log": "Drew the attention of something malevolent. Psychic backlash!"}
+                {
+                  "log": "Drew the attention of something malevolent. Psychic backlash!"
+                }
               ]
             }
           }
         }
       ]
     },
-
     {
       "id": "core.observatory:observatory:t3",
       "name": "Cosmic Nexus",
@@ -304,13 +433,22 @@
       "tier": 3,
       "parent": "core.observatory:observatory:t2",
       "build": {
-        "cost": {"gold": 1000},
+        "cost": {
+          "gold": 1000
+        },
         "duration_turns": 3
       },
       "npc_slots": 3,
-      "npc_allowed_professions": ["astrologer", "sage", "diviner", "prophet", "oracle"],
-      "npc_base_upkeep": {"gold": 1},
-
+      "npc_allowed_professions": [
+        "astrologer",
+        "sage",
+        "diviner",
+        "prophet",
+        "oracle"
+      ],
+      "npc_base_upkeep": {
+        "gold": 1
+      },
       "orders": [
         {
           "id": "witness_cosmic_truth",
@@ -322,30 +460,54 @@
             "check_profile": "d20_hard",
             "on_success": {
               "effects": [
-                {"item": "essence_of_stars", "qty": -3},
-                {"item": "cosmic_truth", "qty": 1},
-                {"log": "A fragment of cosmic truth has been perceived."}
+                {
+                  "item": "cosmic_truth",
+                  "qty": 1
+                },
+                {
+                  "log": "A fragment of cosmic truth has been perceived."
+                },
+                {
+                  "silver": -6
+                }
               ]
             },
             "on_critical_success": {
               "effects": [
-                {"item": "essence_of_stars", "qty": -3},
-                {"item": "cosmic_truth", "qty": 1},
-                {"item": "divine_revelation", "qty": 1},
-                {"log": "The universe itself has revealed its secrets! Knowledge beyond mortal comprehension."}
+                {
+                  "item": "cosmic_truth",
+                  "qty": 1
+                },
+                {
+                  "item": "divine_revelation",
+                  "qty": 1
+                },
+                {
+                  "log": "The universe itself has revealed its secrets! Knowledge beyond mortal comprehension."
+                },
+                {
+                  "silver": -6
+                }
               ]
             },
             "on_failure": {
               "effects": [
-                {"item": "essence_of_stars", "qty": -3},
-                {"log": "The cosmic mysteries remain veiled."}
+                {
+                  "log": "The cosmic mysteries remain veiled."
+                },
+                {
+                  "silver": -6
+                }
               ]
             },
             "on_critical_failure": {
               "effects": [
-                {"item": "essence_of_stars", "qty": -3},
-                {"gold": -100},
-                {"log": "The mind recoils from truths too terrible to comprehend! The observer is left shaken."}
+                {
+                  "log": "The mind recoils from truths too terrible to comprehend! The observer is left shaken."
+                },
+                {
+                  "silver": -6
+                }
               ]
             }
           }

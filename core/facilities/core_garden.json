@@ -2,8 +2,7 @@
   "pack_id": "core.garden",
   "name": "Garden",
   "version": 1,
-  "author" : "Djih",
-
+  "author": "Djih",
   "facilities": [
     {
       "id": "core.garden:garden:t1",
@@ -37,11 +36,11 @@
             "on_success": {
               "effects": [
                 {
-                  "item": "healing_herb",
+                  "item": "herbs_and_produce",
                   "qty": 2
                 },
                 {
-                  "item": "cooking_herb",
+                  "item": "herbs_and_produce",
                   "qty": 3
                 },
                 {
@@ -52,15 +51,15 @@
             "on_critical_success": {
               "effects": [
                 {
-                  "item": "healing_herb",
+                  "item": "herbs_and_produce",
                   "qty": 4
                 },
                 {
-                  "item": "cooking_herb",
+                  "item": "herbs_and_produce",
                   "qty": 5
                 },
                 {
-                  "item": "rare_herb",
+                  "item": "herbs_and_produce",
                   "qty": 1
                 },
                 {
@@ -71,7 +70,7 @@
             "on_failure": {
               "effects": [
                 {
-                  "item": "healing_herb",
+                  "item": "herbs_and_produce",
                   "qty": 1
                 },
                 {
@@ -134,56 +133,52 @@
             "on_success": {
               "effects": [
                 {
-                  "item": "seed_tomato",
-                  "qty": -1
-                },
-                {
-                  "item": "tomato",
+                  "item": "herbs_and_produce",
                   "qty": 5
                 },
                 {
                   "log": "Seeds grew into healthy plants."
+                },
+                {
+                  "silver": -2
                 }
               ]
             },
             "on_critical_success": {
               "effects": [
                 {
-                  "item": "seed_tomato",
-                  "qty": -1
-                },
-                {
-                  "item": "tomato",
+                  "item": "herbs_and_produce",
                   "qty": 8
                 },
                 {
                   "log": "Exceptional growth! Bumper crop."
+                },
+                {
+                  "silver": -2
                 }
               ]
             },
             "on_failure": {
               "effects": [
                 {
-                  "item": "seed_tomato",
-                  "qty": -1
-                },
-                {
-                  "item": "tomato",
+                  "item": "herbs_and_produce",
                   "qty": 2
                 },
                 {
                   "log": "Poor growing conditions, low yield."
+                },
+                {
+                  "silver": -2
                 }
               ]
             },
             "on_critical_failure": {
               "effects": [
                 {
-                  "item": "seed_tomato",
-                  "qty": -1
+                  "log": "Seeds failed to germinate!"
                 },
                 {
-                  "log": "Seeds failed to germinate!"
+                  "silver": -2
                 }
               ]
             }
@@ -224,16 +219,12 @@
             "on_success": {
               "effects": [
                 {
-                  "item": "moonflower",
+                  "item": "herbs_and_produce",
                   "qty": 2
                 },
                 {
-                  "item": "silvervine",
+                  "item": "herbs_and_produce",
                   "qty": 1
-                },
-                {
-                  "currency": "gold",
-                  "amount": 15
                 },
                 {
                   "log": "Exotic plants harvested and sold."
@@ -243,19 +234,17 @@
             "on_critical_success": {
               "effects": [
                 {
-                  "item": "moonflower",
+                  "item": "herbs_and_produce",
                   "qty": 3
                 },
                 {
-                  "item": "silvervine",
+                  "item": "herbs_and_produce",
                   "qty": 2
                 },
                 {
-                  "item": "phoenix_blossom",
+                  "item": "herbs_and_produce",
                   "qty": 1
                 },
-                {
-                  "gold": 30 },
                 {
                   "log": "Rare phoenix blossom discovered!"
                 }
@@ -264,7 +253,7 @@
             "on_failure": {
               "effects": [
                 {
-                  "item": "moonflower",
+                  "item": "herbs_and_produce",
                   "qty": 1
                 },
                 {
@@ -275,8 +264,7 @@
             "on_critical_failure": {
               "effects": [
                 {
-                  "currency": "gold",
-                  "amount": -10
+                  "gold": -10
                 },
                 {
                   "log": "Greenhouse malfunction! Repair costs incurred."
@@ -339,63 +327,56 @@
             "on_success": {
               "effects": [
                 {
-                  "item": "seed_mandrake",
-                  "qty": -1
-                },
-                {
-                  "item": "mandrake_root",
+                  "item": "herbs_and_produce",
                   "qty": 3
                 },
                 {
                   "log": "Mandrake successfully cultivated."
+                },
+                {
+                  "silver": -2
                 }
               ]
             },
             "on_critical_success": {
               "effects": [
                 {
-                  "item": "seed_mandrake",
-                  "qty": -1
-                },
-                {
-                  "item": "mandrake_root",
+                  "item": "herbs_and_produce",
                   "qty": 6
                 },
                 {
-                  "item": "living_mandrake",
+                  "item": "herbs_and_produce",
                   "qty": 1
                 },
                 {
                   "log": "A living mandrake emerged from the soil!"
+                },
+                {
+                  "silver": -2
                 }
               ]
             },
             "on_failure": {
               "effects": [
                 {
-                  "item": "seed_mandrake",
-                  "qty": -1
-                },
-                {
                   "item": "withered_root",
                   "qty": 1
                 },
                 {
                   "log": "Magical cultivation failed."
+                },
+                {
+                  "silver": -2
                 }
               ]
             },
             "on_critical_failure": {
               "effects": [
                 {
-                  "item": "seed_mandrake",
-                  "qty": -1
-                },
-                {
-                  "gold": -20
-                },
-                {
                   "log": "Magical mishap! The plant attacked the gardener!"
+                },
+                {
+                  "silver": -2
                 }
               ]
             }
@@ -437,60 +418,55 @@
             "on_success": {
               "effects": [
                 {
-                  "item": "world_tree_seed",
-                  "qty": -1
-                },
-                {
                   "item": "world_tree_sapling",
                   "qty": 1
                 },
                 {
                   "log": "The World Tree sapling has taken root!"
+                },
+                {
+                  "silver": -2
                 }
               ]
             },
             "on_critical_success": {
               "effects": [
                 {
-                  "item": "world_tree_seed",
-                  "qty": -1
-                },
-                {
                   "item": "world_tree_sapling",
                   "qty": 1
                 },
                 {
-                  "item": "fey_blessing",
+                  "item": "divine_favor",
                   "qty": 1
                 },
                 {
                   "log": "The sapling attracts fey spirits! You receive their blessing."
+                },
+                {
+                  "silver": -2
                 }
               ]
             },
             "on_failure": {
               "effects": [
                 {
-                  "item": "world_tree_seed",
-                  "qty": -1
+                  "log": "The seed refused to sprout."
                 },
                 {
-                  "log": "The seed refused to sprout."
+                  "silver": -2
                 }
               ]
             },
             "on_critical_failure": {
               "effects": [
                 {
-                  "item": "world_tree_seed",
-                  "qty": -1
-                },
-                {
-                  "currency": "gold",
-                  "amount": -50
+                  "gold": -50
                 },
                 {
                   "log": "The seed's magic backfired, causing damage to the arboretum!"
+                },
+                {
+                  "silver": -2
                 }
               ]
             }
@@ -499,5 +475,4 @@
       ]
     }
   ]
-  
 }

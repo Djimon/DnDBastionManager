@@ -3,20 +3,37 @@
   "name": "Storehouse & Trading Post",
   "version": 1,
   "author": "Djih",
-
   "custom_mechanics": [
     {
       "name": "Market Tracker",
       "type": "market_tracker",
       "config": {
         "categories": [
-          {"name": "weapons", "start": 11},
-          {"name": "armor", "start": 7},
-          {"name": "potions", "start": -3},
-          {"name": "tools", "start": 0},
-          {"name": "jewelry", "start": -5}
+          {
+            "name": "weapons",
+            "start": 11
+          },
+          {
+            "name": "armor",
+            "start": 7
+          },
+          {
+            "name": "potions",
+            "start": -3
+          },
+          {
+            "name": "tools",
+            "start": 0
+          },
+          {
+            "name": "jewelry",
+            "start": -5
+          }
         ],
-        "price_range": [-0.20, 0.20]
+        "price_range": [
+          -0.2,
+          0.2
+        ]
       }
     },
     {
@@ -24,120 +41,247 @@
       "type": "formula_engine",
       "config": {
         "inputs": [
-          {"name": "weapons_market", "source": "market", "default": "weapons", "label": "Weapons Market (%)"},
-          {"name": "armor_market", "source": "market", "default": "armor", "label": "Armor Market (%)"},
-          {"name": "potions_market", "source": "market", "default": "potions", "label": "Potions Market (%)"},
-          {"name": "tools_market", "source": "market", "default": "tools", "label": "Tools Market (%)"},
-          {"name": "jewelry_market", "source": "market", "default": "jewelry", "label": "jewelry Market (%)"},
-          
-          {"name": "weapons_sell", "source": "prompt", "label": "SELL Weapons at markup (%, 0=skip)"},
-          {"name": "armor_sell", "source": "prompt", "label": "SELL Armor at markup (%, 0=skip)"},
-          {"name": "potions_sell", "source": "prompt", "label": "SELL Potions at markup (%, 0=skip)"},
-          {"name": "tools_sell", "source": "prompt", "label": "SELL Tools at markup (%, 0=skip)"},
-          {"name": "jewelry_sell", "source": "prompt", "label": "SELL jewelry at markup (%, 0=skip)"},
-          
-          {"name": "weapons_buy", "source": "prompt", "label": "BUY Weapons at discount (%, 0=skip)"},
-          {"name": "armor_buy", "source": "prompt", "label": "BUY Armor at discount (%, 0=skip)"},
-          {"name": "potions_buy", "source": "prompt", "label": "BUY Potions at discount (%, 0=skip)"},
-          {"name": "tools_buy", "source": "prompt", "label": "BUY Tools at discount (%, 0=skip)"},
-          {"name": "jewelry_buy", "source": "prompt", "label": "BUY jewelry at discount (%, 0=skip)"},
-          
-          {"name": "base_volume", "source": "fixed", "default": 100, "label": "Base Trade Volume (GP)"}
+          {
+            "name": "weapons_market",
+            "source": "market",
+            "default": "weapons",
+            "label": "Weapons Market (%)"
+          },
+          {
+            "name": "armor_market",
+            "source": "market",
+            "default": "armor",
+            "label": "Armor Market (%)"
+          },
+          {
+            "name": "potions_market",
+            "source": "market",
+            "default": "potions",
+            "label": "Potions Market (%)"
+          },
+          {
+            "name": "tools_market",
+            "source": "market",
+            "default": "tools",
+            "label": "Tools Market (%)"
+          },
+          {
+            "name": "jewelry_market",
+            "source": "market",
+            "default": "jewelry",
+            "label": "jewelry Market (%)"
+          },
+          {
+            "name": "weapons_sell",
+            "source": "prompt",
+            "label": "SELL Weapons at markup (%, 0=skip)"
+          },
+          {
+            "name": "armor_sell",
+            "source": "prompt",
+            "label": "SELL Armor at markup (%, 0=skip)"
+          },
+          {
+            "name": "potions_sell",
+            "source": "prompt",
+            "label": "SELL Potions at markup (%, 0=skip)"
+          },
+          {
+            "name": "tools_sell",
+            "source": "prompt",
+            "label": "SELL Tools at markup (%, 0=skip)"
+          },
+          {
+            "name": "jewelry_sell",
+            "source": "prompt",
+            "label": "SELL jewelry at markup (%, 0=skip)"
+          },
+          {
+            "name": "weapons_buy",
+            "source": "prompt",
+            "label": "BUY Weapons at discount (%, 0=skip)"
+          },
+          {
+            "name": "armor_buy",
+            "source": "prompt",
+            "label": "BUY Armor at discount (%, 0=skip)"
+          },
+          {
+            "name": "potions_buy",
+            "source": "prompt",
+            "label": "BUY Potions at discount (%, 0=skip)"
+          },
+          {
+            "name": "tools_buy",
+            "source": "prompt",
+            "label": "BUY Tools at discount (%, 0=skip)"
+          },
+          {
+            "name": "jewelry_buy",
+            "source": "prompt",
+            "label": "BUY jewelry at discount (%, 0=skip)"
+          },
+          {
+            "name": "base_volume",
+            "source": "fixed",
+            "default": 100,
+            "label": "Base Trade Volume (GP)"
+          }
         ],
         "calculations": [
           {
             "name": "weapons_sell_profit",
             "conditions": [
-              { "if": "weapons_sell > 0", "then_formula": "base_volume * (weapons_market - weapons_sell) / 100" },
-              { "else": 0 }
+              {
+                "if": "weapons_sell > 0",
+                "then_formula": "base_volume * (weapons_market - weapons_sell) / 100"
+              },
+              {
+                "else": 0
+              }
             ]
           },
           {
             "name": "weapons_buy_cost",
             "conditions": [
-              { "if": "weapons_buy > 0", "then_formula": "-base_volume * (weapons_market + weapons_buy) / 100" },
-              { "else": 0 }
+              {
+                "if": "weapons_buy > 0",
+                "then_formula": "-base_volume * (weapons_market + weapons_buy) / 100"
+              },
+              {
+                "else": 0
+              }
             ]
           },
-          { "name": "weapons_total", "formula": "weapons_sell_profit + weapons_buy_cost" },
-
+          {
+            "name": "weapons_total",
+            "formula": "weapons_sell_profit + weapons_buy_cost"
+          },
           {
             "name": "armor_sell_profit",
             "conditions": [
-              { "if": "armor_sell > 0", "then_formula": "base_volume * (armor_market - armor_sell) / 100" },
-              { "else": 0 }
+              {
+                "if": "armor_sell > 0",
+                "then_formula": "base_volume * (armor_market - armor_sell) / 100"
+              },
+              {
+                "else": 0
+              }
             ]
           },
           {
             "name": "armor_buy_cost",
             "conditions": [
-              { "if": "armor_buy > 0", "then_formula": "-base_volume * (armor_market + armor_buy) / 100" },
-              { "else": 0 }
+              {
+                "if": "armor_buy > 0",
+                "then_formula": "-base_volume * (armor_market + armor_buy) / 100"
+              },
+              {
+                "else": 0
+              }
             ]
           },
-          { "name": "armor_total", "formula": "armor_sell_profit + armor_buy_cost" },
-
+          {
+            "name": "armor_total",
+            "formula": "armor_sell_profit + armor_buy_cost"
+          },
           {
             "name": "potions_sell_profit",
             "conditions": [
-              { "if": "potions_sell > 0", "then_formula": "base_volume * (potions_market - potions_sell) / 100" },
-              { "else": 0 }
+              {
+                "if": "potions_sell > 0",
+                "then_formula": "base_volume * (potions_market - potions_sell) / 100"
+              },
+              {
+                "else": 0
+              }
             ]
           },
           {
             "name": "potions_buy_cost",
             "conditions": [
-              { "if": "potions_buy > 0", "then_formula": "-base_volume * (potions_market + potions_buy) / 100" },
-              { "else": 0 }
+              {
+                "if": "potions_buy > 0",
+                "then_formula": "-base_volume * (potions_market + potions_buy) / 100"
+              },
+              {
+                "else": 0
+              }
             ]
           },
-          { "name": "potions_total", "formula": "potions_sell_profit + potions_buy_cost" },
-
+          {
+            "name": "potions_total",
+            "formula": "potions_sell_profit + potions_buy_cost"
+          },
           {
             "name": "tools_sell_profit",
             "conditions": [
-              { "if": "tools_sell > 0", "then_formula": "base_volume * (tools_market - tools_sell) / 100" },
-              { "else": 0 }
+              {
+                "if": "tools_sell > 0",
+                "then_formula": "base_volume * (tools_market - tools_sell) / 100"
+              },
+              {
+                "else": 0
+              }
             ]
           },
           {
             "name": "tools_buy_cost",
             "conditions": [
-              { "if": "tools_buy > 0", "then_formula": "-base_volume * (tools_market + tools_buy) / 100" },
-              { "else": 0 }
+              {
+                "if": "tools_buy > 0",
+                "then_formula": "-base_volume * (tools_market + tools_buy) / 100"
+              },
+              {
+                "else": 0
+              }
             ]
           },
-          { "name": "tools_total", "formula": "tools_sell_profit + tools_buy_cost" },
-
+          {
+            "name": "tools_total",
+            "formula": "tools_sell_profit + tools_buy_cost"
+          },
           {
             "name": "jewelry_sell_profit",
             "conditions": [
-              { "if": "jewelry_sell > 0", "then_formula": "base_volume * (jewelry_market - jewelry_sell) / 100" },
-              { "else": 0 }
+              {
+                "if": "jewelry_sell > 0",
+                "then_formula": "base_volume * (jewelry_market - jewelry_sell) / 100"
+              },
+              {
+                "else": 0
+              }
             ]
           },
           {
             "name": "jewelry_buy_cost",
             "conditions": [
-              { "if": "jewelry_buy > 0", "then_formula": "-base_volume * (jewelry_market + jewelry_buy) / 100" },
-              { "else": 0 }
+              {
+                "if": "jewelry_buy > 0",
+                "then_formula": "-base_volume * (jewelry_market + jewelry_buy) / 100"
+              },
+              {
+                "else": 0
+              }
             ]
           },
-          { "name": "jewelry_total", "formula": "jewelry_sell_profit + jewelry_buy_cost" },
-
+          {
+            "name": "jewelry_total",
+            "formula": "jewelry_sell_profit + jewelry_buy_cost"
+          },
           {
             "name": "total_profit",
             "formula": "weapons_total + armor_total + potions_total + tools_total + jewelry_total"
           }
         ],
-        
         "effects": [
-          {"gold": "${total_profit}"}
+          {
+            "gold": "${total_profit}"
+          }
         ]
       }
     }
   ],
-
   "facilities": [
     {
       "id": "core.shop:shop:t1",
@@ -146,13 +290,20 @@
       "tier": 1,
       "parent": null,
       "build": {
-        "cost": {"gold": 250},
+        "cost": {
+          "gold": 250
+        },
         "duration_turns": 1
       },
       "npc_slots": 1,
-      "npc_allowed_professions": ["merchant", "trader", "shopkeeper"],
-      "npc_base_upkeep": {"silver": 5},
-
+      "npc_allowed_professions": [
+        "merchant",
+        "trader",
+        "shopkeeper"
+      ],
+      "npc_base_upkeep": {
+        "silver": 5
+      },
       "orders": [
         {
           "id": "trade_turn",
@@ -164,25 +315,36 @@
             "check_profile": "d20",
             "on_success": {
               "effects": [
-                {"log": "Trading completed. Shop Trading formula applied."}
+                {
+                  "log": "Trading completed. Shop Trading formula applied."
+                },
+                {
+                  "gold": 10
+                }
               ]
             },
             "on_critical_success": {
               "effects": [
-                {"gold": 20},
-                {"log": "Exceptional negotiations! Bonus profits from savvy deals."}
+                {
+                  "log": "Exceptional negotiations! Bonus profits from savvy deals."
+                },
+                {
+                  "gold": 20
+                }
               ]
             },
             "on_failure": {
               "effects": [
-                {"gold": -10},
-                {"log": "Some deals fell through. Minor losses."}
+                {
+                  "log": "Some deals fell through. Minor losses."
+                }
               ]
             },
             "on_critical_failure": {
               "effects": [
-                {"gold": -30},
-                {"log": "Catastrophic misjudgment! Major trading losses."}
+                {
+                  "log": "Catastrophic misjudgment! Major trading losses."
+                }
               ]
             }
           }
@@ -197,22 +359,40 @@
             "check_profile": "d20",
             "on_success": {
               "effects": [
-                {"gold": -5},
-                {"item": "market_report", "qty": 1},
-                {"log": "Gathered useful market information."}
+                {
+                  "item": "market_report",
+                  "qty": 1
+                },
+                {
+                  "log": "Gathered useful market information."
+                },
+                {
+                  "gold": -5
+                }
               ]
             },
             "on_critical_success": {
               "effects": [
-                {"gold": -5},
-                {"item": "detailed_market_report", "qty": 1},
-                {"log": "Excellent intelligence! Discovered upcoming market shifts."}
+                {
+                  "item": "detailed_market_report",
+                  "qty": 1
+                },
+                {
+                  "log": "Excellent intelligence! Discovered upcoming market shifts."
+                },
+                {
+                  "gold": -5
+                }
               ]
             },
             "on_failure": {
               "effects": [
-                {"gold": -5},
-                {"log": "Market information unclear this week."}
+                {
+                  "log": "Market information unclear this week."
+                },
+                {
+                  "gold": -5
+                }
               ]
             }
           }
@@ -227,33 +407,36 @@
             "check_profile": "d20",
             "on_success": {
               "effects": [
-                {"gold": -30},
-                {"log": "Storage expanded. Base volume permanently increased."}
+                {
+                  "log": "Storage expanded. Base volume permanently increased."
+                }
               ]
             },
             "on_critical_success": {
               "effects": [
-                {"gold": -20},
-                {"log": "Found excellent deal on warehouse space!"}
+                {
+                  "log": "Found excellent deal on warehouse space!"
+                }
               ]
             },
             "on_failure": {
               "effects": [
-                {"gold": -30},
-                {"log": "Expansion completed but at standard cost."}
+                {
+                  "log": "Expansion completed but at standard cost."
+                }
               ]
             },
             "on_critical_failure": {
               "effects": [
-                {"gold": -40},
-                {"log": "Construction problems! Cost overruns."}
+                {
+                  "log": "Construction problems! Cost overruns."
+                }
               ]
             }
           }
         }
       ]
     },
-
     {
       "id": "core.shop:shop:t2",
       "name": "Trading House",
@@ -261,13 +444,21 @@
       "tier": 2,
       "parent": "core.shop:shop:t1",
       "build": {
-        "cost": {"gold": 500},
+        "cost": {
+          "gold": 500
+        },
         "duration_turns": 2
       },
       "npc_slots": 2,
-      "npc_allowed_professions": ["merchant", "trader", "shopkeeper", "appraiser"],
-      "npc_base_upkeep": {"silver": 10},
-
+      "npc_allowed_professions": [
+        "merchant",
+        "trader",
+        "shopkeeper",
+        "appraiser"
+      ],
+      "npc_base_upkeep": {
+        "silver": 10
+      },
       "orders": [
         {
           "id": "negotiate_contracts",
@@ -279,29 +470,50 @@
             "check_profile": "d20",
             "on_success": {
               "effects": [
-                {"gold": -20},
-                {"item": "trade_contract", "qty": 1},
-                {"log": "Secured favorable trade contract. Future deals improved."}
+                {
+                  "item": "trade_contract",
+                  "qty": 1
+                },
+                {
+                  "log": "Secured favorable trade contract. Future deals improved."
+                },
+                {
+                  "gold": -20
+                }
               ]
             },
             "on_critical_success": {
               "effects": [
-                {"gold": -10},
-                {"item": "exclusive_contract", "qty": 1},
-                {"gold": 30},
-                {"log": "Exclusive deal! Immediate signing bonus received."}
+                {
+                  "item": "exclusive_contract",
+                  "qty": 1
+                },
+                {
+                  "log": "Exclusive deal! Immediate signing bonus received."
+                },
+                {
+                  "gold": -20
+                }
               ]
             },
             "on_failure": {
               "effects": [
-                {"gold": -20},
-                {"log": "Negotiations inconclusive."}
+                {
+                  "log": "Negotiations inconclusive."
+                },
+                {
+                  "gold": -20
+                }
               ]
             },
             "on_critical_failure": {
               "effects": [
-                {"gold": -30},
-                {"log": "Negotiations broke down badly. Lost potential partner and wasted time."}
+                {
+                  "log": "Negotiations broke down badly. Lost potential partner and wasted time."
+                },
+                {
+                  "gold": -20
+                }
               ]
             }
           }
@@ -316,23 +528,36 @@
             "check_profile": "d20",
             "on_success": {
               "effects": [
-                {"gold": -15},
-                {"gold": 40},
-                {"log": "Appraiser identified undervalued goods. Excellent profits!"}
+                {
+                  "log": "Appraiser identified undervalued goods. Excellent profits!"
+                },
+                {
+                  "gold": -15
+                }
               ]
             },
             "on_critical_success": {
               "effects": [
-                {"gold": -15},
-                {"gold": 80},
-                {"item": "rare_artifact", "qty": 1},
-                {"log": "Discovered a hidden treasure among common goods!"}
+                {
+                  "item": "magic_item",
+                  "qty": 1
+                },
+                {
+                  "log": "Discovered a hidden treasure among common goods!"
+                },
+                {
+                  "gold": -15
+                }
               ]
             },
             "on_failure": {
               "effects": [
-                {"gold": -15},
-                {"log": "Appraiser found nothing of note."}
+                {
+                  "log": "Appraiser found nothing of note."
+                },
+                {
+                  "gold": -15
+                }
               ]
             }
           }
@@ -347,31 +572,52 @@
             "check_profile": "d20",
             "on_success": {
               "effects": [
-                {"gold": -50},
-                {"gold": 100},
-                {"log": "Caravan route established. Regular exotic goods available."}
+                {
+                  "log": "Caravan route established. Regular exotic goods available."
+                },
+                {
+                  "gold": -50
+                },
+                {
+                  "gold": 60
+                }
               ]
             },
             "on_critical_success": {
               "effects": [
-                {"gold": -50},
-                {"gold": 200},
-                {"item": "trade_route_map", "qty": 1},
-                {"log": "Discovered profitable shortcut! Exceptional trade route."}
+                {
+                  "item": "trade_route_map",
+                  "qty": 1
+                },
+                {
+                  "log": "Discovered profitable shortcut! Exceptional trade route."
+                },
+                {
+                  "gold": -50
+                },
+                {
+                  "gold": 120
+                }
               ]
             },
             "on_failure": {
               "effects": [
-                {"gold": -50},
-                {"gold": 40},
-                {"log": "Route difficult to maintain. Slim profits."}
+                {
+                  "log": "Route difficult to maintain. Slim profits."
+                },
+                {
+                  "gold": -50
+                }
               ]
             },
             "on_critical_failure": {
               "effects": [
-                {"gold": -50},
-                {"gold": -30},
-                {"log": "Caravan lost to bandits! Total loss."}
+                {
+                  "log": "Caravan lost to bandits! Total loss."
+                },
+                {
+                  "gold": -50
+                }
               ]
             }
           }
@@ -386,35 +632,42 @@
             "check_profile": "d20_hard",
             "on_success": {
               "effects": [
-                {"gold": -100},
-                {"log": "Successfully cornered market! Control prices in this category for several turns."}
+                {
+                  "log": "Successfully cornered market! Control prices in this category for several turns."
+                },
+                {
+                  "gold": 120
+                }
               ]
             },
             "on_critical_success": {
               "effects": [
-                {"gold": -100},
-                {"gold": 200},
-                {"log": "Total market domination! Massive profits from price control."}
+                {
+                  "log": "Total market domination! Massive profits from price control."
+                },
+                {
+                  "gold": 200
+                }
               ]
             },
             "on_failure": {
               "effects": [
-                {"gold": -100},
-                {"log": "Competitors resisted. Market corner failed."}
+                {
+                  "log": "Competitors resisted. Market corner failed."
+                }
               ]
             },
             "on_critical_failure": {
               "effects": [
-                {"gold": -100},
-                {"gold": -50},
-                {"log": "Rival merchants formed coalition against you! Major losses."}
+                {
+                  "log": "Rival merchants formed coalition against you! Major losses."
+                }
               ]
             }
           }
         }
       ]
     },
-
     {
       "id": "core.shop:shop:t3",
       "name": "Grand Emporium",
@@ -422,13 +675,21 @@
       "tier": 3,
       "parent": "core.shop:shop:t2",
       "build": {
-        "cost": {"gold": 1000},
+        "cost": {
+          "gold": 1000
+        },
         "duration_turns": 3
       },
       "npc_slots": 3,
-      "npc_allowed_professions": ["merchant", "trader", "appraiser", "merchant_prince"],
-      "npc_base_upkeep": {"gold": 1},
-
+      "npc_allowed_professions": [
+        "merchant",
+        "trader",
+        "appraiser",
+        "merchant_prince"
+      ],
+      "npc_base_upkeep": {
+        "gold": 1
+      },
       "orders": [
         {
           "id": "establish_monopoly",
@@ -440,30 +701,59 @@
             "check_profile": "d20_hard",
             "on_success": {
               "effects": [
-                {"gold": -300},
-                {"item": "monopoly_charter", "qty": 1},
-                {"log": "Royal charter granted! Complete control over category pricing."}
+                {
+                  "item": "monopoly_charter",
+                  "qty": 1
+                },
+                {
+                  "log": "Royal charter granted! Complete control over category pricing."
+                },
+                {
+                  "gold": -300
+                },
+                {
+                  "gold": 200
+                }
               ]
             },
             "on_critical_success": {
               "effects": [
-                {"gold": -300},
-                {"item": "royal_monopoly_charter", "qty": 1},
-                {"gold": 500},
-                {"log": "The crown itself endorses your monopoly! Unprecedented profits."}
+                {
+                  "item": "royal_monopoly_charter",
+                  "qty": 1
+                },
+                {
+                  "log": "The crown itself endorses your monopoly! Unprecedented profits."
+                },
+                {
+                  "gold": -300
+                },
+                {
+                  "gold": 250
+                }
               ]
             },
             "on_failure": {
               "effects": [
-                {"gold": -300},
-                {"log": "Political opposition too strong. Monopoly denied."}
+                {
+                  "log": "Political opposition too strong. Monopoly denied."
+                },
+                {
+                  "gold": -300
+                }
               ]
             },
             "on_critical_failure": {
               "effects": [
-                {"gold": -300},
-                {"gold": -150},
-                {"log": "Scandal! Accusations of bribery. Massive fines and reputation damage."}
+                {
+                  "gold": -150
+                },
+                {
+                  "log": "Scandal! Accusations of bribery. Massive fines and reputation damage."
+                },
+                {
+                  "gold": -300
+                }
               ]
             }
           }

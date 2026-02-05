@@ -614,6 +614,22 @@ legend {
     color: var(--primary);
 }
 
+.inventory-wallet-label {
+    font-weight: 700;
+    margin-bottom: 0.35rem;
+    color: var(--primary);
+}
+
+.inventory-wallet-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+}
+
+.inventory-wallet-line {
+    white-space: nowrap;
+}
+
 .inventory-groups {
     flex: 1;
     overflow-y: auto;

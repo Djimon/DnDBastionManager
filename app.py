@@ -140,6 +140,35 @@ class Api:
                 "message": f"Error loading session: {str(e)}",
                 "session_state": None
             }
+
+    def load_latest_session(self) -> dict:
+        """
+        Load most recently modified session file.
+        """
+        try:
+            success, session_state, message = self._session_manager.load_latest_session()
+
+            if success:
+                self.current_session = session_state
+                self._stats_registry.apply_to_session(self.current_session)
+
+            filename = None
+            if isinstance(session_state, dict):
+                filename = session_state.get("_session_filename")
+
+            return {
+                "success": success,
+                "message": message,
+                "session_state": session_state,
+                "filename": filename,
+            }
+        except Exception as e:
+            return {
+                "success": False,
+                "message": f"Error loading latest session: {str(e)}",
+                "session_state": None,
+                "filename": None,
+            }
     
     def list_sessions(self) -> dict:
         """
@@ -262,6 +291,15 @@ class Api:
             if not self.current_session:
                 return {"success": False, "message": "No session loaded"}
             return self._facility_manager.evaluate_ready_orders(self.current_session)
+        except Exception as e:
+            return {"success": False, "message": str(e)}
+
+    def roll_and_evaluate_ready_orders(self) -> dict:
+        """Auto-roll and evaluate all ready orders."""
+        try:
+            if not self.current_session:
+                return {"success": False, "message": "No session loaded"}
+            return self._facility_manager.roll_and_evaluate_ready_orders(self.current_session)
         except Exception as e:
             return {"success": False, "message": str(e)}
 

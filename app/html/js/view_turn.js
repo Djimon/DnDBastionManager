@@ -184,6 +184,42 @@ function formatEffectEntries(entries) {
     return text;
 }
 
+function formatRawEffectEntries(entries) {
+    if (!Array.isArray(entries) || entries.length === 0) {
+        return t('orders.no_effects');
+    }
+    const effects = [];
+    const logs = [];
+    const currencyOrder = getCurrencyDisplayOrder();
+    entries.forEach(entry => {
+        if (!entry || typeof entry !== 'object') {
+            return;
+        }
+        if (entry.currency && Number.isInteger(entry.amount)) {
+            effects.push(`${entry.currency} ${formatSigned(entry.amount)}`);
+        }
+        if (entry.item && Number.isInteger(entry.qty)) {
+            effects.push(`${entry.item} ${formatSigned(entry.qty)}`);
+        }
+        if (entry.stat && Number.isInteger(entry.delta)) {
+            effects.push(`${entry.stat} ${formatSigned(entry.delta)}`);
+        }
+        if (typeof entry.log === 'string') {
+            logs.push(entry.log);
+        }
+        currencyOrder.forEach(currency => {
+            if (Number.isInteger(entry[currency])) {
+                effects.push(`${currency} ${formatSigned(entry[currency])}`);
+            }
+        });
+    });
+    let text = effects.length ? effects.join(', ') : t('orders.no_effects');
+    if (logs.length) {
+        text = `${text} | ${t('orders.log_prefix')} ${logs.join(' | ')}`;
+    }
+    return text;
+}
+
 function formatOutcomeBucket(bucket) {
     switch (bucket) {
         case 'on_success':
@@ -224,7 +260,7 @@ function renderTreasuryControls() {
     if (!currencySelect) {
         return;
     }
-    let order = getCurrencyOrder();
+    let order = getCurrencyDisplayOrder();
     if (!order || order.length === 0) {
         order = ['[Curr]'];
     }
@@ -237,16 +273,25 @@ function renderTreasuryControls() {
     });
 }
 
-async function adjustTreasury() {
+function toggleTreasuryPanel() {
+    const panel = document.getElementById('treasury-panel');
+    if (!panel) {
+        return;
+    }
+    panel.classList.toggle('hidden');
+    if (!panel.classList.contains('hidden')) {
+        renderTreasuryControls();
+    }
+}
+
+async function adjustTreasury(mode = 'add') {
     const amountEl = document.getElementById('treasury-amount');
     const currencyEl = document.getElementById('treasury-currency');
-    const modeEl = document.getElementById('treasury-mode');
-    if (!amountEl || !currencyEl || !modeEl) {
+    if (!amountEl || !currencyEl) {
         return;
     }
     const amount = parseInt(amountEl.value, 10);
     const currency = currencyEl.value;
-    const mode = modeEl.value;
     if (!Number.isInteger(amount) || amount < 0 || !currency) {
         alert(t('treasury.invalid'));
         return;
@@ -256,7 +301,13 @@ async function adjustTreasury() {
         ? appState.session.bastion.treasury
         : {};
     const currentValue = Number.isInteger(wallet[currency]) ? wallet[currency] : 0;
-    const delta = mode === 'set' ? (amount - currentValue) : amount;
+    let delta = amount;
+    if (mode === 'remove') {
+        delta = -amount;
+    } else if (mode !== 'add') {
+        alert(t('treasury.invalid'));
+        return;
+    }
     if (delta === 0) {
         showToast(t('treasury.no_change'), 'warn');
         return;
@@ -272,7 +323,7 @@ async function adjustTreasury() {
         event_type: 'treasury_adjust',
         source_type: 'dm',
         source_id: 'manual',
-        action: mode === 'set' ? 'set' : 'add',
+        action: mode === 'remove' ? 'remove' : 'add',
         result: 'applied',
         log_text: t('treasury.log_text', { amount: formatSigned(delta), currency })
     };
@@ -553,11 +604,58 @@ function renderOrdersPanel(facilityId) {
         }
     }
 
+    function updateOrderPreview() {
+        const previewBody = document.getElementById('order-preview-body');
+        if (!previewBody) {
+            return;
+        }
+        previewBody.innerHTML = '';
+        const selectedOrderId = orderSelect.value;
+        const orderDef = orders.find(order => order && order.id === selectedOrderId);
+        if (!orderDef || !orderDef.outcome) {
+            const placeholder = document.createElement('p');
+            placeholder.className = 'placeholder';
+            placeholder.textContent = t('orders.outcome_placeholder');
+            previewBody.appendChild(placeholder);
+            return;
+        }
+        const outcome = orderDef.outcome || {};
+        const buckets = ['on_success', 'on_critical_success', 'on_failure', 'on_critical_failure'];
+        let hasLines = false;
+        buckets.forEach(bucket => {
+            const block = outcome[bucket];
+            if (!block || typeof block !== 'object') {
+                return;
+            }
+            const effects = block.effects;
+            if (!Array.isArray(effects)) {
+                return;
+            }
+            const line = document.createElement('p');
+            line.className = 'order-preview-line';
+            line.textContent = `${formatOutcomeBucket(bucket)}: ${formatRawEffectEntries(effects)}`;
+            previewBody.appendChild(line);
+            hasLines = true;
+        });
+        if (!hasLines) {
+            const placeholder = document.createElement('p');
+            placeholder.className = 'placeholder';
+            placeholder.textContent = t('orders.outcome_placeholder');
+            previewBody.appendChild(placeholder);
+        }
+    }
+
     if (!npcSelect.dataset.bound) {
         npcSelect.addEventListener('change', populateOrdersForNpc);
         npcSelect.dataset.bound = 'true';
     }
     populateOrdersForNpc();
+    updateOrderPreview();
+
+    if (!orderSelect.dataset.boundPreview) {
+        orderSelect.addEventListener('change', updateOrderPreview);
+        orderSelect.dataset.boundPreview = 'true';
+    }
 
     if (hint) {
         hint.textContent = '';
@@ -791,7 +889,43 @@ function renderInventoryPanel() {
         ? appState.session.bastion.treasury
         : {};
     if (walletEl) {
-        walletEl.textContent = t('inventory.wallet', { amount: formatCost(wallet, getCurrencyDisplayOrder()) });
+        let displayWallet = wallet;
+        let baseValue = appState.session && appState.session.bastion
+            ? appState.session.bastion.treasury_base
+            : null;
+        if (!Number.isInteger(baseValue) && appState.currencyModel) {
+            baseValue = computeBaseValue(wallet, appState.currencyModel.factor_to_base);
+        }
+        if (Number.isInteger(baseValue) && appState.currencyModel) {
+            const normalized = normalizeBaseToWallet(baseValue, appState.currencyModel);
+            if (normalized) {
+                displayWallet = normalized;
+            }
+        }
+        const order = getCurrencyDisplayOrder();
+        walletEl.innerHTML = '';
+        const label = document.createElement('div');
+        label.className = 'inventory-wallet-label';
+        label.textContent = t('inventory.wallet_label');
+        walletEl.appendChild(label);
+
+        const list = document.createElement('div');
+        list.className = 'inventory-wallet-list';
+        if (order && order.length) {
+            order.forEach(currency => {
+                const value = Number.isInteger(displayWallet[currency]) ? displayWallet[currency] : 0;
+                const line = document.createElement('div');
+                line.className = 'inventory-wallet-line';
+                line.textContent = `${value} ${currency}`;
+                list.appendChild(line);
+            });
+        } else {
+            const fallback = document.createElement('div');
+            fallback.className = 'inventory-wallet-line';
+            fallback.textContent = t('common.unknown');
+            list.appendChild(fallback);
+        }
+        walletEl.appendChild(list);
     }
 
     if (empty) {
@@ -1244,6 +1378,7 @@ async function evaluateOrder(orderId) {
     const summary = buildOrderResultSummary(facilityId, orderId, response);
     addLogEntry(summary, 'event');
     showToast(summary, 'success');
+    await autoSaveSession('evaluate_order');
 }
 
 async function evaluateAllReady() {
@@ -1285,6 +1420,49 @@ async function evaluateAllReady() {
             showToast(summary, 'success', 6000);
         });
     }
+    await autoSaveSession('evaluate_all_ready');
+}
+
+async function rollAndEvaluateAllReady() {
+    if (!(window.pywebview && window.pywebview.api && window.pywebview.api.roll_and_evaluate_ready_orders)) {
+        alert(t('alerts.pywebview_unavailable'));
+        return;
+    }
+    const response = await window.pywebview.api.roll_and_evaluate_ready_orders();
+    if (!response || !response.success) {
+        alert(t('alerts.evaluate_failed', { message: response && response.message ? response.message : 'unknown error' }));
+        return;
+    }
+    const evaluated = response.evaluated || [];
+    const skipped = response.skipped || [];
+    if (evaluated.length === 0 && skipped.length === 0) {
+        showToast(t('alerts.no_ready_orders'), 'warn');
+        return;
+    }
+
+    const results = response.results || [];
+    await refreshSessionState();
+    await refreshFacilityStates();
+    if (appState.selectedFacilityId) {
+        renderOrdersPanel(appState.selectedFacilityId);
+        renderSlotBubbles(appState.facilityById[appState.selectedFacilityId], getFacilityEntry(appState.selectedFacilityId));
+        renderNpcTab(appState.selectedFacilityId);
+    }
+
+    if (results.length) {
+        results.forEach(result => {
+            if (!result) {
+                return;
+            }
+            const summary = buildOrderResultSummary(result.facility_id, result.order_id, result);
+            addLogEntry(summary, 'event');
+            showToast(summary, 'success', 6000);
+        });
+    }
+    if (skipped.length) {
+        showToast(t('alerts.evaluate_all_skipped'), 'warn');
+    }
+    await autoSaveSession('roll_and_evaluate_all');
 }
 
 async function startUpgrade() {
@@ -1330,6 +1508,7 @@ async function startUpgrade() {
     await refreshSessionState();
     await refreshFacilityStates();
     selectFacility(facilityId);
+    await autoSaveSession('start_upgrade');
 }
 
 async function advanceTurn() {
@@ -1355,6 +1534,7 @@ async function advanceTurn() {
         } else {
             addLogEntry(t('logs.turn_advanced', { turn: response.current_turn }), 'event');
         }
+        await autoSaveSession('advance_turn');
     } else {
         appState.session.turn++;
         updateTurnCounter();
@@ -1425,35 +1605,69 @@ function loadSession() {
     }
 }
 
-function loadSessionFile(filename) {
+async function applyLoadedSession(filename, sessionState, options = {}) {
+    const showAlert = options.showAlert !== false;
+    const closeDialog = options.closeDialog !== false;
+
+    appState.session = sessionState;
+    renderAuditLog();
+    updateTurnCounter();
+    updateQueueDisplay();
+    await loadCurrencyModel();
+    await loadFacilityCatalog();
+    await refreshFacilityStates();
+
+    const nameEl = document.querySelector('.session-name');
+    if (nameEl) {
+        const display = filename ? filename.replace('session_', '').replace('.json', '') : (sessionState && sessionState.bastion && sessionState.bastion.name) || t('header.no_session');
+        nameEl.textContent = display;
+    }
+
+    if (showAlert) {
+        alert(t('alerts.session_loaded', { filename: filename || '' }));
+    }
+    if (closeDialog) {
+        closeModal('load-session-modal');
+    }
+    switchView(3);
+}
+
+async function loadSessionFile(filename) {
     logClient('info', `Loading session: ${filename}`);
-    
+
     if (window.pywebview && window.pywebview.api) {
-        window.pywebview.api.load_session(filename).then(response => {
+        try {
+            const response = await window.pywebview.api.load_session(filename);
             if (response.success) {
                 logClient('info', `Session loaded successfully: ${filename}`);
-                appState.session = response.session_state;
-                renderAuditLog();
-                updateTurnCounter();
-                updateQueueDisplay();
-                loadCurrencyModel();
-                loadFacilityCatalog();
-                refreshFacilityStates();
-                document.querySelector('.session-name').textContent =
-                    filename.replace('session_', '').replace('.json', '');
-                alert(t('alerts.session_loaded', { filename }));
-                closeModal('load-session-modal');
-                switchView(3);  // Gehe zu Turn Console
+                await applyLoadedSession(filename, response.session_state, { showAlert: true, closeDialog: true });
             } else {
                 logClient('error', `Failed to load session: ${response.message}`);
                 alert(t('alerts.error_prefix', { message: response.message }));
             }
-        }).catch(err => {
+        } catch (err) {
             logClient('error', `Failed to load session file: ${err}`);
             alert(t('alerts.error_prefix', { message: err }));
-        });
+        }
     } else {
         alert(t('alerts.pywebview_unavailable'));
+    }
+}
+
+async function autoLoadLatestSession() {
+    if (!(window.pywebview && window.pywebview.api && window.pywebview.api.load_latest_session)) {
+        return;
+    }
+    try {
+        const response = await window.pywebview.api.load_latest_session();
+        if (!response || !response.success || !response.session_state) {
+            return;
+        }
+        const filename = response.filename || (response.session_state && response.session_state._session_filename) || '';
+        await applyLoadedSession(filename, response.session_state, { showAlert: false, closeDialog: false });
+        logClient('info', `Auto-loaded session: ${filename}`);
+    } catch (err) {
+        logClient('warn', `Auto-load latest session failed: ${err}`);
     }
 }
 

@@ -142,7 +142,7 @@
   },
   "inventory": {
     "title": "Inventar",
-    "wallet": "Schatzkammer: {amount}",
+    "wallet_label": "Schatzkammer",
     "table_item": "Item",
     "table_qty": "Menge",
     "empty": "Keine Items im Inventar.",
@@ -153,12 +153,15 @@
     "advance_turn": "⏭️ Runde vorrücken",
     "build_new": "+ Neue Facility",
     "manage_npcs": "👥 NSCs verwalten",
+    "roll_evaluate_all": "🎲 Alles rollen & auswerten",
     "save_session": "💾 Session speichern",
     "log_title": "Runden-Log"
   },
   "treasury": {
-    "title": "Bastion-Kasse",
+    "title": "Schatzkammer",
+    "manage": "Schatzkammer verwalten",
     "mode_add": "Hinzufügen",
+    "mode_remove": "Abziehen",
     "mode_set": "Setzen",
     "apply": "Anwenden",
     "invalid": "Bitte gültigen Betrag und Währung angeben",

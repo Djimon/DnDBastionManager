@@ -19,6 +19,9 @@ if (window.addEventListener && typeof window.pywebviewready === 'undefined') {
         loadCurrencyModel();
         loadNpcProgression();
         loadFacilityCatalog();
+        if (typeof autoLoadLatestSession === 'function') {
+            autoLoadLatestSession();
+        }
     });
 }
 
@@ -95,6 +98,23 @@ async function loadCurrencyModel() {
         }
     } catch (err) {
         logClient('error', `Failed to load currency model: ${err}`);
+    }
+}
+
+async function autoSaveSession(reason = '') {
+    if (!(window.pywebview && window.pywebview.api && window.pywebview.api.save_session)) {
+        return;
+    }
+    try {
+        const response = await window.pywebview.api.save_session(appState.session);
+        if (!response || !response.success) {
+            const message = response && response.message ? response.message : 'unknown error';
+            logClient('warn', `Autosave failed${reason ? ` (${reason})` : ''}: ${message}`);
+        } else {
+            logClient('debug', `Autosave ok${reason ? ` (${reason})` : ''}`);
+        }
+    } catch (err) {
+        logClient('warn', `Autosave failed${reason ? ` (${reason})` : ''}: ${err}`);
     }
 }
 

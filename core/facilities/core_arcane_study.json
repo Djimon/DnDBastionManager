@@ -3,7 +3,6 @@
   "name": "Arcane Study",
   "version": 1,
   "author": "Djih",
-
   "facilities": [
     {
       "id": "core.arcanestudy:study:t1",
@@ -12,13 +11,20 @@
       "tier": 1,
       "parent": null,
       "build": {
-        "cost": {"gold": 250},
+        "cost": {
+          "gold": 250
+        },
         "duration_turns": 1
       },
       "npc_slots": 1,
-      "npc_allowed_professions": ["scholar", "mage", "archivist"],
-      "npc_base_upkeep": {"silver": 5},
-
+      "npc_allowed_professions": [
+        "scholar",
+        "mage",
+        "archivist"
+      ],
+      "npc_base_upkeep": {
+        "silver": 5
+      },
       "orders": [
         {
           "id": "research_spell",
@@ -30,26 +36,45 @@
             "check_profile": "d20",
             "on_success": {
               "effects": [
-                {"item": "spell_notes", "qty": 1},
-                {"log": "Research successful. New magical knowledge gained."}
+                {
+                  "item": "spell_notes",
+                  "qty": 1
+                },
+                {
+                  "log": "Research successful. New magical knowledge gained."
+                }
               ]
             },
             "on_critical_success": {
               "effects": [
-                {"item": "spell_scroll", "qty": 1},
-                {"item": "spell_notes", "qty": 1},
-                {"log": "Breakthrough! Discovered a complete spell scroll."}
+                {
+                  "item": "spell_scroll",
+                  "qty": 1
+                },
+                {
+                  "item": "spell_notes",
+                  "qty": 1
+                },
+                {
+                  "log": "Breakthrough! Discovered a complete spell scroll."
+                }
               ]
             },
             "on_failure": {
               "effects": [
-                {"log": "Research inconclusive this week."}
+                {
+                  "log": "Research inconclusive this week."
+                }
               ]
             },
             "on_critical_failure": {
               "effects": [
-                {"gold": -10},
-                {"log": "Magical mishap damaged some books and equipment!"}
+                {
+                  "gold": -5
+                },
+                {
+                  "log": "Magical mishap damaged some books and equipment!"
+                }
               ]
             }
           }
@@ -64,24 +89,44 @@
             "check_profile": "d20",
             "on_success": {
               "effects": [
-                {"item": "unidentified_item", "qty": -1},
-                {"item": "identified_item", "qty": 1},
-                {"gold": 15},
-                {"log": "Item identified successfully. Customer paid for the service."}
+                {
+                  "item": "identified_item",
+                  "qty": 1
+                },
+                {
+                  "log": "Item identified successfully. Customer paid for the service."
+                },
+                {
+                  "silver": -2
+                }
               ]
             },
             "on_critical_success": {
               "effects": [
-                {"item": "unidentified_item", "qty": -1},
-                {"item": "identified_item", "qty": 1},
-                {"item": "magical_insight", "qty": 1},
-                {"gold": 30},
-                {"log": "Not only identified, but gained deeper understanding of its magic!"}
+                {
+                  "item": "identified_item",
+                  "qty": 1
+                },
+                {
+                  "item": "magical_insight",
+                  "qty": 1
+                },
+                {
+                  "log": "Not only identified, but gained deeper understanding of its magic!"
+                },
+                {
+                  "silver": -2
+                }
               ]
             },
             "on_failure": {
               "effects": [
-                {"log": "No items brought in for identification this week."}
+                {
+                  "log": "No items brought in for identification this week."
+                },
+                {
+                  "silver": -2
+                }
               ]
             }
           }
@@ -96,33 +141,53 @@
             "check_profile": "d20",
             "on_success": {
               "effects": [
-                {"item": "blank_scroll", "qty": -1},
-                {"item": "ink_magical", "qty": -1},
-                {"item": "spell_scroll_fireball", "qty": 1},
-                {"log": "Spell scroll copied successfully."}
+                {
+                  "item": "spell_scroll_fireball",
+                  "qty": 1
+                },
+                {
+                  "log": "Spell scroll copied successfully."
+                },
+                {
+                  "silver": -4
+                }
               ]
             },
             "on_critical_success": {
               "effects": [
-                {"item": "blank_scroll", "qty": -1},
-                {"item": "ink_magical", "qty": -1},
-                {"item": "spell_scroll_fireball", "qty": 2},
-                {"log": "Perfect transcription! Created an extra copy."}
+                {
+                  "item": "spell_scroll_fireball",
+                  "qty": 2
+                },
+                {
+                  "log": "Perfect transcription! Created an extra copy."
+                },
+                {
+                  "silver": -4
+                }
               ]
             },
             "on_failure": {
               "effects": [
-                {"item": "blank_scroll", "qty": -1},
-                {"item": "ink_magical", "qty": -1},
-                {"log": "Transcription error. Materials wasted."}
+                {
+                  "log": "Transcription error. Materials wasted."
+                },
+                {
+                  "silver": -4
+                }
               ]
             },
             "on_critical_failure": {
               "effects": [
-                {"item": "blank_scroll", "qty": -1},
-                {"item": "ink_magical", "qty": -1},
-                {"gold": -15},
-                {"log": "The spell backfired during copying! Minor magical damage."}
+                {
+                  "gold": -15
+                },
+                {
+                  "log": "The spell backfired during copying! Minor magical damage."
+                },
+                {
+                  "silver": -4
+                }
               ]
             }
           }
@@ -137,26 +202,37 @@
             "check_profile": "d20",
             "on_success": {
               "effects": [
-                {"item": "lore_fragment", "qty": 1},
-                {"log": "Discovered interesting historical information."}
+                {
+                  "item": "lore_fragment",
+                  "qty": 1
+                },
+                {
+                  "log": "Discovered interesting historical information."
+                }
               ]
             },
             "on_critical_success": {
               "effects": [
-                {"item": "ancient_prophecy", "qty": 1},
-                {"log": "Found a fragment of an ancient prophecy! This could be significant."}
+                {
+                  "item": "ancient_prophecy",
+                  "qty": 1
+                },
+                {
+                  "log": "Found a fragment of an ancient prophecy! This could be significant."
+                }
               ]
             },
             "on_failure": {
               "effects": [
-                {"log": "Nothing of note discovered this week."}
+                {
+                  "log": "Nothing of note discovered this week."
+                }
               ]
             }
           }
         }
       ]
     },
-
     {
       "id": "core.arcanestudy:study:t2",
       "name": "Arcane Library",
@@ -164,13 +240,21 @@
       "tier": 2,
       "parent": "core.arcanestudy:study:t1",
       "build": {
-        "cost": {"gold": 500},
+        "cost": {
+          "gold": 500
+        },
         "duration_turns": 2
       },
       "npc_slots": 2,
-      "npc_allowed_professions": ["scholar", "mage", "archivist", "wizard"],
-      "npc_base_upkeep": {"silver": 10},
-
+      "npc_allowed_professions": [
+        "scholar",
+        "mage",
+        "archivist",
+        "wizard"
+      ],
+      "npc_base_upkeep": {
+        "silver": 10
+      },
       "orders": [
         {
           "id": "research_advanced_magic",
@@ -182,28 +266,53 @@
             "check_profile": "d20",
             "on_success": {
               "effects": [
-                {"item": "advanced_spell_notes", "qty": 1},
-                {"item": "arcane_formula", "qty": 1},
-                {"log": "Advanced research completed successfully."}
+                {
+                  "item": "advanced_spell_notes",
+                  "qty": 1
+                },
+                {
+                  "item": "arcane_formula",
+                  "qty": 1
+                },
+                {
+                  "log": "Advanced research completed successfully."
+                }
               ]
             },
             "on_critical_success": {
               "effects": [
-                {"item": "advanced_spell_notes", "qty": 2},
-                {"item": "arcane_formula", "qty": 1},
-                {"item": "spell_scroll_rare", "qty": 1},
-                {"log": "Major breakthrough! Discovered a rare spell."}
+                {
+                  "item": "advanced_spell_notes",
+                  "qty": 2
+                },
+                {
+                  "item": "arcane_formula",
+                  "qty": 1
+                },
+                {
+                  "item": "spell_scroll_rare",
+                  "qty": 1
+                },
+                {
+                  "log": "Major breakthrough! Discovered a rare spell."
+                }
               ]
             },
             "on_failure": {
               "effects": [
-                {"log": "Research progressing slowly."}
+                {
+                  "log": "Research progressing slowly."
+                }
               ]
             },
             "on_critical_failure": {
               "effects": [
-                {"gold": -25},
-                {"log": "Experimental magic went awry! Damaged several rare books."}
+                {
+                  "gold": -25
+                },
+                {
+                  "log": "Experimental magic went awry! Damaged several rare books."
+                }
               ]
             }
           }
@@ -218,35 +327,57 @@
             "check_profile": "d20",
             "on_success": {
               "effects": [
-                {"item": "mundane_weapon", "qty": -1},
-                {"item": "arcane_catalyst", "qty": -1},
-                {"item": "enchanted_weapon_plus1", "qty": 1},
-                {"gold": 50},
-                {"log": "Item enchanted successfully and sold."}
+                {
+                  "item": "weapon",
+                  "qty": 1
+                },
+                {
+                  "log": "Item enchanted successfully and sold."
+                },
+                {
+                  "gold": -2,
+                  "silver": -2
+                }
               ]
             },
             "on_critical_success": {
               "effects": [
-                {"item": "mundane_weapon", "qty": -1},
-                {"item": "arcane_catalyst", "qty": -1},
-                {"item": "enchanted_weapon_plus2", "qty": 1},
-                {"gold": 150},
-                {"log": "Exceptional enchantment! The weapon glows with power."}
+                {
+                  "item": "weapon",
+                  "qty": 1
+                },
+                {
+                  "log": "Exceptional enchantment! The weapon glows with power."
+                },
+                {
+                  "gold": -2,
+                  "silver": -2
+                }
               ]
             },
             "on_failure": {
               "effects": [
-                {"item": "mundane_weapon", "qty": -1},
-                {"item": "arcane_catalyst", "qty": -1},
-                {"log": "Enchantment failed. Materials consumed."}
+                {
+                  "log": "Enchantment failed. Materials consumed."
+                },
+                {
+                  "gold": -2,
+                  "silver": -2
+                }
               ]
             },
             "on_critical_failure": {
               "effects": [
-                {"item": "mundane_weapon", "qty": -1},
-                {"item": "arcane_catalyst", "qty": -1},
-                {"gold": -20},
-                {"log": "The enchantment backfired, destroying the item and damaging the lab!"}
+                {
+                  "gold": -20
+                },
+                {
+                  "log": "The enchantment backfired, destroying the item and damaging the lab!"
+                },
+                {
+                  "gold": -2,
+                  "silver": -2
+                }
               ]
             }
           }
@@ -261,22 +392,44 @@
             "check_profile": "d20",
             "on_success": {
               "effects": [
-                {"item": "ancient_manuscript", "qty": -1},
-                {"item": "translated_text", "qty": 1},
-                {"log": "Text successfully deciphered."}
+                {
+                  "item": "translated_text",
+                  "qty": 1
+                },
+                {
+                  "log": "Text successfully deciphered."
+                },
+                {
+                  "silver": -2
+                }
               ]
             },
             "on_critical_success": {
               "effects": [
-                {"item": "ancient_manuscript", "qty": -1},
-                {"item": "translated_text", "qty": 1},
-                {"item": "lost_spell", "qty": 1},
-                {"log": "The text contained a long-lost spell!"}
+                {
+                  "item": "translated_text",
+                  "qty": 1
+                },
+                {
+                  "item": "lost_spell",
+                  "qty": 1
+                },
+                {
+                  "log": "The text contained a long-lost spell!"
+                },
+                {
+                  "silver": -2
+                }
               ]
             },
             "on_failure": {
               "effects": [
-                {"log": "The language proves too difficult to decipher at this time."}
+                {
+                  "log": "The language proves too difficult to decipher at this time."
+                },
+                {
+                  "silver": -2
+                }
               ]
             }
           }
@@ -291,37 +444,63 @@
             "check_profile": "d20_hard",
             "on_success": {
               "effects": [
-                {"item": "incense_rare", "qty": -1},
-                {"item": "spirit_message", "qty": 1},
-                {"log": "The spirits have spoken."}
+                {
+                  "item": "spirit_message",
+                  "qty": 1
+                },
+                {
+                  "log": "The spirits have spoken."
+                },
+                {
+                  "silver": -2
+                }
               ]
             },
             "on_critical_success": {
               "effects": [
-                {"item": "incense_rare", "qty": -1},
-                {"item": "spirit_message", "qty": 1},
-                {"item": "prophecy_fragment", "qty": 1},
-                {"log": "A powerful entity revealed a prophecy!"}
+                {
+                  "item": "spirit_message",
+                  "qty": 1
+                },
+                {
+                  "item": "prophecy_fragment",
+                  "qty": 1
+                },
+                {
+                  "log": "A powerful entity revealed a prophecy!"
+                },
+                {
+                  "silver": -2
+                }
               ]
             },
             "on_failure": {
               "effects": [
-                {"item": "incense_rare", "qty": -1},
-                {"log": "The spirits remain silent."}
+                {
+                  "log": "The spirits remain silent."
+                },
+                {
+                  "silver": -2
+                }
               ]
             },
             "on_critical_failure": {
               "effects": [
-                {"item": "incense_rare", "qty": -1},
-                {"gold": -30},
-                {"log": "An angry spirit lashed out! Psychic damage to the researcher."}
+                {
+                  "gold": -30
+                },
+                {
+                  "log": "An angry spirit lashed out! Psychic damage to the researcher."
+                },
+                {
+                  "silver": -2
+                }
               ]
             }
           }
         }
       ]
     },
-
     {
       "id": "core.arcanestudy:study:t3",
       "name": "Arcane Sanctum",
@@ -329,13 +508,21 @@
       "tier": 3,
       "parent": "core.arcanestudy:study:t2",
       "build": {
-        "cost": {"gold": 1000},
+        "cost": {
+          "gold": 1000
+        },
         "duration_turns": 3
       },
       "npc_slots": 3,
-      "npc_allowed_professions": ["scholar", "mage", "wizard", "archmage"],
-      "npc_base_upkeep": {"gold": 1},
-
+      "npc_allowed_professions": [
+        "scholar",
+        "mage",
+        "wizard",
+        "archmage"
+      ],
+      "npc_base_upkeep": {
+        "gold": 1
+      },
       "orders": [
         {
           "id": "create_legendary_spell",
@@ -347,38 +534,57 @@
             "check_profile": "d20_hard",
             "on_success": {
               "effects": [
-                {"item": "essence_of_magic", "qty": -5},
-                {"item": "dragon_scale", "qty": -2},
-                {"item": "celestial_ink", "qty": -1},
-                {"item": "legendary_spell_scroll", "qty": 1},
-                {"log": "A new spell of immense power has been created!"}
+                {
+                  "item": "legendary_spell_scroll",
+                  "qty": 1
+                },
+                {
+                  "log": "A new spell of immense power has been created!"
+                },
+                {
+                  "silver": -16
+                }
               ]
             },
             "on_critical_success": {
               "effects": [
-                {"item": "essence_of_magic", "qty": -5},
-                {"item": "dragon_scale", "qty": -2},
-                {"item": "celestial_ink", "qty": -1},
-                {"item": "legendary_spell_scroll", "qty": 1},
-                {"item": "spell_formula_original", "qty": 1},
-                {"log": "The spell resonates with the Weave itself! Your name will be remembered in magical history."}
+                {
+                  "item": "legendary_spell_scroll",
+                  "qty": 1
+                },
+                {
+                  "item": "spell_formula_original",
+                  "qty": 1
+                },
+                {
+                  "log": "The spell resonates with the Weave itself! Your name will be remembered in magical history."
+                },
+                {
+                  "silver": -16
+                }
               ]
             },
             "on_failure": {
               "effects": [
-                {"item": "essence_of_magic", "qty": -5},
-                {"item": "dragon_scale", "qty": -2},
-                {"item": "celestial_ink", "qty": -1},
-                {"log": "The spell is unstable. More research needed."}
+                {
+                  "log": "The spell is unstable. More research needed."
+                },
+                {
+                  "silver": -16
+                }
               ]
             },
             "on_critical_failure": {
               "effects": [
-                {"item": "essence_of_magic", "qty": -5},
-                {"item": "dragon_scale", "qty": -2},
-                {"item": "celestial_ink", "qty": -1},
-                {"gold": -150},
-                {"log": "Catastrophic magical feedback! The sanctum itself was damaged by wild magic."}
+                {
+                  "gold": -150
+                },
+                {
+                  "log": "Catastrophic magical feedback! The sanctum itself was damaged by wild magic."
+                },
+                {
+                  "silver": -16
+                }
               ]
             }
           }

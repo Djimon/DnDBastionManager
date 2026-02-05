@@ -3,7 +3,6 @@
   "name": "Pub",
   "version": 1,
   "author": "Djih",
-
   "custom_mechanics": [
     {
       "name": "Reputation",
@@ -19,11 +18,38 @@
       "type": "formula_engine",
       "config": {
         "inputs": [
-          { "name": "drink_stock", "source": "item", "default": "beer", "label": "Primary Drink"},
-          { "name": "food_stock", "source": "item", "default": "food", "label": "Food Item "},
-          { "name": "reputation_stat", "source": "stat", "default": "reputation", "label": "Reputation Stat"},
-          { "name": "base_income", "source": "fixed", "default": 10, "label": "Base Income Multiplier"},
-          { "name": "base_cost", "source": "currency", "default": {"gold": -5}, "label": "Base Cost"}
+          {
+            "name": "drink_stock",
+            "source": "item",
+            "default": "beer",
+            "label": "Primary Drink"
+          },
+          {
+            "name": "food_stock",
+            "source": "item",
+            "default": "food",
+            "label": "Food Item "
+          },
+          {
+            "name": "reputation_stat",
+            "source": "stat",
+            "default": "reputation",
+            "label": "Reputation Stat"
+          },
+          {
+            "name": "base_income",
+            "source": "fixed",
+            "default": 10,
+            "label": "Base Income Multiplier"
+          },
+          {
+            "name": "base_cost",
+            "source": "currency",
+            "default": {
+              "gold": -5
+            },
+            "label": "Base Cost"
+          }
         ],
         "calculations": [
           {
@@ -49,22 +75,32 @@
           {
             "name": "reputation_delta",
             "conditions": [
-              {"if": "total_satisfaction < 0", "then": -1},
-              {"if": "total_satisfaction > 10", "then": 1},
-              {"else": 0}
+              {
+                "if": "total_satisfaction < 0",
+                "then": -1
+              },
+              {
+                "if": "total_satisfaction > 10",
+                "then": 1
+              },
+              {
+                "else": 0
+              }
             ]
           }
         ],
         "effects": [
-          {"item": "${drink_stock}", "qty": "-${consumption}"},
-          {"item": "${food_stock}", "qty": "-${consumption}"},
-          {"gold": "${final_income}"},
-          {"stat": "${reputation_stat}", "delta": "${reputation_delta}"}
+          {
+            "gold": "${final_income}"
+          },
+          {
+            "stat": "${reputation_stat}",
+            "delta": "${reputation_delta}"
+          }
         ]
       }
     }
   ],
-
   "facilities": [
     {
       "id": "core.pub:pub:t1",
@@ -73,13 +109,20 @@
       "tier": 1,
       "parent": null,
       "build": {
-        "cost": {"gold": 250},
+        "cost": {
+          "gold": 250
+        },
         "duration_turns": 1
       },
       "npc_slots": 1,
-      "npc_allowed_professions": ["innkeeper", "bartender", "cook"],
-      "npc_base_upkeep": {"silver": 5},
-
+      "npc_allowed_professions": [
+        "innkeeper",
+        "bartender",
+        "cook"
+      ],
+      "npc_base_upkeep": {
+        "silver": 5
+      },
       "orders": [
         {
           "id": "serve_customers",
@@ -91,26 +134,34 @@
             "check_profile": "d20",
             "on_success": {
               "effects": [
-                {"log": "Normal business week. Pub management formula applied."}
+                {
+                  "log": "Normal business week. Pub management formula applied."
+                }
               ]
             },
             "on_critical_success": {
               "effects": [
-                {"gold": 20},
-                {"log": "Exceptional service! Bonus tips from satisfied customers."}
+                {
+                  "log": "Exceptional service! Bonus tips from satisfied customers."
+                }
               ]
             },
             "on_failure": {
               "effects": [
-                {"gold": -5},
-                {"log": "Poor service this week. Some refunds issued."}
+                {
+                  "log": "Poor service this week. Some refunds issued."
+                }
               ]
             },
             "on_critical_failure": {
               "effects": [
-                {"gold": -15},
-                {"stat": "reputation", "delta": -2},
-                {"log": "Disaster! A fight broke out and the pub was damaged."}
+                {
+                  "stat": "reputation",
+                  "delta": -2
+                },
+                {
+                  "log": "Disaster! A fight broke out and the pub was damaged."
+                }
               ]
             }
           }
@@ -125,34 +176,74 @@
             "check_profile": "d20",
             "on_success": {
               "effects": [
-                {"gold": -20},
-                {"item": "beer", "qty": 10},
-                {"item": "food", "qty": 10},
-                {"log": "Supplies restocked at standard prices."}
+                {
+                  "item": "beer",
+                  "qty": 10
+                },
+                {
+                  "item": "food",
+                  "qty": 10
+                },
+                {
+                  "log": "Supplies restocked at standard prices."
+                },
+                {
+                  "gold": -20
+                }
               ]
             },
             "on_critical_success": {
               "effects": [
-                {"gold": -15},
-                {"item": "beer", "qty": 12},
-                {"item": "food", "qty": 12},
-                {"log": "Great deal from supplier! Extra stock at discount."}
+                {
+                  "item": "beer",
+                  "qty": 12
+                },
+                {
+                  "item": "food",
+                  "qty": 12
+                },
+                {
+                  "log": "Great deal from supplier! Extra stock at discount."
+                },
+                {
+                  "gold": -20
+                }
               ]
             },
             "on_failure": {
               "effects": [
-                {"gold": -20},
-                {"item": "beer", "qty": 8},
-                {"item": "food", "qty": 8},
-                {"log": "Limited stock available this week."}
+                {
+                  "item": "beer",
+                  "qty": 8
+                },
+                {
+                  "item": "food",
+                  "qty": 8
+                },
+                {
+                  "log": "Limited stock available this week."
+                },
+                {
+                  "gold": -20
+                }
               ]
             },
             "on_critical_failure": {
               "effects": [
-                {"gold": -25},
-                {"item": "beer", "qty": 5},
-                {"item": "food", "qty": 5},
-                {"log": "Supply shortage! Paid premium for limited stock."}
+                {
+                  "item": "beer",
+                  "qty": 5
+                },
+                {
+                  "item": "food",
+                  "qty": 5
+                },
+                {
+                  "log": "Supply shortage! Paid premium for limited stock."
+                },
+                {
+                  "gold": -20
+                }
               ]
             }
           }
@@ -167,22 +258,40 @@
             "check_profile": "d20",
             "on_success": {
               "effects": [
-                {"gold": -5},
-                {"stat": "reputation", "delta": 1},
-                {"log": "Word spreads about the pub. Reputation increases."}
+                {
+                  "stat": "reputation",
+                  "delta": 1
+                },
+                {
+                  "log": "Word spreads about the pub. Reputation increases."
+                },
+                {
+                  "gold": -20
+                }
               ]
             },
             "on_critical_success": {
               "effects": [
-                {"gold": -5},
-                {"stat": "reputation", "delta": 3},
-                {"log": "Your pub becomes the talk of the town!"}
+                {
+                  "stat": "reputation",
+                  "delta": 3
+                },
+                {
+                  "log": "Your pub becomes the talk of the town!"
+                },
+                {
+                  "gold": -20
+                }
               ]
             },
             "on_failure": {
               "effects": [
-                {"gold": -5},
-                {"log": "Advertising efforts have little effect."}
+                {
+                  "log": "Advertising efforts have little effect."
+                },
+                {
+                  "gold": -20
+                }
               ]
             }
           }
@@ -197,20 +306,35 @@
             "check_profile": "d20",
             "on_success": {
               "effects": [
-                {"item": "rumor", "qty": 2},
-                {"log": "Overheard interesting gossip from the patrons."}
+                {
+                  "item": "rumor",
+                  "qty": 2
+                },
+                {
+                  "log": "Overheard interesting gossip from the patrons."
+                }
               ]
             },
             "on_critical_success": {
               "effects": [
-                {"item": "rumor", "qty": 3},
-                {"item": "valuable_secret", "qty": 1},
-                {"log": "A patron let slip something very valuable!"}
+                {
+                  "item": "rumor",
+                  "qty": 3
+                },
+                {
+                  "item": "valuable_secret",
+                  "qty": 1
+                },
+                {
+                  "log": "A patron let slip something very valuable!"
+                }
               ]
             },
             "on_failure": {
               "effects": [
-                {"log": "Nothing interesting overheard this week."}
+                {
+                  "log": "Nothing interesting overheard this week."
+                }
               ]
             }
           }
@@ -225,47 +349,60 @@
             "check_profile": "d20",
             "on_success": {
               "effects": [
-                {"gold": -10},
-                {"item": "beer", "qty": -5},
-                {"item": "food", "qty": -3},
-                {"gold": 30},
-                {"stat": "reputation", "delta": 1},
-                {"log": "The event was a success! Good profits and happy customers."}
+                {
+                  "stat": "reputation",
+                  "delta": 1
+                },
+                {
+                  "log": "The event was a success! Good profits and happy customers."
+                },
+                {
+                  "gold": -20
+                }
               ]
             },
             "on_critical_success": {
               "effects": [
-                {"gold": -10},
-                {"item": "beer", "qty": -5},
-                {"item": "food", "qty": -3},
-                {"gold": 60},
-                {"stat": "reputation", "delta": 3},
-                {"log": "Legendary event! People are still talking about it."}
+                {
+                  "stat": "reputation",
+                  "delta": 3
+                },
+                {
+                  "log": "Legendary event! People are still talking about it."
+                },
+                {
+                  "gold": -20
+                }
               ]
             },
             "on_failure": {
               "effects": [
-                {"gold": -10},
-                {"item": "beer", "qty": -5},
-                {"item": "food", "qty": -3},
-                {"gold": 15},
-                {"log": "Event was mediocre. Barely broke even."}
+                {
+                  "log": "Event was mediocre. Barely broke even."
+                },
+                {
+                  "gold": -20
+                }
               ]
             },
             "on_critical_failure": {
               "effects": [
-                {"gold": -10},
-                {"item": "beer", "qty": -5},
-                {"item": "food", "qty": -3},
-                {"stat": "reputation", "delta": -2},
-                {"log": "Event was a disaster! Patrons left disappointed."}
+                {
+                  "stat": "reputation",
+                  "delta": -2
+                },
+                {
+                  "log": "Event was a disaster! Patrons left disappointed."
+                },
+                {
+                  "gold": -20
+                }
               ]
             }
           }
         }
       ]
     },
-
     {
       "id": "core.pub:pub:t2",
       "name": "Tavern",
@@ -273,13 +410,21 @@
       "tier": 2,
       "parent": "core.pub:pub:t1",
       "build": {
-        "cost": {"gold": 500},
+        "cost": {
+          "gold": 500
+        },
         "duration_turns": 2
       },
       "npc_slots": 2,
-      "npc_allowed_professions": ["innkeeper", "bartender", "cook", "entertainer"],
-      "npc_base_upkeep": {"silver": 10},
-
+      "npc_allowed_professions": [
+        "innkeeper",
+        "bartender",
+        "cook",
+        "entertainer"
+      ],
+      "npc_base_upkeep": {
+        "silver": 10
+      },
       "orders": [
         {
           "id": "rent_rooms",
@@ -291,28 +436,47 @@
             "check_profile": "d20",
             "on_success": {
               "effects": [
-                {"gold": 25},
-                {"log": "Rooms rented to travelers. Steady income."}
+                {
+                  "log": "Rooms rented to travelers. Steady income."
+                },
+                {
+                  "gold": 15
+                }
               ]
             },
             "on_critical_success": {
               "effects": [
-                {"gold": 50},
-                {"item": "valuable_tip", "qty": 1},
-                {"log": "A wealthy noble stayed and left a generous tip!"}
+                {
+                  "item": "valuable_tip",
+                  "qty": 1
+                },
+                {
+                  "log": "A wealthy noble stayed and left a generous tip!"
+                },
+                {
+                  "gold": 30
+                }
               ]
             },
             "on_failure": {
               "effects": [
-                {"gold": 10},
-                {"log": "Few travelers this week."}
+                {
+                  "log": "Few travelers this week."
+                }
               ]
             },
             "on_critical_failure": {
               "effects": [
-                {"gold": -15},
-                {"stat": "reputation", "delta": -1},
-                {"log": "A guest complained about bedbugs! Reputation damaged."}
+                {
+                  "gold": -15
+                },
+                {
+                  "stat": "reputation",
+                  "delta": -1
+                },
+                {
+                  "log": "A guest complained about bedbugs! Reputation damaged."
+                }
               ]
             }
           }
@@ -327,42 +491,71 @@
             "check_profile": "d20",
             "on_success": {
               "effects": [
-                {"gold": -30},
-                {"item": "beer", "qty": -10},
-                {"item": "food", "qty": -10},
-                {"gold": 80},
-                {"stat": "reputation", "delta": 2},
-                {"log": "Tournament was a huge success! Great turnout."}
+                {
+                  "stat": "reputation",
+                  "delta": 2
+                },
+                {
+                  "log": "Tournament was a huge success! Great turnout."
+                },
+                {
+                  "gold": -30,
+                  "silver": -40
+                },
+                {
+                  "gold": 50
+                }
               ]
             },
             "on_critical_success": {
               "effects": [
-                {"gold": -30},
-                {"item": "beer", "qty": -10},
-                {"item": "food", "qty": -10},
-                {"gold": 150},
-                {"stat": "reputation", "delta": 5},
-                {"item": "champion_trophy", "qty": 1},
-                {"log": "Legendary tournament! Famous adventurers participated. Your tavern is now renowned!"}
+                {
+                  "stat": "reputation",
+                  "delta": 5
+                },
+                {
+                  "item": "champion_trophy",
+                  "qty": 1
+                },
+                {
+                  "log": "Legendary tournament! Famous adventurers participated. Your tavern is now renowned!"
+                },
+                {
+                  "gold": -30,
+                  "silver": -40
+                },
+                {
+                  "gold": 100
+                }
               ]
             },
             "on_failure": {
               "effects": [
-                {"gold": -30},
-                {"item": "beer", "qty": -10},
-                {"item": "food", "qty": -10},
-                {"gold": 40},
-                {"log": "Tournament had decent attendance but nothing special."}
+                {
+                  "log": "Tournament had decent attendance but nothing special."
+                },
+                {
+                  "gold": -30,
+                  "silver": -40
+                }
               ]
             },
             "on_critical_failure": {
               "effects": [
-                {"gold": -30},
-                {"item": "beer", "qty": -10},
-                {"item": "food", "qty": -10},
-                {"gold": -20},
-                {"stat": "reputation", "delta": -3},
-                {"log": "Tournament turned into a brawl! Major damage and reputation loss."}
+                {
+                  "gold": -20
+                },
+                {
+                  "stat": "reputation",
+                  "delta": -3
+                },
+                {
+                  "log": "Tournament turned into a brawl! Major damage and reputation loss."
+                },
+                {
+                  "gold": -30,
+                  "silver": -40
+                }
               ]
             }
           }
@@ -377,32 +570,54 @@
             "check_profile": "d20",
             "on_success": {
               "effects": [
-                {"gold": -15},
-                {"gold": 40},
-                {"stat": "reputation", "delta": 1},
-                {"log": "The entertainment draws a good crowd."}
+                {
+                  "stat": "reputation",
+                  "delta": 1
+                },
+                {
+                  "log": "The entertainment draws a good crowd."
+                },
+                {
+                  "gold": -20
+                }
               ]
             },
             "on_critical_success": {
               "effects": [
-                {"gold": -15},
-                {"gold": 80},
-                {"stat": "reputation", "delta": 3},
-                {"log": "A famous bard performed! The tavern is packed for weeks."}
+                {
+                  "stat": "reputation",
+                  "delta": 3
+                },
+                {
+                  "log": "A famous bard performed! The tavern is packed for weeks."
+                },
+                {
+                  "gold": -20
+                }
               ]
             },
             "on_failure": {
               "effects": [
-                {"gold": -15},
-                {"gold": 20},
-                {"log": "The performer was mediocre. Barely covered the cost."}
+                {
+                  "log": "The performer was mediocre. Barely covered the cost."
+                },
+                {
+                  "gold": -20
+                }
               ]
             },
             "on_critical_failure": {
               "effects": [
-                {"gold": -15},
-                {"stat": "reputation", "delta": -1},
-                {"log": "The performer was terrible! Customers left early."}
+                {
+                  "stat": "reputation",
+                  "delta": -1
+                },
+                {
+                  "log": "The performer was terrible! Customers left early."
+                },
+                {
+                  "gold": -20
+                }
               ]
             }
           }
@@ -417,44 +632,76 @@
             "check_profile": "d20",
             "on_success": {
               "effects": [
-                {"item": "rare_ingredients", "qty": -1},
-                {"gold": -10},
-                {"item": "signature_brew", "qty": 5},
-                {"stat": "reputation", "delta": 2},
-                {"log": "The special brew is a hit! Customers love it."}
+                {
+                  "item": "signature_brew",
+                  "qty": 5
+                },
+                {
+                  "stat": "reputation",
+                  "delta": 2
+                },
+                {
+                  "log": "The special brew is a hit! Customers love it."
+                },
+                {
+                  "gold": -10,
+                  "silver": -2
+                }
               ]
             },
             "on_critical_success": {
               "effects": [
-                {"item": "rare_ingredients", "qty": -1},
-                {"gold": -10},
-                {"item": "legendary_brew", "qty": 3},
-                {"stat": "reputation", "delta": 5},
-                {"gold": 50},
-                {"log": "You've created a legendary drink! Nobles travel from afar to taste it!"}
+                {
+                  "item": "legendary_brew",
+                  "qty": 3
+                },
+                {
+                  "stat": "reputation",
+                  "delta": 5
+                },
+                {
+                  "log": "You've created a legendary drink! Nobles travel from afar to taste it!"
+                },
+                {
+                  "gold": -10,
+                  "silver": -2
+                }
               ]
             },
             "on_failure": {
               "effects": [
-                {"item": "rare_ingredients", "qty": -1},
-                {"gold": -10},
-                {"item": "mediocre_brew", "qty": 2},
-                {"log": "The brew is drinkable but nothing special."}
+                {
+                  "item": "mediocre_brew",
+                  "qty": 2
+                },
+                {
+                  "log": "The brew is drinkable but nothing special."
+                },
+                {
+                  "gold": -10,
+                  "silver": -2
+                }
               ]
             },
             "on_critical_failure": {
               "effects": [
-                {"item": "rare_ingredients", "qty": -1},
-                {"gold": -10},
-                {"stat": "reputation", "delta": -2},
-                {"log": "The brew made people sick! Reputation damaged."}
+                {
+                  "stat": "reputation",
+                  "delta": -2
+                },
+                {
+                  "log": "The brew made people sick! Reputation damaged."
+                },
+                {
+                  "gold": -10,
+                  "silver": -2
+                }
               ]
             }
           }
         }
       ]
     },
-
     {
       "id": "core.pub:pub:t3",
       "name": "Grand Inn",
@@ -462,13 +709,22 @@
       "tier": 3,
       "parent": "core.pub:pub:t2",
       "build": {
-        "cost": {"gold": 1000},
+        "cost": {
+          "gold": 1000
+        },
         "duration_turns": 3
       },
       "npc_slots": 3,
-      "npc_allowed_professions": ["innkeeper", "bartender", "cook", "entertainer", "host"],
-      "npc_base_upkeep": {"gold": 1},
-
+      "npc_allowed_professions": [
+        "innkeeper",
+        "bartender",
+        "cook",
+        "entertainer",
+        "host"
+      ],
+      "npc_base_upkeep": {
+        "gold": 1
+      },
       "orders": [
         {
           "id": "host_royal_banquet",
@@ -480,43 +736,72 @@
             "check_profile": "d20_hard",
             "on_success": {
               "effects": [
-                {"gold": -100},
-                {"item": "rare_wine", "qty": -5},
-                {"item": "exotic_food", "qty": -10},
-                {"gold": 300},
-                {"stat": "reputation", "delta": 10},
-                {"log": "The banquet was magnificent! Your inn is now famous across the realm."}
+                {
+                  "stat": "reputation",
+                  "delta": 10
+                },
+                {
+                  "log": "The banquet was magnificent! Your inn is now famous across the realm."
+                },
+                {
+                  "gold": -100,
+                  "silver": -30
+                },
+                {
+                  "gold": 150
+                }
               ]
             },
             "on_critical_success": {
               "effects": [
-                {"gold": -100},
-                {"item": "rare_wine", "qty": -5},
-                {"item": "exotic_food", "qty": -10},
-                {"gold": 500},
-                {"stat": "reputation", "delta": 20},
-                {"item": "royal_patronage", "qty": 1},
-                {"log": "The king himself attended! You've earned royal patronage!"}
+                {
+                  "stat": "reputation",
+                  "delta": 20
+                },
+                {
+                  "item": "royal_patronage",
+                  "qty": 1
+                },
+                {
+                  "log": "The king himself attended! You've earned royal patronage!"
+                },
+                {
+                  "gold": -100,
+                  "silver": -30
+                },
+                {
+                  "gold": 250
+                }
               ]
             },
             "on_failure": {
               "effects": [
-                {"gold": -100},
-                {"item": "rare_wine", "qty": -5},
-                {"item": "exotic_food", "qty": -10},
-                {"gold": 150},
-                {"stat": "reputation", "delta": 3},
-                {"log": "The banquet was acceptable but not exceptional."}
+                {
+                  "stat": "reputation",
+                  "delta": 3
+                },
+                {
+                  "log": "The banquet was acceptable but not exceptional."
+                },
+                {
+                  "gold": -100,
+                  "silver": -30
+                }
               ]
             },
             "on_critical_failure": {
               "effects": [
-                {"gold": -100},
-                {"item": "rare_wine", "qty": -5},
-                {"item": "exotic_food", "qty": -10},
-                {"gold": -50},
-                {"stat": "reputation", "delta": -10},
-                {"log": "Catastrophic failure! Food poisoning at the banquet. Your reputation is in ruins!"}
+                {
+                  "stat": "reputation",
+                  "delta": -10
+                },
+                {
+                  "log": "Catastrophic failure! Food poisoning at the banquet. Your reputation is in ruins!"
+                },
+                {
+                  "gold": -100,
+                  "silver": -30
+                }
               ]
             }
           }

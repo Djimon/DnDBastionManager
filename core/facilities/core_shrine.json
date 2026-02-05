@@ -3,7 +3,6 @@
   "name": "Shrine",
   "version": 1,
   "author": "Djih",
-
   "custom_mechanics": [
     {
       "name": "Church of Light Favor",
@@ -42,7 +41,6 @@
       }
     }
   ],
-
   "facilities": [
     {
       "id": "core.shrine:shrine:t1",
@@ -51,13 +49,20 @@
       "tier": 1,
       "parent": null,
       "build": {
-        "cost": {"gold": 250},
+        "cost": {
+          "gold": 250
+        },
         "duration_turns": 1
       },
       "npc_slots": 1,
-      "npc_allowed_professions": ["priest", "cleric", "acolyte"],
-      "npc_base_upkeep": {"silver": 5},
-
+      "npc_allowed_professions": [
+        "priest",
+        "cleric",
+        "acolyte"
+      ],
+      "npc_base_upkeep": {
+        "silver": 5
+      },
       "orders": [
         {
           "id": "make_offering_light",
@@ -69,34 +74,62 @@
             "check_profile": "d20",
             "on_success": {
               "effects": [
-                {"item": "incense", "qty": -1},
-                {"gold": -5},
-                {"stat": "favor_church_light", "delta": 2},
-                {"log": "The Church of Light accepts your offering."}
+                {
+                  "stat": "favor_church_light",
+                  "delta": 2
+                },
+                {
+                  "log": "The Church of Light accepts your offering."
+                },
+                {
+                  "gold": -5,
+                  "silver": -2
+                }
               ]
             },
             "on_critical_success": {
               "effects": [
-                {"item": "incense", "qty": -1},
-                {"gold": -5},
-                {"stat": "favor_church_light", "delta": 5},
-                {"item": "blessing_token", "qty": 1},
-                {"log": "A divine presence is felt! The Church is greatly pleased."}
+                {
+                  "stat": "favor_church_light",
+                  "delta": 5
+                },
+                {
+                  "item": "blessing_token",
+                  "qty": 1
+                },
+                {
+                  "log": "A divine presence is felt! The Church is greatly pleased."
+                },
+                {
+                  "gold": -5,
+                  "silver": -2
+                }
               ]
             },
             "on_failure": {
               "effects": [
-                {"item": "incense", "qty": -1},
-                {"gold": -5},
-                {"log": "The offering is accepted but unremarkable."}
+                {
+                  "log": "The offering is accepted but unremarkable."
+                },
+                {
+                  "gold": -5,
+                  "silver": -2
+                }
               ]
             },
             "on_critical_failure": {
               "effects": [
-                {"item": "incense", "qty": -1},
-                {"gold": -5},
-                {"stat": "favor_church_light", "delta": -3},
-                {"log": "The ritual was performed incorrectly! The Church takes offense."}
+                {
+                  "stat": "favor_church_light",
+                  "delta": -3
+                },
+                {
+                  "log": "The ritual was performed incorrectly! The Church takes offense."
+                },
+                {
+                  "gold": -5,
+                  "silver": -2
+                }
               ]
             }
           }
@@ -111,36 +144,70 @@
             "check_profile": "d20",
             "on_success": {
               "effects": [
-                {"item": "blood_offering", "qty": -1},
-                {"gold": -5},
-                {"stat": "favor_church_dark_sun", "delta": 2},
-                {"stat": "favor_church_light", "delta": -1},
-                {"log": "The Dark Sun's followers acknowledge your devotion."}
+                {
+                  "stat": "favor_church_dark_sun",
+                  "delta": 2
+                },
+                {
+                  "stat": "favor_church_light",
+                  "delta": -1
+                },
+                {
+                  "log": "The Dark Sun's followers acknowledge your devotion."
+                },
+                {
+                  "gold": -5,
+                  "silver": -2
+                }
               ]
             },
             "on_critical_success": {
               "effects": [
-                {"item": "blood_offering", "qty": -1},
-                {"gold": -5},
-                {"stat": "favor_church_dark_sun", "delta": 5},
-                {"stat": "favor_church_light", "delta": -2},
-                {"item": "dark_blessing", "qty": 1},
-                {"log": "The Dark Sun's power flows through you!"}
+                {
+                  "stat": "favor_church_dark_sun",
+                  "delta": 5
+                },
+                {
+                  "stat": "favor_church_light",
+                  "delta": -2
+                },
+                {
+                  "item": "divine_favor",
+                  "qty": 1
+                },
+                {
+                  "log": "The Dark Sun's power flows through you!"
+                },
+                {
+                  "gold": -5,
+                  "silver": -2
+                }
               ]
             },
             "on_failure": {
               "effects": [
-                {"item": "blood_offering", "qty": -1},
-                {"gold": -5},
-                {"log": "The offering is consumed but brings no favor."}
+                {
+                  "log": "The offering is consumed but brings no favor."
+                },
+                {
+                  "gold": -5,
+                  "silver": -2
+                }
               ]
             },
             "on_critical_failure": {
               "effects": [
-                {"item": "blood_offering", "qty": -1},
-                {"gold": -5},
-                {"stat": "favor_church_dark_sun", "delta": -3},
-                {"log": "The ritual backfired! Dark powers recoil."}
+                {
+                  "stat": "favor_church_dark_sun",
+                  "delta": -3
+                },
+                {
+                  "log": "The ritual backfired! Dark powers recoil."
+                },
+                {
+                  "gold": -5,
+                  "silver": -2
+                }
               ]
             }
           }
@@ -155,26 +222,44 @@
             "check_profile": "d20",
             "on_success": {
               "effects": [
-                {"item": "flowers", "qty": -3},
-                {"item": "fruit", "qty": -2},
-                {"stat": "favor_temple_nature", "delta": 2},
-                {"log": "The spirits of nature are pleased."}
+                {
+                  "stat": "favor_temple_nature",
+                  "delta": 2
+                },
+                {
+                  "log": "The spirits of nature are pleased."
+                },
+                {
+                  "silver": -10
+                }
               ]
             },
             "on_critical_success": {
               "effects": [
-                {"item": "flowers", "qty": -3},
-                {"item": "fruit", "qty": -2},
-                {"stat": "favor_temple_nature", "delta": 5},
-                {"item": "nature_blessing", "qty": 1},
-                {"log": "A rare bloom appears as a sign of favor!"}
+                {
+                  "stat": "favor_temple_nature",
+                  "delta": 5
+                },
+                {
+                  "item": "divine_favor",
+                  "qty": 1
+                },
+                {
+                  "log": "A rare bloom appears as a sign of favor!"
+                },
+                {
+                  "silver": -10
+                }
               ]
             },
             "on_failure": {
               "effects": [
-                {"item": "flowers", "qty": -3},
-                {"item": "fruit", "qty": -2},
-                {"log": "The offerings are accepted quietly."}
+                {
+                  "log": "The offerings are accepted quietly."
+                },
+                {
+                  "silver": -10
+                }
               ]
             }
           }
@@ -189,30 +274,58 @@
             "check_profile": "d20",
             "on_success": {
               "effects": [
-                {"item": "book", "qty": -1},
-                {"stat": "favor_cult_knowledge", "delta": 2},
-                {"log": "Your contribution to the archives is noted."}
+                {
+                  "stat": "favor_cult_knowledge",
+                  "delta": 2
+                },
+                {
+                  "log": "Your contribution to the archives is noted."
+                },
+                {
+                  "silver": -2
+                }
               ]
             },
             "on_critical_success": {
               "effects": [
-                {"item": "book", "qty": -1},
-                {"stat": "favor_cult_knowledge", "delta": 5},
-                {"item": "forbidden_scroll", "qty": 1},
-                {"log": "The knowledge you shared is exceptional! They grant access to secret texts."}
+                {
+                  "stat": "favor_cult_knowledge",
+                  "delta": 5
+                },
+                {
+                  "item": "forbidden_scroll",
+                  "qty": 1
+                },
+                {
+                  "log": "The knowledge you shared is exceptional! They grant access to secret texts."
+                },
+                {
+                  "silver": -2
+                }
               ]
             },
             "on_failure": {
               "effects": [
-                {"item": "book", "qty": -1},
-                {"log": "The knowledge is deemed common and unremarkable."}
+                {
+                  "log": "The knowledge is deemed common and unremarkable."
+                },
+                {
+                  "silver": -2
+                }
               ]
             },
             "on_critical_failure": {
               "effects": [
-                {"item": "book", "qty": -1},
-                {"stat": "favor_cult_knowledge", "delta": -2},
-                {"log": "The information was incorrect! Your credibility suffers."}
+                {
+                  "stat": "favor_cult_knowledge",
+                  "delta": -2
+                },
+                {
+                  "log": "The information was incorrect! Your credibility suffers."
+                },
+                {
+                  "silver": -2
+                }
               ]
             }
           }
@@ -227,19 +340,31 @@
             "check_profile": "d20",
             "on_success": {
               "effects": [
-                {"item": "divine_insight", "qty": 1},
-                {"log": "Your prayers are answered with subtle guidance."}
+                {
+                  "item": "divine_insight",
+                  "qty": 1
+                },
+                {
+                  "log": "Your prayers are answered with subtle guidance."
+                }
               ]
             },
             "on_critical_success": {
               "effects": [
-                {"item": "divine_vision", "qty": 1},
-                {"log": "A powerful vision is granted! The gods speak directly."}
+                {
+                  "item": "divine_vision",
+                  "qty": 1
+                },
+                {
+                  "log": "A powerful vision is granted! The gods speak directly."
+                }
               ]
             },
             "on_failure": {
               "effects": [
-                {"log": "The gods remain silent."}
+                {
+                  "log": "The gods remain silent."
+                }
               ]
             }
           }
@@ -254,39 +379,63 @@
             "check_profile": "d20",
             "on_success": {
               "effects": [
-                {"item": "ritual_components", "qty": -1},
-                {"item": "holy_water", "qty": 2},
-                {"gold": 10},
-                {"log": "Ritual successful. Holy water blessed and sold."}
+                {
+                  "item": "divine_favor",
+                  "qty": 2
+                },
+                {
+                  "log": "Ritual successful. Holy water blessed and sold."
+                },
+                {
+                  "silver": -2
+                }
               ]
             },
             "on_critical_success": {
               "effects": [
-                {"item": "ritual_components", "qty": -1},
-                {"item": "holy_water", "qty": 4},
-                {"item": "divine_relic", "qty": 1},
-                {"gold": 30},
-                {"log": "Divine power surges! A relic manifests!"}
+                {
+                  "item": "divine_favor",
+                  "qty": 4
+                },
+                {
+                  "item": "divine_favor",
+                  "qty": 1
+                },
+                {
+                  "log": "Divine power surges! A relic manifests!"
+                },
+                {
+                  "silver": -2
+                }
               ]
             },
             "on_failure": {
               "effects": [
-                {"item": "ritual_components", "qty": -1},
-                {"log": "The ritual yields no results."}
+                {
+                  "log": "The ritual yields no results."
+                },
+                {
+                  "silver": -2
+                }
               ]
             },
             "on_critical_failure": {
               "effects": [
-                {"item": "ritual_components", "qty": -1},
-                {"gold": -10},
-                {"log": "The ritual backfired! Minor divine backlash."}
+                {
+                  "gold": -10
+                },
+                {
+                  "log": "The ritual backfired! Minor divine backlash."
+                },
+                {
+                  "silver": -2
+                }
               ]
             }
           }
         }
       ]
     },
-
     {
       "id": "core.shrine:shrine:t2",
       "name": "Temple",
@@ -294,13 +443,21 @@
       "tier": 2,
       "parent": "core.shrine:shrine:t1",
       "build": {
-        "cost": {"gold": 500},
+        "cost": {
+          "gold": 500
+        },
         "duration_turns": 2
       },
       "npc_slots": 2,
-      "npc_allowed_professions": ["priest", "cleric", "acolyte", "high_priest"],
-      "npc_base_upkeep": {"silver": 10},
-
+      "npc_allowed_professions": [
+        "priest",
+        "cleric",
+        "acolyte",
+        "high_priest"
+      ],
+      "npc_base_upkeep": {
+        "silver": 10
+      },
       "orders": [
         {
           "id": "grand_ceremony",
@@ -312,36 +469,66 @@
             "check_profile": "d20",
             "on_success": {
               "effects": [
-                {"gold": -20},
-                {"item": "ceremonial_incense", "qty": -3},
-                {"stat": "favor_church_light", "delta": 10},
-                {"log": "The grand ceremony attracts many faithful. Church favor increases significantly."}
+                {
+                  "stat": "favor_church_light",
+                  "delta": 10
+                },
+                {
+                  "log": "The grand ceremony attracts many faithful. Church favor increases significantly."
+                },
+                {
+                  "gold": -20,
+                  "silver": -6
+                }
               ]
             },
             "on_critical_success": {
               "effects": [
-                {"gold": -20},
-                {"item": "ceremonial_incense", "qty": -3},
-                {"stat": "favor_church_light", "delta": 20},
-                {"item": "holy_artifact", "qty": 1},
-                {"gold": 50},
-                {"log": "A miracle occurs during the ceremony! A holy artifact appears and donations pour in."}
+                {
+                  "stat": "favor_church_light",
+                  "delta": 20
+                },
+                {
+                  "item": "magic_item",
+                  "qty": 1
+                },
+                {
+                  "log": "A miracle occurs during the ceremony! A holy artifact appears and donations pour in."
+                },
+                {
+                  "gold": -20,
+                  "silver": -6
+                }
               ]
             },
             "on_failure": {
               "effects": [
-                {"gold": -20},
-                {"item": "ceremonial_incense", "qty": -3},
-                {"stat": "favor_church_light", "delta": 3},
-                {"log": "The ceremony proceeds without issue but lacks grandeur."}
+                {
+                  "stat": "favor_church_light",
+                  "delta": 3
+                },
+                {
+                  "log": "The ceremony proceeds without issue but lacks grandeur."
+                },
+                {
+                  "gold": -20,
+                  "silver": -6
+                }
               ]
             },
             "on_critical_failure": {
               "effects": [
-                {"gold": -20},
-                {"item": "ceremonial_incense", "qty": -3},
-                {"stat": "favor_church_light", "delta": -5},
-                {"log": "The ceremony was disrupted! Church officials are displeased."}
+                {
+                  "stat": "favor_church_light",
+                  "delta": -5
+                },
+                {
+                  "log": "The ceremony was disrupted! Church officials are displeased."
+                },
+                {
+                  "gold": -20,
+                  "silver": -6
+                }
               ]
             }
           }
@@ -356,31 +543,62 @@
             "check_profile": "d20_hard",
             "on_success": {
               "effects": [
-                {"stat": "favor_church_light", "delta": -2},
-                {"stat": "favor_church_dark_sun", "delta": 3},
-                {"log": "Carefully navigated the theological divide."}
+                {
+                  "stat": "favor_church_light",
+                  "delta": -2
+                },
+                {
+                  "stat": "favor_church_dark_sun",
+                  "delta": 3
+                },
+                {
+                  "log": "Carefully navigated the theological divide."
+                }
               ]
             },
             "on_critical_success": {
               "effects": [
-                {"stat": "favor_church_light", "delta": 2},
-                {"stat": "favor_church_dark_sun", "delta": 2},
-                {"gold": 30},
-                {"log": "Miraculous diplomacy! Both churches acknowledge your wisdom."}
+                {
+                  "stat": "favor_church_light",
+                  "delta": 2
+                },
+                {
+                  "stat": "favor_church_dark_sun",
+                  "delta": 2
+                },
+                {
+                  "log": "Miraculous diplomacy! Both churches acknowledge your wisdom."
+                }
               ]
             },
             "on_failure": {
               "effects": [
-                {"stat": "favor_church_light", "delta": -1},
-                {"stat": "favor_church_dark_sun", "delta": -1},
-                {"log": "Both sides remain unsatisfied."}
+                {
+                  "stat": "favor_church_light",
+                  "delta": -1
+                },
+                {
+                  "stat": "favor_church_dark_sun",
+                  "delta": -1
+                },
+                {
+                  "log": "Both sides remain unsatisfied."
+                }
               ]
             },
             "on_critical_failure": {
               "effects": [
-                {"stat": "favor_church_light", "delta": -5},
-                {"stat": "favor_church_dark_sun", "delta": -5},
-                {"log": "Catastrophic failure! Both churches now view you with suspicion."}
+                {
+                  "stat": "favor_church_light",
+                  "delta": -5
+                },
+                {
+                  "stat": "favor_church_dark_sun",
+                  "delta": -5
+                },
+                {
+                  "log": "Catastrophic failure! Both churches now view you with suspicion."
+                }
               ]
             }
           }
@@ -395,45 +613,80 @@
             "check_profile": "d20_hard",
             "on_success": {
               "effects": [
-                {"gold": -30},
-                {"item": "rare_offering", "qty": -1},
-                {"stat": "favor_church_light", "delta": -10},
-                {"item": "divine_boon", "qty": 1},
-                {"log": "The gods answer! A boon is granted, though favor is spent."}
+                {
+                  "stat": "favor_church_light",
+                  "delta": -10
+                },
+                {
+                  "item": "divine_boon",
+                  "qty": 1
+                },
+                {
+                  "log": "The gods answer! A boon is granted, though favor is spent."
+                },
+                {
+                  "gold": -30,
+                  "silver": -2
+                }
               ]
             },
             "on_critical_success": {
               "effects": [
-                {"gold": -30},
-                {"item": "rare_offering", "qty": -1},
-                {"stat": "favor_church_light", "delta": -5},
-                {"item": "divine_boon", "qty": 1},
-                {"item": "permanent_blessing", "qty": 1},
-                {"log": "The gods are generous! A blessing with lasting power."}
+                {
+                  "stat": "favor_church_light",
+                  "delta": -5
+                },
+                {
+                  "item": "divine_boon",
+                  "qty": 1
+                },
+                {
+                  "item": "divine_favor",
+                  "qty": 1
+                },
+                {
+                  "log": "The gods are generous! A blessing with lasting power."
+                },
+                {
+                  "gold": -30,
+                  "silver": -2
+                }
               ]
             },
             "on_failure": {
               "effects": [
-                {"gold": -30},
-                {"item": "rare_offering", "qty": -1},
-                {"stat": "favor_church_light", "delta": -5},
-                {"log": "The gods do not answer. Favor and resources spent in vain."}
+                {
+                  "stat": "favor_church_light",
+                  "delta": -5
+                },
+                {
+                  "log": "The gods do not answer. Favor and resources spent in vain."
+                },
+                {
+                  "gold": -30,
+                  "silver": -2
+                }
               ]
             },
             "on_critical_failure": {
               "effects": [
-                {"gold": -30},
-                {"item": "rare_offering", "qty": -1},
-                {"stat": "favor_church_light", "delta": -15},
-                {"gold": -20},
-                {"log": "Divine wrath! You have overstepped. Severe loss of favor and a curse."}
+                {
+                  "stat": "favor_church_light",
+                  "delta": -15
+                },
+                {
+                  "log": "Divine wrath! You have overstepped. Severe loss of favor and a curse."
+                },
+                {
+                  "gold": -30,
+                  "silver": -2
+                }
               ]
             }
           }
         }
       ]
     },
-
     {
       "id": "core.shrine:shrine:t3",
       "name": "Cathedral",
@@ -441,13 +694,21 @@
       "tier": 3,
       "parent": "core.shrine:shrine:t2",
       "build": {
-        "cost": {"gold": 1000},
+        "cost": {
+          "gold": 1000
+        },
         "duration_turns": 3
       },
       "npc_slots": 3,
-      "npc_allowed_professions": ["priest", "cleric", "high_priest", "archbishop"],
-      "npc_base_upkeep": {"gold": 1},
-
+      "npc_allowed_professions": [
+        "priest",
+        "cleric",
+        "high_priest",
+        "archbishop"
+      ],
+      "npc_base_upkeep": {
+        "gold": 1
+      },
       "orders": [
         {
           "id": "consecrate_holy_ground",
@@ -459,38 +720,74 @@
             "check_profile": "d20_hard",
             "on_success": {
               "effects": [
-                {"gold": -100},
-                {"item": "divine_essence", "qty": -5},
-                {"stat": "favor_church_light", "delta": 30},
-                {"item": "consecrated_ground", "qty": 1},
-                {"log": "The cathedral is now holy ground! Divine protection radiates from this place."}
+                {
+                  "stat": "favor_church_light",
+                  "delta": 30
+                },
+                {
+                  "item": "consecrated_ground",
+                  "qty": 1
+                },
+                {
+                  "log": "The cathedral is now holy ground! Divine protection radiates from this place."
+                },
+                {
+                  "gold": -100,
+                  "silver": -10
+                }
               ]
             },
             "on_critical_success": {
               "effects": [
-                {"gold": -100},
-                {"item": "divine_essence", "qty": -5},
-                {"stat": "favor_church_light", "delta": 50},
-                {"item": "consecrated_ground", "qty": 1},
-                {"item": "divine_avatar_blessing", "qty": 1},
-                {"log": "A divine avatar manifests! The gods themselves bless this sacred place."}
+                {
+                  "stat": "favor_church_light",
+                  "delta": 50
+                },
+                {
+                  "item": "consecrated_ground",
+                  "qty": 1
+                },
+                {
+                  "item": "divine_favor",
+                  "qty": 1
+                },
+                {
+                  "log": "A divine avatar manifests! The gods themselves bless this sacred place."
+                },
+                {
+                  "gold": -100,
+                  "silver": -10
+                }
               ]
             },
             "on_failure": {
               "effects": [
-                {"gold": -100},
-                {"item": "divine_essence", "qty": -5},
-                {"stat": "favor_church_light", "delta": 10},
-                {"log": "The ritual succeeded but lacked the power for full consecration."}
+                {
+                  "stat": "favor_church_light",
+                  "delta": 10
+                },
+                {
+                  "log": "The ritual succeeded but lacked the power for full consecration."
+                },
+                {
+                  "gold": -100,
+                  "silver": -10
+                }
               ]
             },
             "on_critical_failure": {
               "effects": [
-                {"gold": -100},
-                {"item": "divine_essence", "qty": -5},
-                {"stat": "favor_church_light", "delta": -20},
-                {"gold": -50},
-                {"log": "The ritual was corrupted! The ground is now cursed instead of blessed."}
+                {
+                  "stat": "favor_church_light",
+                  "delta": -20
+                },
+                {
+                  "log": "The ritual was corrupted! The ground is now cursed instead of blessed."
+                },
+                {
+                  "gold": -100,
+                  "silver": -10
+                }
               ]
             }
           }

@@ -256,6 +256,12 @@
                                         <button class="btn btn-primary" onclick="startOrder()" data-i18n="orders.start">Order starten</button>
                                         <p id="order-new-hint" class="text-muted"></p>
                                     </div>
+                                    <div id="order-preview" class="order-preview">
+                                        <h5 data-i18n="orders.outcome_preview">Ergebnis-Vorschau:</h5>
+                                        <div id="order-preview-body">
+                                            <p class="placeholder" data-i18n="orders.outcome_placeholder">[Effekte: +20 Gold, +1 Heat, Event: ...]</p>
+                                        </div>
+                                    </div>
 
                                     <div class="orders-active">
                                         <div class="orders-header">
@@ -278,23 +284,21 @@
                     <!-- BOTTOM: Turn Controls & Log -->
                     <footer class="turn-controls">
                         <div class="controls-buttons">
-                            <button class="btn btn-small btn-secondary" onclick="validatePacks()" data-i18n="turn.validate_packs">Validate Packs</button>
                             <button class="btn btn-primary" onclick="advanceTurn()" data-i18n="turn.advance_turn">⏭️ Advance Turn</button>
                             <button class="btn btn-secondary" onclick="switchView(2)" data-i18n="turn.build_new">+ Build New Facility</button>
                             <button class="btn btn-secondary" onclick="openNPCModal()" data-i18n="turn.manage_npcs">👥 Manage NPCs</button>
+                            <button class="btn btn-secondary" onclick="rollAndEvaluateAllReady()" data-i18n="turn.roll_evaluate_all">🎲 Alles rollen & auswerten</button>
+                            <button class="btn btn-secondary" onclick="toggleTreasuryPanel()" data-i18n="treasury.manage">Schatzkammer verwalten</button>
                             <button class="btn btn-success" onclick="saveSession()" data-i18n="turn.save_session">💾 Save Session</button>
                         </div>
 
-                        <div class="treasury-adjust">
+                        <div id="treasury-panel" class="treasury-adjust hidden">
                             <label class="treasury-label" data-i18n="treasury.title">Treasury</label>
                             <div class="treasury-row">
-                                <select id="treasury-mode" class="treasury-select">
-                                    <option value="add" data-i18n="treasury.mode_add">Add</option>
-                                    <option value="set" data-i18n="treasury.mode_set">Set</option>
-                                </select>
                                 <input type="number" id="treasury-amount" class="treasury-input" min="0" step="1" placeholder="0" />
                                 <select id="treasury-currency" class="treasury-select"></select>
-                                <button class="btn btn-secondary btn-small" onclick="adjustTreasury()" data-i18n="treasury.apply">Apply</button>
+                                <button class="btn btn-success btn-small" onclick="adjustTreasury('add')" data-i18n="treasury.mode_add">Add</button>
+                                <button class="btn btn-danger btn-small" onclick="adjustTreasury('remove')" data-i18n="treasury.mode_remove">Remove</button>
                             </div>
                         </div>
 

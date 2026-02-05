@@ -3,7 +3,6 @@
   "name": "Workshop",
   "version": 1,
   "author": "Djih",
-
   "facilities": [
     {
       "id": "core.workshop:workshop:t1",
@@ -12,13 +11,21 @@
       "tier": 1,
       "parent": null,
       "build": {
-        "cost": {"gold": 250},
+        "cost": {
+          "gold": 250
+        },
         "duration_turns": 1
       },
       "npc_slots": 1,
-      "npc_allowed_professions": ["craftsman", "blacksmith", "carpenter", "leatherworker"],
-      "npc_base_upkeep": {"silver": 5},
-
+      "npc_allowed_professions": [
+        "craftsman",
+        "blacksmith",
+        "carpenter",
+        "leatherworker"
+      ],
+      "npc_base_upkeep": {
+        "silver": 5
+      },
       "orders": [
         {
           "id": "craft_simple_weapon",
@@ -30,30 +37,57 @@
             "check_profile": "d20",
             "on_success": {
               "effects": [
-                {"item": "iron_ingot", "qty": -1},
-                {"item": "simple_weapon", "qty": 1},
-                {"log": "Simple weapon crafted successfully."}
+                {
+                  "item": "weapon",
+                  "qty": 1
+                },
+                {
+                  "log": "Simple weapon crafted successfully."
+                },
+                {
+                  "silver": -5
+                }
               ]
             },
             "on_critical_success": {
               "effects": [
-                {"item": "iron_ingot", "qty": -1},
-                {"item": "quality_weapon", "qty": 1},
-                {"log": "Exceptional craftsmanship! Created a quality weapon."}
+                {
+                  "item": "weapon",
+                  "qty": 1
+                },
+                {
+                  "log": "Exceptional craftsmanship! Created a quality weapon."
+                },
+                {
+                  "silver": -5
+                }
               ]
             },
             "on_failure": {
               "effects": [
-                {"item": "iron_ingot", "qty": -1},
-                {"item": "scrap_metal", "qty": 1},
-                {"log": "Crafting attempt failed. Materials wasted."}
+                {
+                  "item": "scrap_metal",
+                  "qty": 1
+                },
+                {
+                  "log": "Crafting attempt failed. Materials wasted."
+                },
+                {
+                  "silver": -5
+                }
               ]
             },
             "on_critical_failure": {
               "effects": [
-                {"item": "iron_ingot", "qty": -1},
-                {"gold": -5},
-                {"log": "Critical failure! Tool damage requires repairs."}
+                {
+                  "gold": -5
+                },
+                {
+                  "log": "Critical failure! Tool damage requires repairs."
+                },
+                {
+                  "silver": -5
+                }
               ]
             }
           }
@@ -68,23 +102,40 @@
             "check_profile": "d20",
             "on_success": {
               "effects": [
-                {"item": "damaged_equipment", "qty": -1},
-                {"item": "repaired_equipment", "qty": 1},
-                {"gold": 10},
-                {"log": "Equipment repaired and customer paid."}
+                {
+                  "item": "equipment",
+                  "qty": 1
+                },
+                {
+                  "log": "Equipment repaired and customer paid."
+                },
+                {
+                  "silver": -2
+                }
               ]
             },
             "on_critical_success": {
               "effects": [
-                {"item": "damaged_equipment", "qty": -1},
-                {"item": "improved_equipment", "qty": 1},
-                {"gold": 25},
-                {"log": "Not only repaired but improved! Customer very pleased."}
+                {
+                  "item": "equipment",
+                  "qty": 1
+                },
+                {
+                  "log": "Not only repaired but improved! Customer very pleased."
+                },
+                {
+                  "silver": -2
+                }
               ]
             },
             "on_failure": {
               "effects": [
-                {"log": "No repair jobs this week."}
+                {
+                  "log": "No repair jobs this week."
+                },
+                {
+                  "silver": -2
+                }
               ]
             }
           }
@@ -99,33 +150,54 @@
             "check_profile": "d20",
             "on_success": {
               "effects": [
-                {"item": "iron_ingot", "qty": -3},
-                {"item": "leather", "qty": -2},
-                {"item": "chainmail", "qty": 1},
-                {"log": "Chainmail armor completed."}
+                {
+                  "item": "armor",
+                  "qty": 1
+                },
+                {
+                  "log": "Chainmail armor completed."
+                },
+                {
+                  "silver": -25
+                }
               ]
             },
             "on_critical_success": {
               "effects": [
-                {"item": "iron_ingot", "qty": -3},
-                {"item": "leather", "qty": -2},
-                {"item": "masterwork_chainmail", "qty": 1},
-                {"log": "Masterwork armor! Superior protection."}
+                {
+                  "item": "armor",
+                  "qty": 1
+                },
+                {
+                  "log": "Masterwork armor! Superior protection."
+                },
+                {
+                  "silver": -25
+                }
               ]
             },
             "on_failure": {
               "effects": [
-                {"item": "iron_ingot", "qty": -3},
-                {"item": "leather", "qty": -2},
-                {"item": "flawed_armor", "qty": 1},
-                {"log": "Armor completed but has flaws."}
+                {
+                  "item": "armor",
+                  "qty": 1
+                },
+                {
+                  "log": "Armor completed but has flaws."
+                },
+                {
+                  "silver": -25
+                }
               ]
             },
             "on_critical_failure": {
               "effects": [
-                {"item": "iron_ingot", "qty": -3},
-                {"item": "leather", "qty": -2},
-                {"log": "Crafting disaster! All materials lost."}
+                {
+                  "log": "Crafting disaster! All materials lost."
+                },
+                {
+                  "silver": -25
+                }
               ]
             }
           }
@@ -140,31 +212,43 @@
             "check_profile": "d20",
             "on_success": {
               "effects": [
-                {"log": "Learned a useful technique."}
+                {
+                  "log": "Learned a useful technique."
+                }
               ]
             },
             "on_critical_success": {
               "effects": [
-                {"item": "crafting_notes", "qty": 1},
-                {"log": "Major discovery! Documented new technique."}
+                {
+                  "item": "crafting_notes",
+                  "qty": 1
+                },
+                {
+                  "log": "Major discovery! Documented new technique."
+                }
               ]
             },
             "on_failure": {
               "effects": [
-                {"log": "Experiments yielded no results."}
+                {
+                  "log": "Experiments yielded no results."
+                }
               ]
             },
             "on_critical_failure": {
               "effects": [
-                {"gold": -10},
-                {"log": "Experiment went wrong! Small workshop fire."}
+                {
+                  "gold": -10
+                },
+                {
+                  "log": "Experiment went wrong! Small workshop fire."
+                }
               ]
             }
           }
         }
       ]
     },
-
     {
       "id": "core.workshop:workshop:t2",
       "name": "Advanced Workshop",
@@ -172,13 +256,22 @@
       "tier": 2,
       "parent": "core.workshop:workshop:t1",
       "build": {
-        "cost": {"gold": 500},
+        "cost": {
+          "gold": 500
+        },
         "duration_turns": 2
       },
       "npc_slots": 2,
-      "npc_allowed_professions": ["craftsman", "blacksmith", "carpenter", "leatherworker", "artificer"],
-      "npc_base_upkeep": {"silver": 10},
-
+      "npc_allowed_professions": [
+        "craftsman",
+        "blacksmith",
+        "carpenter",
+        "leatherworker",
+        "artificer"
+      ],
+      "npc_base_upkeep": {
+        "silver": 10
+      },
       "orders": [
         {
           "id": "craft_masterwork_weapon",
@@ -190,35 +283,54 @@
             "check_profile": "d20",
             "on_success": {
               "effects": [
-                {"item": "steel_ingot", "qty": -2},
-                {"item": "rare_wood", "qty": -1},
-                {"item": "masterwork_longsword", "qty": 1},
-                {"gold": 50},
-                {"log": "Masterwork longsword completed and sold."}
+                {
+                  "item": "weapon",
+                  "qty": 1
+                },
+                {
+                  "log": "Masterwork longsword completed and sold."
+                },
+                {
+                  "gold": -6
+                }
               ]
             },
             "on_critical_success": {
               "effects": [
-                {"item": "steel_ingot", "qty": -2},
-                {"item": "rare_wood", "qty": -1},
-                {"item": "legendary_longsword", "qty": 1},
-                {"gold": 150},
-                {"log": "A legendary blade! Word of this craftsmanship spreads far."}
+                {
+                  "item": "weapon",
+                  "qty": 1
+                },
+                {
+                  "log": "A legendary blade! Word of this craftsmanship spreads far."
+                },
+                {
+                  "gold": -6
+                }
               ]
             },
             "on_failure": {
               "effects": [
-                {"item": "steel_ingot", "qty": -2},
-                {"item": "rare_wood", "qty": -1},
-                {"item": "quality_weapon", "qty": 1},
-                {"log": "Weapon is good, but not masterwork quality."}
+                {
+                  "item": "weapon",
+                  "qty": 1
+                },
+                {
+                  "log": "Weapon is good, but not masterwork quality."
+                },
+                {
+                  "gold": -6
+                }
               ]
             },
             "on_critical_failure": {
               "effects": [
-                {"item": "steel_ingot", "qty": -2},
-                {"item": "rare_wood", "qty": -1},
-                {"log": "The blade shattered during tempering!"}
+                {
+                  "log": "The blade shattered during tempering!"
+                },
+                {
+                  "gold": -6
+                }
               ]
             }
           }
@@ -233,34 +345,57 @@
             "check_profile": "d20_hard",
             "on_success": {
               "effects": [
-                {"item": "enchanted_gem", "qty": -1},
-                {"item": "mithril_ingot", "qty": -1},
-                {"item": "magic_ring", "qty": 1},
-                {"log": "Successfully crafted a magic ring."}
+                {
+                  "item": "jewelry",
+                  "qty": 1
+                },
+                {
+                  "log": "Successfully crafted a magic ring."
+                },
+                {
+                  "gold": -4
+                }
               ]
             },
             "on_critical_success": {
               "effects": [
-                {"item": "enchanted_gem", "qty": -1},
-                {"item": "mithril_ingot", "qty": -1},
-                {"item": "powerful_magic_ring", "qty": 1},
-                {"log": "The enchantment exceeded expectations! A powerful artifact."}
+                {
+                  "item": "jewelry",
+                  "qty": 1
+                },
+                {
+                  "log": "The enchantment exceeded expectations! A powerful artifact."
+                },
+                {
+                  "gold": -4
+                }
               ]
             },
             "on_failure": {
               "effects": [
-                {"item": "enchanted_gem", "qty": -1},
-                {"item": "mithril_ingot", "qty": -1},
-                {"item": "flawed_magic_item", "qty": 1},
-                {"log": "The enchantment is unstable."}
+                {
+                  "item": "magic_item",
+                  "qty": 1
+                },
+                {
+                  "log": "The enchantment is unstable."
+                },
+                {
+                  "gold": -4
+                }
               ]
             },
             "on_critical_failure": {
               "effects": [
-                {"item": "enchanted_gem", "qty": -1},
-                {"item": "mithril_ingot", "qty": -1},
-                {"gold": -30},
-                {"log": "Magical explosion! Workshop damage and materials lost."}
+                {
+                  "gold": -30
+                },
+                {
+                  "log": "Magical explosion! Workshop damage and materials lost."
+                },
+                {
+                  "gold": -4
+                }
               ]
             }
           }
@@ -275,25 +410,44 @@
             "check_profile": "d20",
             "on_success": {
               "effects": [
-                {"item": "iron_ingot", "qty": -3},
-                {"item": "simple_weapon", "qty": 5},
-                {"gold": 25},
-                {"log": "Batch production successful. Items sold."}
+                {
+                  "item": "weapon",
+                  "qty": 5
+                },
+                {
+                  "log": "Batch production successful. Items sold."
+                },
+                {
+                  "silver": -15
+                }
               ]
             },
             "on_critical_success": {
               "effects": [
-                {"item": "iron_ingot", "qty": -3},
-                {"item": "simple_weapon", "qty": 7},
-                {"gold": 40},
-                {"log": "Exceptionally efficient production!"}
+                {
+                  "item": "weapon",
+                  "qty": 7
+                },
+                {
+                  "log": "Exceptionally efficient production!"
+                },
+                {
+                  "silver": -15
+                }
               ]
             },
             "on_failure": {
               "effects": [
-                {"item": "iron_ingot", "qty": -3},
-                {"item": "simple_weapon", "qty": 3},
-                {"log": "Production below target."}
+                {
+                  "item": "weapon",
+                  "qty": 3
+                },
+                {
+                  "log": "Production below target."
+                },
+                {
+                  "silver": -15
+                }
               ]
             }
           }
@@ -308,35 +462,60 @@
             "check_profile": "d20",
             "on_success": {
               "effects": [
-                {"item": "mystery_item", "qty": -1},
-                {"item": "crafting_blueprint", "qty": 1},
-                {"log": "Successfully reverse engineered the item!"}
+                {
+                  "item": "crafting_blueprint",
+                  "qty": 1
+                },
+                {
+                  "log": "Successfully reverse engineered the item!"
+                },
+                {
+                  "silver": -2
+                }
               ]
             },
             "on_critical_success": {
               "effects": [
-                {"item": "mystery_item", "qty": -1},
-                {"item": "crafting_blueprint", "qty": 1},
-                {"item": "mystery_item", "qty": 1},
-                {"log": "Learned the secret AND kept the item intact!"}
+                {
+                  "item": "crafting_blueprint",
+                  "qty": 1
+                },
+                {
+                  "item": "mystery_item",
+                  "qty": 1
+                },
+                {
+                  "log": "Learned the secret AND kept the item intact!"
+                },
+                {
+                  "silver": -2
+                }
               ]
             },
             "on_failure": {
               "effects": [
-                {"log": "Unable to discern the item's secrets."}
+                {
+                  "log": "Unable to discern the item's secrets."
+                },
+                {
+                  "silver": -2
+                }
               ]
             },
             "on_critical_failure": {
               "effects": [
-                {"item": "mystery_item", "qty": -1},
-                {"log": "The item was destroyed in the process!"}
+                {
+                  "log": "The item was destroyed in the process!"
+                },
+                {
+                  "silver": -2
+                }
               ]
             }
           }
         }
       ]
     },
-
     {
       "id": "core.workshop:workshop:t3",
       "name": "Master Forge",
@@ -344,13 +523,21 @@
       "tier": 3,
       "parent": "core.workshop:workshop:t2",
       "build": {
-        "cost": {"gold": 1000},
+        "cost": {
+          "gold": 1000
+        },
         "duration_turns": 3
       },
       "npc_slots": 3,
-      "npc_allowed_professions": ["craftsman", "blacksmith", "artificer", "enchanter"],
-      "npc_base_upkeep": {"gold": 1},
-
+      "npc_allowed_professions": [
+        "craftsman",
+        "blacksmith",
+        "artificer",
+        "enchanter"
+      ],
+      "npc_base_upkeep": {
+        "gold": 1
+      },
       "orders": [
         {
           "id": "forge_artifact",
@@ -362,38 +549,57 @@
             "check_profile": "d20_hard",
             "on_success": {
               "effects": [
-                {"item": "adamantine_ingot", "qty": -5},
-                {"item": "dragon_scale", "qty": -3},
-                {"item": "celestial_essence", "qty": -1},
-                {"item": "legendary_artifact", "qty": 1},
-                {"log": "A legendary artifact has been forged!"}
+                {
+                  "item": "magic_item",
+                  "qty": 1
+                },
+                {
+                  "log": "A legendary artifact has been forged!"
+                },
+                {
+                  "silver": -18
+                }
               ]
             },
             "on_critical_success": {
               "effects": [
-                {"item": "adamantine_ingot", "qty": -5},
-                {"item": "dragon_scale", "qty": -3},
-                {"item": "celestial_essence", "qty": -1},
-                {"item": "artifact_of_legend", "qty": 1},
-                {"log": "The artifact resonates with divine power! Songs will be sung of this creation."}
+                {
+                  "item": "magic_item",
+                  "qty": 1
+                },
+                {
+                  "log": "The artifact resonates with divine power! Songs will be sung of this creation."
+                },
+                {
+                  "silver": -18
+                }
               ]
             },
             "on_failure": {
               "effects": [
-                {"item": "adamantine_ingot", "qty": -5},
-                {"item": "dragon_scale", "qty": -3},
-                {"item": "celestial_essence", "qty": -1},
-                {"item": "flawed_artifact", "qty": 1},
-                {"log": "The artifact has power, but is unstable."}
+                {
+                  "item": "magic_item",
+                  "qty": 1
+                },
+                {
+                  "log": "The artifact has power, but is unstable."
+                },
+                {
+                  "silver": -18
+                }
               ]
             },
             "on_critical_failure": {
               "effects": [
-                {"item": "adamantine_ingot", "qty": -5},
-                {"item": "dragon_scale", "qty": -3},
-                {"item": "celestial_essence", "qty": -1},
-                {"gold": -100},
-                {"log": "Catastrophic failure! The forge itself was damaged by the released energies."}
+                {
+                  "gold": -100
+                },
+                {
+                  "log": "Catastrophic failure! The forge itself was damaged by the released energies."
+                },
+                {
+                  "silver": -18
+                }
               ]
             }
           }

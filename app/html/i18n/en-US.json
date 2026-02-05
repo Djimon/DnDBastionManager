@@ -142,7 +142,7 @@
   },
   "inventory": {
     "title": "Inventory",
-    "wallet": "Treasury: {amount}",
+    "wallet_label": "Treasury",
     "table_item": "Item",
     "table_qty": "Qty",
     "empty": "No items in inventory.",
@@ -153,12 +153,15 @@
     "advance_turn": "⏭️ Advance Turn",
     "build_new": "+ Build New Facility",
     "manage_npcs": "👥 Manage NPCs",
+    "roll_evaluate_all": "🎲 Roll & Evaluate All",
     "save_session": "💾 Save Session",
     "log_title": "Turn Log"
   },
   "treasury": {
-    "title": "Bastion Treasury",
+    "title": "Treasury",
+    "manage": "Manage Treasury",
     "mode_add": "Add",
+    "mode_remove": "Remove",
     "mode_set": "Set",
     "apply": "Apply",
     "invalid": "Please enter a valid amount and currency",

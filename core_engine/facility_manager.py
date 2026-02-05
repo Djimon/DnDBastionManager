@@ -667,6 +667,55 @@ class FacilityManager:
 
         return {"success": True, "evaluated": evaluated, "skipped": skipped, "results": results}
 
+    def roll_and_evaluate_ready_orders(self, session_state: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Auto-roll (if needed) and evaluate all ready orders.
+        """
+        if not session_state:
+            return {"success": False, "message": "No session loaded"}
+
+        bastion = session_state.setdefault("bastion", {})
+        facilities = bastion.setdefault("facilities", [])
+        evaluated = []
+        results = []
+        skipped = []
+
+        for facility in facilities:
+            if not isinstance(facility, dict):
+                continue
+            facility_id = facility.get("facility_id")
+            orders = list(self._normalize_orders(facility))
+            for order in orders:
+                if not isinstance(order, dict):
+                    continue
+                if self._infer_order_status(order) != "ready":
+                    continue
+                order_id = order.get("order_id")
+                order_def = self._find_order_def(facility_id, order_id)
+                outcome = order_def.get("outcome") if isinstance(order_def, dict) else {}
+                check_profile = outcome.get("check_profile") if isinstance(outcome, dict) else None
+
+                if check_profile and not order.get("roll_locked"):
+                    roll_result = self.lock_order_roll(session_state, facility_id, order_id, None, True)
+                    if not roll_result.get("success"):
+                        skipped.append({"facility_id": facility_id, "order_id": order_id, "reason": roll_result.get("message")})
+                        continue
+
+                result = self.evaluate_order(session_state, facility_id, order_id)
+                if result.get("success"):
+                    evaluated.append({"facility_id": facility_id, "order_id": order_id})
+                    results.append({
+                        "facility_id": facility_id,
+                        "order_id": order_id,
+                        "bucket": result.get("bucket"),
+                        "roll": result.get("roll"),
+                        "entries": result.get("entries", []),
+                    })
+                else:
+                    skipped.append({"facility_id": facility_id, "order_id": order_id, "reason": result.get("message")})
+
+        return {"success": True, "evaluated": evaluated, "skipped": skipped, "results": results}
+
     def _projected_treasury_base(self, session_state: Dict[str, Any], cost: Dict[str, Any]) -> Optional[int]:
         base = self.ledger.get_treasury_base(session_state)
         if base is None:
