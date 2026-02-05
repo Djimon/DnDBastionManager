@@ -120,7 +120,7 @@ function setFacilityPanelState(hasSelection) {
         main.classList.toggle('hidden', !hasSelection);
     }
     if (inventory) {
-        inventory.classList.toggle('hidden', !hasSelection);
+        inventory.classList.remove('hidden');
     }
 }
 
@@ -645,17 +645,13 @@ function renderOrdersPanel(facilityId) {
         }
     }
 
-    if (!npcSelect.dataset.bound) {
-        npcSelect.addEventListener('change', populateOrdersForNpc);
-        npcSelect.dataset.bound = 'true';
-    }
+    npcSelect.onchange = () => {
+        populateOrdersForNpc();
+        updateOrderPreview();
+    };
+    orderSelect.onchange = updateOrderPreview;
     populateOrdersForNpc();
     updateOrderPreview();
-
-    if (!orderSelect.dataset.boundPreview) {
-        orderSelect.addEventListener('change', updateOrderPreview);
-        orderSelect.dataset.boundPreview = 'true';
-    }
 
     if (hint) {
         hint.textContent = '';
@@ -1616,6 +1612,9 @@ async function applyLoadedSession(filename, sessionState, options = {}) {
     await loadCurrencyModel();
     await loadFacilityCatalog();
     await refreshFacilityStates();
+    if (appState.selectedFacilityId) {
+        renderInventoryPanel();
+    }
 
     const nameEl = document.querySelector('.session-name');
     if (nameEl) {

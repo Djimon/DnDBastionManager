@@ -610,9 +610,9 @@ class FacilityManager:
         }
         ledger_result = self.ledger.apply_effects(session_state, effects, context)
 
-        xp_gain = self._xp_gain_for_bucket(result_bucket)
+        xp_gain, duration_turns = self._xp_gain_for_order(order_entry, order_def)
         if xp_gain > 0:
-            self._award_npc_xp(session_state, facility_id, order_entry.get("npc_id"), xp_gain)
+            self._award_npc_xp(session_state, facility_id, order_entry.get("npc_id"), xp_gain, duration_turns)
 
         current_orders = self._normalize_orders(facility_entry)
         if order_entry in current_orders:
@@ -935,13 +935,32 @@ class FacilityManager:
         cost = ", ".join(parts) if parts else "-"
         return f"NPC upkeep: {npc_name} ({facility_label}) -{cost}"
 
-    def _xp_gain_for_bucket(self, bucket: str) -> int:
-        if bucket in ["on_success", "on_critical_success"]:
-            xp = self.config.get("npc_progression", {}).get("xp_per_success")
-            return xp if isinstance(xp, int) and xp > 0 else 1
-        return 0
+    def _xp_gain_for_order(
+        self,
+        order_entry: Dict[str, Any],
+        order_def: Optional[Dict[str, Any]] = None
+    ) -> Tuple[int, int]:
+        """
+        XP is always awarded, tied to order duration (turns).
+        """
+        duration = order_entry.get("duration_turns") if isinstance(order_entry, dict) else None
+        if not isinstance(duration, int) and isinstance(order_def, dict):
+            duration = order_def.get("duration_turns")
+        if not isinstance(duration, int) or duration <= 0:
+            duration = 1
+        base = self.config.get("npc_progression", {}).get("xp_per_success")
+        if not isinstance(base, int) or base <= 0:
+            base = 1
+        return duration * base, duration
 
-    def _award_npc_xp(self, session_state: Dict[str, Any], facility_id: str, npc_id: Any, xp_gain: int) -> None:
+    def _award_npc_xp(
+        self,
+        session_state: Dict[str, Any],
+        facility_id: str,
+        npc_id: Any,
+        xp_gain: int,
+        duration_turns: Optional[int] = None
+    ) -> None:
         if not npc_id or xp_gain <= 0:
             return
         facility_entry = self._find_facility_entry(session_state, facility_id)
@@ -968,7 +987,10 @@ class FacilityManager:
 
         npc_name = npc.get("name") or npc.get("npc_id") or "NPC"
         level_note = f" (Level {old_level}->{new_level})" if new_level != old_level else ""
-        log_text = f"NPC XP: {npc_name} +{xp_gain}{level_note}"
+        duration_note = ""
+        if isinstance(duration_turns, int) and duration_turns > 0:
+            duration_note = f" ({duration_turns} Turn{'s' if duration_turns != 1 else ''})"
+        log_text = f"NPC XP: {npc_name} +{xp_gain}{duration_note}{level_note}"
         self._audit_log.add_entry(
             session_state,
             int(session_state.get("current_turn", 0)),

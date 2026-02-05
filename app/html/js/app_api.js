@@ -192,6 +192,9 @@ async function refreshSessionState() {
             if (typeof renderTreasuryControls === 'function') {
                 renderTreasuryControls();
             }
+            if (appState.selectedFacilityId && typeof renderInventoryPanel === 'function') {
+                renderInventoryPanel();
+            }
         }
     }
 }
