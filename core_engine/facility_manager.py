@@ -147,6 +147,13 @@ class FacilityManager:
         if not facility_entry:
             return {"success": False, "message": f"Facility not found in bastion: {facility_id}"}
 
+        build_status = facility_entry.get("build_status", {})
+        status = build_status.get("status") if isinstance(build_status, dict) else None
+        if status in ["building", "upgrading"]:
+            return {"success": False, "message": f"Facility is not free (status: {status})"}
+        if facility_entry.get("current_order"):
+            return {"success": False, "message": "Facility is busy"}
+
         current_def = self.catalog.get(facility_id)
         if not current_def:
             return {"success": False, "message": f"Unknown facility_id: {facility_id}"}
@@ -269,16 +276,20 @@ class FacilityManager:
             build_status = facility.get("build_status", {}) if isinstance(facility.get("build_status"), dict) else {}
             status = build_status.get("status")
             current_order = facility.get("current_order")
+            remaining_turns = None
 
             if status == "building":
                 state = "building"
+                remaining_turns = build_status.get("remaining_turns")
             elif status == "upgrading":
                 state = "upgrading"
+                remaining_turns = build_status.get("remaining_turns")
             elif current_order:
                 progress = current_order.get("progress")
                 duration = current_order.get("duration_turns")
                 if isinstance(progress, int) and isinstance(duration, int):
                     state = "busy" if progress < duration else "free"
+                    remaining_turns = max(duration - progress, 0)
                 else:
                     state = "busy"
             else:
@@ -287,7 +298,7 @@ class FacilityManager:
             results.append({
                 "facility_id": facility.get("facility_id"),
                 "state": state,
-                "remaining_turns": build_status.get("remaining_turns"),
+                "remaining_turns": remaining_turns,
             })
 
         return results

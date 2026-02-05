@@ -24,7 +24,10 @@ function renderFacilityStates() {
 
         const statusSpan = document.createElement('span');
         statusSpan.className = 'facility-status';
-        const statusLabel = state.state || 'unknown';
+        let statusLabel = state.state || 'unknown';
+        if (Number.isInteger(state.remaining_turns) && statusLabel !== 'free') {
+            statusLabel = `${statusLabel} ${state.remaining_turns}T`;
+        }
         statusSpan.textContent = `[${statusLabel}]`;
 
         item.appendChild(nameSpan);
@@ -78,7 +81,11 @@ function selectFacility(facilityId, element = null) {
         }
     }
     if (statusEl) {
-        statusEl.textContent = state && state.state ? state.state : 'unknown';
+        let statusText = state && state.state ? state.state : 'unknown';
+        if (state && Number.isInteger(state.remaining_turns) && statusText !== 'free') {
+            statusText = `${statusText} (${state.remaining_turns} Turns)`;
+        }
+        statusEl.textContent = statusText;
     }
 
     updateUpgradeSection(facilityId);
@@ -93,6 +100,9 @@ function updateUpgradeSection(facilityId) {
 
     const target = appState.facilityCatalog.find(facility => facility && facility.parent === facilityId);
     appState.selectedUpgradeTargetId = target ? target.id : null;
+    const stateEntry = (appState.facilityStates || []).find(entry => entry.facility_id === facilityId);
+    const currentState = stateEntry && stateEntry.state ? stateEntry.state : 'unknown';
+    const isFree = currentState === 'free';
 
     if (!target) {
         infoEl.textContent = 'No upgrade available';
@@ -104,15 +114,21 @@ function updateUpgradeSection(facilityId) {
     const buildInfo = getFacilityBuildInfo(target);
     const costText = formatCost(buildInfo.cost, getCurrencyOrder());
     const durationText = formatDuration(buildInfo.duration);
-    infoEl.textContent = `Cost: ${costText} | Duration: ${durationText}`;
+    infoEl.textContent = `Cost: ${costText} | Duration: ${durationText} | Status: ${currentState}`;
     buttonEl.textContent = `Upgrade to ${formatFacilityUiName(target, target && target.id)}`;
-    buttonEl.disabled = false;
+    buttonEl.disabled = !isFree;
 }
 
 async function startUpgrade() {
     const facilityId = appState.selectedFacilityId;
     if (!facilityId) {
         alert('Select a facility first.');
+        return;
+    }
+    const stateEntry = (appState.facilityStates || []).find(entry => entry.facility_id === facilityId);
+    const currentState = stateEntry && stateEntry.state ? stateEntry.state : 'unknown';
+    if (currentState !== 'free') {
+        alert(`Upgrade nicht möglich: Facility ist ${currentState}.`);
         return;
     }
     if (!(window.pywebview && window.pywebview.api)) {
