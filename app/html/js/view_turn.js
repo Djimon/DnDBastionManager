@@ -25,7 +25,7 @@ function renderFacilityStates() {
         const statusSpan = document.createElement('span');
         statusSpan.className = 'facility-status';
         let statusLabel = translateFacilityState(state.state);
-        if (Number.isInteger(state.remaining_turns) && state.state !== 'free') {
+        if (Number.isInteger(state.remaining_turns) && ['building', 'upgrading', 'busy'].includes(state.state)) {
             statusLabel = `${statusLabel} ${formatTurnsShort(state.remaining_turns)}`;
         }
         statusSpan.textContent = `[${statusLabel}]`;
@@ -83,13 +83,80 @@ function selectFacility(facilityId, element = null) {
     if (statusEl) {
         const rawStatus = state && state.state ? state.state : 'unknown';
         let statusText = translateFacilityState(rawStatus);
-        if (state && Number.isInteger(state.remaining_turns) && rawStatus !== 'free') {
+        if (state && Number.isInteger(state.remaining_turns) && ['building', 'upgrading', 'busy'].includes(rawStatus)) {
             statusText = `${statusText} (${formatTurnsLong(state.remaining_turns)})`;
         }
         statusEl.textContent = statusText;
     }
 
     updateUpgradeSection(facilityId);
+    renderSlotBubbles(facility, entry);
+    renderOrdersPanel(facilityId);
+}
+
+function getFacilityEntry(facilityId) {
+    const facilities = (appState.session && appState.session.bastion && appState.session.bastion.facilities) || [];
+    return facilities.find(item => item && item.facility_id === facilityId) || null;
+}
+
+function getFacilityOrders(entry) {
+    if (!entry) {
+        return [];
+    }
+    if (Array.isArray(entry.current_orders)) {
+        return entry.current_orders;
+    }
+    if (entry.current_order && typeof entry.current_order === 'object') {
+        return [entry.current_order];
+    }
+    return [];
+}
+
+function isOrderActive(order) {
+    if (!order || typeof order !== 'object') {
+        return false;
+    }
+    const status = order.status || 'in_progress';
+    return status === 'in_progress' || status === 'ready';
+}
+
+function getDiceSides(checkProfile) {
+    if (!checkProfile || typeof checkProfile !== 'string') {
+        return null;
+    }
+    if (!checkProfile.startsWith('d')) {
+        return null;
+    }
+    let digits = '';
+    for (let i = 1; i < checkProfile.length; i += 1) {
+        const ch = checkProfile[i];
+        if (ch >= '0' && ch <= '9') {
+            digits += ch;
+        } else {
+            break;
+        }
+    }
+    const sides = parseInt(digits, 10);
+    return Number.isInteger(sides) ? sides : null;
+}
+
+function renderSlotBubbles(facility, entry) {
+    const bubbles = document.getElementById('detail-slot-bubbles');
+    if (!bubbles) {
+        return;
+    }
+    bubbles.innerHTML = '';
+    const total = facility && Number.isInteger(facility.npc_slots) ? facility.npc_slots : 0;
+    if (!total) {
+        return;
+    }
+    const activeOrders = getFacilityOrders(entry).filter(isOrderActive);
+    const used = activeOrders.length;
+    for (let i = 0; i < total; i += 1) {
+        const bubble = document.createElement('span');
+        bubble.className = i < used ? 'slot-bubble filled' : 'slot-bubble';
+        bubbles.appendChild(bubble);
+    }
 }
 
 function updateUpgradeSection(facilityId) {
@@ -123,6 +190,287 @@ function updateUpgradeSection(facilityId) {
     });
     buttonEl.textContent = t('upgrade.to', { name: formatFacilityUiName(target, target && target.id) });
     buttonEl.disabled = !isFree;
+}
+
+function renderOrdersPanel(facilityId) {
+    const npcSelect = document.getElementById('order-npc-select');
+    const orderSelect = document.getElementById('order-select');
+    const hint = document.getElementById('order-new-hint');
+    const list = document.getElementById('orders-list');
+    const evalAllBtn = document.getElementById('orders-evaluate-all');
+    if (!npcSelect || !orderSelect || !list) {
+        return;
+    }
+
+    const facility = appState.facilityById[facilityId];
+    const entry = getFacilityEntry(facilityId);
+    const assignedNpcs = entry && Array.isArray(entry.assigned_npcs) ? entry.assigned_npcs : [];
+    const orders = facility && Array.isArray(facility.orders) ? facility.orders : [];
+    const existingOrders = getFacilityOrders(entry);
+
+    npcSelect.innerHTML = '';
+    if (assignedNpcs.length === 0) {
+        const opt = document.createElement('option');
+        opt.value = '';
+        opt.textContent = t('orders.no_npc_assigned');
+        npcSelect.appendChild(opt);
+        npcSelect.disabled = true;
+    } else {
+        npcSelect.disabled = false;
+        assignedNpcs.forEach(npc => {
+            const opt = document.createElement('option');
+            opt.value = npc.npc_id;
+            opt.textContent = npc.name || npc.npc_id;
+            npcSelect.appendChild(opt);
+        });
+    }
+
+    function populateOrdersForNpc() {
+        orderSelect.innerHTML = '';
+        const selectedNpc = assignedNpcs.find(npc => npc.npc_id === npcSelect.value);
+        const npcLevel = selectedNpc && Number.isInteger(selectedNpc.level) ? selectedNpc.level : 1;
+        const filtered = orders.filter(order => {
+            if (!order || typeof order !== 'object') {
+                return false;
+            }
+            const minLevel = Number.isInteger(order.min_npc_level) ? order.min_npc_level : 1;
+            return npcLevel >= minLevel;
+        });
+        if (filtered.length === 0) {
+            const opt = document.createElement('option');
+            opt.value = '';
+            opt.textContent = t('orders.no_orders_available');
+            orderSelect.appendChild(opt);
+            orderSelect.disabled = true;
+        } else {
+            orderSelect.disabled = false;
+            filtered.forEach(order => {
+                const opt = document.createElement('option');
+                opt.value = order.id;
+                opt.textContent = order.name || order.id;
+                orderSelect.appendChild(opt);
+            });
+        }
+    }
+
+    if (!npcSelect.dataset.bound) {
+        npcSelect.addEventListener('change', populateOrdersForNpc);
+        npcSelect.dataset.bound = 'true';
+    }
+    populateOrdersForNpc();
+
+    if (hint) {
+        hint.textContent = '';
+    }
+
+    if (evalAllBtn) {
+        evalAllBtn.disabled = true;
+    }
+
+    list.innerHTML = '';
+    if (!existingOrders.length) {
+        const empty = document.createElement('div');
+        empty.className = 'order-item';
+        empty.textContent = t('orders.none_active');
+        list.appendChild(empty);
+        return;
+    }
+
+    let hasEvaluatable = false;
+
+    existingOrders.forEach(order => {
+        if (!order || typeof order !== 'object') {
+            return;
+        }
+        const orderDef = orders.find(o => o && o.id === order.order_id);
+        const outcome = orderDef && typeof orderDef.outcome === 'object' ? orderDef.outcome : null;
+        const checkProfile = outcome && outcome.check_profile ? outcome.check_profile : null;
+        const diceSides = checkProfile ? getDiceSides(checkProfile) : null;
+        const npc = assignedNpcs.find(n => n && n.npc_id === order.npc_id);
+        const orderName = orderDef ? (orderDef.name || orderDef.id) : order.order_id;
+        const npcName = npc ? (npc.name || npc.npc_id) : (order.npc_name || order.npc_id);
+        const status = order.status || (order.progress >= order.duration_turns ? 'ready' : 'in_progress');
+        const statusLabel = status === 'ready' ? t('orders.ready_label') : t('orders.in_progress_label');
+
+        const duration = Number.isInteger(order.duration_turns) ? order.duration_turns : 0;
+        const progress = Number.isInteger(order.progress) ? order.progress : 0;
+        const remaining = Math.max(duration - progress, 0);
+
+        const item = document.createElement('div');
+        item.className = 'order-item';
+
+        const header = document.createElement('div');
+        header.className = 'order-item-header';
+
+        const title = document.createElement('strong');
+        title.textContent = orderName || '[Order]';
+
+        const meta = document.createElement('span');
+        meta.className = 'order-meta';
+        meta.textContent = `${npcName || '-'} - ${statusLabel}`;
+
+        header.appendChild(title);
+        header.appendChild(meta);
+
+        const detail = document.createElement('div');
+        detail.className = 'order-meta';
+        detail.textContent = t('orders.remaining', { turns: formatTurnsLong(remaining) });
+
+        item.appendChild(header);
+        item.appendChild(detail);
+
+        if (status === 'ready') {
+            const actions = document.createElement('div');
+            actions.className = 'order-actions';
+
+            const evalBtn = document.createElement('button');
+            evalBtn.className = 'btn btn-primary btn-small';
+            evalBtn.textContent = t('orders.resolve');
+            evalBtn.disabled = !!checkProfile && !order.roll_locked;
+            evalBtn.addEventListener('click', () => evaluateOrder(order.order_id));
+
+            const rollInfo = document.createElement('span');
+            rollInfo.className = 'order-meta';
+            rollInfo.textContent = order.roll_locked ? t('orders.roll_locked') : '';
+
+            if (checkProfile) {
+                const rollInput = document.createElement('input');
+                rollInput.type = 'number';
+                rollInput.min = '1';
+                rollInput.max = diceSides ? String(diceSides) : '20';
+                rollInput.placeholder = diceSides ? String(Math.ceil(diceSides / 2)) : '15';
+                rollInput.value = order.roll_locked && Number.isInteger(order.roll) ? order.roll : '';
+                rollInput.disabled = !!order.roll_locked;
+
+                const lockBtn = document.createElement('button');
+                lockBtn.className = 'btn btn-secondary btn-small';
+                lockBtn.textContent = t('orders.lock_roll');
+                lockBtn.disabled = !!order.roll_locked;
+                lockBtn.addEventListener('click', () => lockOrderRoll(order.order_id, rollInput.value));
+
+                const autoBtn = document.createElement('button');
+                autoBtn.className = 'btn btn-secondary btn-small';
+                autoBtn.textContent = t('orders.auto_roll');
+                autoBtn.disabled = !!order.roll_locked;
+                autoBtn.addEventListener('click', () => lockOrderRoll(order.order_id, null, true));
+
+                actions.appendChild(rollInput);
+                actions.appendChild(lockBtn);
+                actions.appendChild(autoBtn);
+            }
+            actions.appendChild(evalBtn);
+            actions.appendChild(rollInfo);
+
+            item.appendChild(actions);
+
+            if (!checkProfile || order.roll_locked) {
+                hasEvaluatable = true;
+            }
+        }
+
+        list.appendChild(item);
+    });
+
+    if (evalAllBtn) {
+        evalAllBtn.disabled = !hasEvaluatable;
+    }
+}
+
+async function startOrder() {
+    const facilityId = appState.selectedFacilityId;
+    const npcSelect = document.getElementById('order-npc-select');
+    const orderSelect = document.getElementById('order-select');
+    if (!facilityId || !npcSelect || !orderSelect) {
+        return;
+    }
+    const npcId = npcSelect.value;
+    const orderId = orderSelect.value;
+    if (!npcId || npcSelect.disabled) {
+        alert(t('alerts.order_start_failed', { message: t('orders.no_npc_assigned') }));
+        return;
+    }
+    if (!orderId || orderSelect.disabled) {
+        alert(t('alerts.order_start_failed', { message: t('orders.no_orders_available') }));
+        return;
+    }
+    if (!(window.pywebview && window.pywebview.api && window.pywebview.api.start_order)) {
+        alert(t('alerts.pywebview_unavailable'));
+        return;
+    }
+    const response = await window.pywebview.api.start_order(facilityId, npcId, orderId);
+    if (!response || !response.success) {
+        alert(t('alerts.order_start_failed', { message: response && response.message ? response.message : 'unknown error' }));
+        return;
+    }
+    await refreshSessionState();
+    await refreshFacilityStates();
+    renderOrdersPanel(facilityId);
+    renderSlotBubbles(appState.facilityById[facilityId], getFacilityEntry(facilityId));
+    addLogEntry(t('alerts.order_start_success'), 'event');
+}
+
+async function lockOrderRoll(orderId, rollValue, auto = false) {
+    const facilityId = appState.selectedFacilityId;
+    if (!(window.pywebview && window.pywebview.api && window.pywebview.api.lock_order_roll)) {
+        alert(t('alerts.pywebview_unavailable'));
+        return;
+    }
+    const rollNumber = rollValue !== null && rollValue !== undefined && rollValue !== '' ? parseInt(rollValue, 10) : null;
+    const response = await window.pywebview.api.lock_order_roll(facilityId, orderId, rollNumber, auto);
+    if (!response || !response.success) {
+        alert(t('alerts.roll_lock_failed', { message: response && response.message ? response.message : 'unknown error' }));
+        return;
+    }
+    await refreshSessionState();
+    renderOrdersPanel(facilityId);
+    addLogEntry(t('alerts.roll_locked'), 'event');
+}
+
+async function evaluateOrder(orderId) {
+    const facilityId = appState.selectedFacilityId;
+    if (!(window.pywebview && window.pywebview.api && window.pywebview.api.evaluate_order)) {
+        alert(t('alerts.pywebview_unavailable'));
+        return;
+    }
+    const response = await window.pywebview.api.evaluate_order(facilityId, orderId);
+    if (!response || !response.success) {
+        alert(t('alerts.evaluate_failed', { message: response && response.message ? response.message : 'unknown error' }));
+        return;
+    }
+    await refreshSessionState();
+    await refreshFacilityStates();
+    renderOrdersPanel(facilityId);
+    renderSlotBubbles(appState.facilityById[facilityId], getFacilityEntry(facilityId));
+    addLogEntry(t('logs.order_resolved'), 'success');
+}
+
+async function evaluateAllReady() {
+    if (!(window.pywebview && window.pywebview.api && window.pywebview.api.evaluate_ready_orders)) {
+        alert(t('alerts.pywebview_unavailable'));
+        return;
+    }
+    const response = await window.pywebview.api.evaluate_ready_orders();
+    if (!response || !response.success) {
+        alert(t('alerts.evaluate_failed', { message: response && response.message ? response.message : 'unknown error' }));
+        return;
+    }
+    const evaluated = response.evaluated || [];
+    const skipped = response.skipped || [];
+    if (evaluated.length === 0 && skipped.length === 0) {
+        alert(t('alerts.no_ready_orders'));
+        return;
+    }
+    if (skipped.length) {
+        alert(t('alerts.evaluate_all_skipped'));
+    } else {
+        alert(t('alerts.evaluate_all_done'));
+    }
+    await refreshSessionState();
+    await refreshFacilityStates();
+    if (appState.selectedFacilityId) {
+        renderOrdersPanel(appState.selectedFacilityId);
+        renderSlotBubbles(appState.facilityById[appState.selectedFacilityId], getFacilityEntry(appState.selectedFacilityId));
+    }
 }
 
 async function startUpgrade() {
@@ -170,42 +518,6 @@ async function startUpgrade() {
     selectFacility(facilityId);
 }
 
-function resolveOrder() {
-    const manualRoll = document.getElementById('manual-roll').value;
-    if (!manualRoll) {
-        alert(t('alerts.order_enter_roll'));
-        return;
-    }
-    
-    const sourceId = buildRollSourceId();
-    logAuditEvent({
-        event_type: "roll",
-        source_type: "facility",
-        source_id: sourceId,
-        action: "resolve_order",
-        roll: String(manualRoll),
-        result: "resolved",
-        log_text: `${sourceId} rolled ${manualRoll}`
-    });
-    alert(t('alerts.order_resolved', { roll: manualRoll }));
-    addLogEntry(t('logs.order_resolved'), 'success');
-}
-
-function autoRoll() {
-    const roll = Math.floor(Math.random() * 20) + 1;
-    document.getElementById('manual-roll').value = roll;
-    const sourceId = buildRollSourceId();
-    logAuditEvent({
-        event_type: "roll",
-        source_type: "facility",
-        source_id: sourceId,
-        action: "auto_roll",
-        roll: String(roll),
-        result: "rolled",
-        log_text: `${sourceId} rolled ${roll}`
-    });
-}
-
 async function advanceTurn() {
     if (window.pywebview && window.pywebview.api && window.pywebview.api.advance_turn) {
         const response = await window.pywebview.api.advance_turn();
@@ -217,6 +529,10 @@ async function advanceTurn() {
         updateTurnCounter();
         await refreshSessionState();
         await refreshFacilityStates();
+        if (appState.selectedFacilityId) {
+            renderOrdersPanel(appState.selectedFacilityId);
+            renderSlotBubbles(appState.facilityById[appState.selectedFacilityId], getFacilityEntry(appState.selectedFacilityId));
+        }
 
         const completed = response.completed || [];
         if (completed.length) {

@@ -421,6 +421,84 @@ legend {
     border-color: var(--secondary);
 }
 
+/* ===== ORDER PANEL ===== */
+
+.order-new,
+.orders-active {
+    margin-top: 1rem;
+    padding: 1rem;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    background: var(--bg-light);
+}
+
+.orders-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+}
+
+.orders-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    margin-top: 0.75rem;
+}
+
+.order-item {
+    background: #ffffff;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 0.75rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.order-item-header {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    align-items: center;
+}
+
+.order-meta {
+    font-size: 0.85rem;
+    color: var(--text-light);
+}
+
+.order-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    align-items: center;
+}
+
+.order-actions input[type="number"] {
+    width: 90px;
+}
+
+.slot-bubbles {
+    display: inline-flex;
+    gap: 0.3rem;
+    margin-left: 0.5rem;
+    vertical-align: middle;
+}
+
+.slot-bubble {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    border: 1px solid var(--border);
+    background: #ffffff;
+}
+
+.slot-bubble.filled {
+    background: var(--secondary);
+    border-color: var(--secondary);
+}
+
 .facility-list-item.active {
     background: var(--secondary);
     color: white;

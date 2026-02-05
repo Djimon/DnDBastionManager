@@ -205,7 +205,7 @@
                                     <p><strong data-i18n="details.name">Name:</strong> <span id="detail-name">[Facility Name]</span></p>
                                     <p><strong data-i18n="details.description">Beschreibung:</strong> <span id="detail-desc">[Placeholder]</span></p>
                                     <p><strong data-i18n="details.tier">Tier:</strong> <span id="detail-tier">★★</span></p>
-                                    <p><strong data-i18n="details.slots">NPC Slots:</strong> <span id="detail-slots">2/3</span></p>
+                                    <p><strong data-i18n="details.slots">NPC Slots:</strong> <span id="detail-slots">2/3</span><span id="detail-slot-bubbles" class="slot-bubbles"></span></p>
                                     <p><strong data-i18n="details.status">Status:</strong> <span id="detail-status">idle</span></p>
                                 </div>
 
@@ -256,25 +256,26 @@
                             <div id="tab-orders" class="tab-content">
                                 <h3 data-i18n="orders.title">Orders</h3>
 
-                                <div class="order-current">
-                                    <h4 data-i18n="orders.current">Aktive Order:</h4>
-                                    <p><strong>Gather Rumors</strong></p>
-                                    <p data-i18n="orders.remaining">Remaining: 2 Turns</p>
-
-                                    <div class="roll-section">
-                                        <h5 data-i18n="orders.roll_results">Roll Results</h5>
-                                        <div class="form-group">
-                                            <label for="manual-roll" data-i18n="orders.manual_roll">Manual Roll:</label>
-                                            <input type="number" id="manual-roll" min="1" max="20" placeholder="15" />
-                                        </div>
-                                        <button class="btn btn-secondary" onclick="autoRoll()" data-i18n="orders.auto_roll">🎲 Auto Roll</button>
-                                        <button class="btn btn-primary" onclick="resolveOrder()" data-i18n="orders.resolve">Resolve</button>
+                                <div class="order-new">
+                                    <h4 data-i18n="orders.new_title">Neue Order</h4>
+                                    <div class="form-group">
+                                        <label for="order-npc-select" data-i18n="orders.npc_label">NPC:</label>
+                                        <select id="order-npc-select"></select>
                                     </div>
+                                    <div class="form-group">
+                                        <label for="order-select" data-i18n="orders.order_label">Order:</label>
+                                        <select id="order-select"></select>
+                                    </div>
+                                    <button class="btn btn-primary" onclick="startOrder()" data-i18n="orders.start">Order starten</button>
+                                    <p id="order-new-hint" class="text-muted"></p>
                                 </div>
 
-                                <div class="order-preview">
-                                    <h5 data-i18n="orders.outcome_preview">Outcome Preview:</h5>
-                                    <p class="placeholder" data-i18n="orders.outcome_placeholder">[Effects preview: +20 gold, +1 Heat, Event: ...]</p>
+                                <div class="orders-active">
+                                    <div class="orders-header">
+                                        <h4 data-i18n="orders.active_title">Aktive Orders</h4>
+                                        <button id="orders-evaluate-all" class="btn btn-secondary btn-small" onclick="evaluateAllReady()" data-i18n="orders.evaluate_all">Alle auswerten</button>
+                                    </div>
+                                    <div id="orders-list" class="orders-list"></div>
                                 </div>
                             </div>
                         </section>

@@ -67,7 +67,7 @@ class InitialStateGenerator:
 
                 "stats": {},  # { stat_name: value }
                 
-                "facilities": [],  # [{ facility_id, built_turn, build_status, current_order, custom_stats, assigned_npcs }, ...]
+                "facilities": [],  # [{ facility_id, built_turn, build_status, current_orders, current_order, custom_stats, assigned_npcs }, ...]
                 
                 "npcs_unassigned": [],  # [{ npc_id, name, level, xp, profession, upkeep }, ...]
             },

@@ -229,6 +229,42 @@ class Api:
         except Exception as e:
             return {"success": False, "message": str(e)}
 
+    def start_order(self, facility_id: str, npc_id: str, order_id: str) -> dict:
+        """Start an order for a specific NPC in a facility."""
+        try:
+            if not self.current_session:
+                return {"success": False, "message": "No session loaded"}
+            return self._facility_manager.start_order(self.current_session, facility_id, npc_id, order_id)
+        except Exception as e:
+            return {"success": False, "message": str(e)}
+
+    def lock_order_roll(self, facility_id: str, order_id: str, roll_value: int = None, auto: bool = False) -> dict:
+        """Lock a roll for a ready order."""
+        try:
+            if not self.current_session:
+                return {"success": False, "message": "No session loaded"}
+            return self._facility_manager.lock_order_roll(self.current_session, facility_id, order_id, roll_value, auto)
+        except Exception as e:
+            return {"success": False, "message": str(e)}
+
+    def evaluate_order(self, facility_id: str, order_id: str) -> dict:
+        """Evaluate a ready order and apply effects."""
+        try:
+            if not self.current_session:
+                return {"success": False, "message": "No session loaded"}
+            return self._facility_manager.evaluate_order(self.current_session, facility_id, order_id)
+        except Exception as e:
+            return {"success": False, "message": str(e)}
+
+    def evaluate_ready_orders(self) -> dict:
+        """Evaluate all ready orders with locked rolls."""
+        try:
+            if not self.current_session:
+                return {"success": False, "message": "No session loaded"}
+            return self._facility_manager.evaluate_ready_orders(self.current_session)
+        except Exception as e:
+            return {"success": False, "message": str(e)}
+
     # ===== DEBUGGING & LOGGING =====
     
     def log_client(self, level: str, message: str) -> dict:
