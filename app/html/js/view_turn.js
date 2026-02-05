@@ -19,7 +19,8 @@ function renderFacilityStates() {
 
         const nameSpan = document.createElement('span');
         nameSpan.className = 'facility-name';
-        nameSpan.textContent = getFacilityDisplayName(state.facility_id);
+        const facilityDef = appState.facilityById[state.facility_id];
+        nameSpan.textContent = formatFacilityUiName(facilityDef, state.facility_id);
 
         const statusSpan = document.createElement('span');
         statusSpan.className = 'facility-status';
@@ -56,7 +57,7 @@ function selectFacility(facilityId, element = null) {
     const statusEl = document.getElementById('detail-status');
 
     if (nameEl) {
-        nameEl.textContent = facility ? (facility.name || facilityId) : facilityId;
+        nameEl.textContent = formatFacilityUiName(facility, facilityId);
     }
     if (descEl) {
         descEl.textContent = facility ? (facility.description || '-') : '-';
@@ -104,7 +105,7 @@ function updateUpgradeSection(facilityId) {
     const costText = formatCost(buildInfo.cost, getCurrencyOrder());
     const durationText = formatDuration(buildInfo.duration);
     infoEl.textContent = `Cost: ${costText} | Duration: ${durationText}`;
-    buttonEl.textContent = `Upgrade to ${target.name || target.id}`;
+    buttonEl.textContent = `Upgrade to ${formatFacilityUiName(target, target && target.id)}`;
     buttonEl.disabled = false;
 }
 

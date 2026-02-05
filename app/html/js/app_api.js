@@ -92,21 +92,42 @@ async function loadFacilityCatalog() {
     try {
         const facilityFiles = await window.pywebview.api.get_facilities();
         const catalog = [];
+        const seenIds = new Set();
 
         if (Array.isArray(facilityFiles)) {
             for (const fileId of facilityFiles) {
+                const rawId = String(fileId || '');
+                let sourceHint = null;
+                let packStem = rawId;
+                const sepIndex = rawId.indexOf(':');
+                if (sepIndex > 0) {
+                    const candidate = rawId.slice(0, sepIndex);
+                    if (candidate === 'core' || candidate === 'custom') {
+                        sourceHint = candidate;
+                        packStem = rawId.slice(sepIndex + 1);
+                    }
+                }
                 const data = await window.pywebview.api.load_facility(fileId);
                 if (!data || data.error) {
                     logClient('warn', `Failed to load facility pack ${fileId}: ${data && data.error ? data.error : 'unknown'}`);
                     continue;
                 }
-                const packId = data.pack_id || fileId;
+                const packId = data.pack_id || packStem || fileId;
+                const packSource = data._pack_source || sourceHint || 'core';
                 const facilities = Array.isArray(data.facilities) ? data.facilities : [];
                 facilities.forEach(facility => {
                     if (!facility || typeof facility !== 'object') {
                         return;
                     }
-                    const item = { ...facility, _pack_id: packId };
+                    if (!facility.id || typeof facility.id !== 'string') {
+                        return;
+                    }
+                    if (seenIds.has(facility.id)) {
+                        logClient('warn', `Duplicate facility id skipped: ${facility.id} (${packId})`);
+                        return;
+                    }
+                    seenIds.add(facility.id);
+                    const item = { ...facility, _pack_id: packId, _pack_source: packSource };
                     catalog.push(item);
                 });
             }

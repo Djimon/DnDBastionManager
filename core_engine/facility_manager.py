@@ -13,6 +13,7 @@ class FacilityManager:
         self.root_dir = root_dir
         self.ledger = ledger
         self.facilities_dir = root_dir / "core" / "facilities"
+        self.custom_packs_dir = root_dir / "custom_packs"
         self.config_path = root_dir / "core" / "config" / "bastion_config.json"
         self.config = self._load_config()
         self.catalog = self._load_facility_catalog()
@@ -26,34 +27,42 @@ class FacilityManager:
 
     def _load_facility_catalog(self) -> Dict[str, Dict[str, Any]]:
         catalog: Dict[str, Dict[str, Any]] = {}
-        if not self.facilities_dir.exists():
-            logger.warning(f"Facilities dir not found: {self.facilities_dir}")
-            return catalog
+        pack_dirs = [
+            ("core", self.facilities_dir),
+            ("custom", self.custom_packs_dir),
+        ]
 
-        for pack_file in sorted(self.facilities_dir.glob("*.json")):
-            try:
-                data = json.loads(pack_file.read_text(encoding="utf-8"))
-            except Exception as e:
-                logger.warning(f"Failed to read pack file {pack_file.name}: {e}")
+        for source, pack_dir in pack_dirs:
+            if not pack_dir.exists():
+                if source == "core":
+                    logger.warning(f"Facilities dir not found: {pack_dir}")
                 continue
 
-            pack_id = data.get("pack_id")
-            facilities = data.get("facilities", []) or []
-            if not isinstance(facilities, list):
-                continue
+            for pack_file in sorted(pack_dir.glob("*.json")):
+                try:
+                    data = json.loads(pack_file.read_text(encoding="utf-8"))
+                except Exception as e:
+                    logger.warning(f"Failed to read pack file {pack_file.name}: {e}")
+                    continue
 
-            for facility in facilities:
-                if not isinstance(facility, dict):
+                pack_id = data.get("pack_id") or pack_file.stem
+                facilities = data.get("facilities", []) or []
+                if not isinstance(facilities, list):
                     continue
-                facility_id = facility.get("id")
-                if not isinstance(facility_id, str):
-                    continue
-                if facility_id in catalog:
-                    logger.warning(f"Duplicate facility id in catalog: {facility_id}")
-                    continue
-                item = dict(facility)
-                item["_pack_id"] = pack_id
-                catalog[facility_id] = item
+
+                for facility in facilities:
+                    if not isinstance(facility, dict):
+                        continue
+                    facility_id = facility.get("id")
+                    if not isinstance(facility_id, str):
+                        continue
+                    if facility_id in catalog:
+                        logger.warning(f"Duplicate facility id in catalog: {facility_id}")
+                        continue
+                    item = dict(facility)
+                    item["_pack_id"] = pack_id
+                    item["_pack_source"] = source
+                    catalog[facility_id] = item
 
         return catalog
 

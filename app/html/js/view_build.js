@@ -81,7 +81,7 @@ function applyCatalogFilters() {
         if (!term) {
             return true;
         }
-        const haystack = `${facility.name || ''} ${facility.id || ''} ${facility._pack_id || ''}`.toLowerCase();
+        const haystack = `${facility.name || ''} ${facility.id || ''} ${facility._pack_id || ''} ${facility._pack_source || ''}`.toLowerCase();
         return haystack.includes(term);
     });
 
@@ -110,7 +110,7 @@ function renderFacilityCatalog(items = null) {
         item.className = 'placeholder-item';
 
         const title = document.createElement('strong');
-        title.textContent = facility.name || facility.id || '[Facility]';
+        title.textContent = formatFacilityUiName(facility, facility && facility.id);
 
         const info = document.createElement('p');
         const buildInfo = getFacilityBuildInfo(facility);
@@ -127,8 +127,23 @@ function renderFacilityCatalog(items = null) {
         item.appendChild(title);
         item.appendChild(info);
         item.appendChild(button);
+        const badge = buildPackBadgeElement(facility && facility._pack_source ? facility._pack_source : 'core');
+        if (badge) {
+            item.appendChild(badge);
+        }
         list.appendChild(item);
     });
+}
+
+function buildPackBadgeElement(source) {
+    const badge = document.createElement('span');
+    const packSource = source === 'custom' ? 'custom' : 'core';
+    badge.className = `pack-badge pack-${packSource}`;
+    badge.title = packSource === 'custom' ? 'Custom pack (auf eigene Gefahr)' : 'Core pack';
+    badge.innerHTML = packSource === 'custom'
+        ? '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z"/></svg>'
+        : '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19.14 12.94c.04-.31.06-.63.06-.94s-.02-.63-.06-.94l2.03-1.58a.5.5 0 0 0 .12-.64l-1.92-3.32a.5.5 0 0 0-.6-.22l-2.39.96a7.03 7.03 0 0 0-1.63-.94l-.36-2.54a.5.5 0 0 0-.5-.42h-3.84a.5.5 0 0 0-.5.42l-.36 2.54c-.58.24-1.12.55-1.63.94l-2.39-.96a.5.5 0 0 0-.6.22L2.7 7.84a.5.5 0 0 0 .12.64l2.03 1.58c-.04.31-.06.63-.06.94s.02.63.06.94L2.82 14.52a.5.5 0 0 0-.12.64l1.92 3.32a.5.5 0 0 0 .6.22l2.39-.96c.5.39 1.05.7 1.63.94l.36 2.54a.5.5 0 0 0 .5.42h3.84a.5.5 0 0 0 .5-.42l.36-2.54c.58-.24 1.12-.55 1.63-.94l2.39.96a.5.5 0 0 0 .6-.22l1.92-3.32a.5.5 0 0 0-.12-.64l-2.03-1.58zM12 15.5A3.5 3.5 0 1 1 12 8a3.5 3.5 0 0 1 0 7.5z"/></svg>';
+    return badge;
 }
 
 // ===== VIEW 1: SESSION WIZARD =====
@@ -354,7 +369,7 @@ function updateQueueDisplay() {
     const currencyOrder = getCurrencyOrder();
     appState.buildQueue.forEach((entry, index) => {
         const facility = appState.facilityById[entry.id];
-        const name = facility ? (facility.name || entry.id) : entry.id;
+        const name = formatFacilityUiName(facility, entry.id);
         const buildInfo = getFacilityBuildInfo(facility);
         const costText = formatCost(buildInfo.cost, currencyOrder);
         const durationText = formatDuration(buildInfo.duration);

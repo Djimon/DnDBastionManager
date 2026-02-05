@@ -34,6 +34,7 @@ class PackValidator:
     def __init__(self, root_dir: Path):
         self.root_dir = root_dir
         self.facilities_dir = root_dir / "core" / "facilities"
+        self.custom_packs_dir = root_dir / "custom_packs"
         self.config_path = root_dir / "core" / "config" / "bastion_config.json"
 
     def validate_all(self) -> Dict[str, Any]:
@@ -60,34 +61,46 @@ class PackValidator:
         all_pack_ids: Set[str] = set()
         all_facility_ids: Set[str] = set()
 
-        for pack_file in sorted(self.facilities_dir.glob("*.json")):
-            pack_result, pack_id, facility_ids, skip_counts = self._sanitize_pack_file(pack_file, config)
-            logger.info(f"Pack file: {pack_file}")
-            if pack_result.errors:
-                for err in pack_result.errors:
-                    logger.error(err)
-            if pack_result.warnings:
-                for warn in pack_result.warnings:
-                    logger.warning(warn)
-            if not pack_result.errors and not pack_result.warnings:
-                logger.info(f"Pack OK: {pack_file}")
-            report["packs"].append(
-                {
-                    "file": str(pack_file),
-                    "pack_id": pack_id,
-                    "errors": pack_result.errors,
-                    "warnings": pack_result.warnings,
-                    "facility_count": len(facility_ids),
-                    "skipped_facilities": skip_counts.get("facilities", 0),
-                    "skipped_orders": skip_counts.get("orders", 0),
-                    "skipped_effects": skip_counts.get("effects", 0),
-                }
-            )
-            if pack_id:
-                all_pack_ids.add(pack_id)
-            all_facility_ids.update(facility_ids)
-            report["errors"].extend(pack_result.errors)
-            report["warnings"].extend(pack_result.warnings)
+        pack_dirs = [
+            ("core", self.facilities_dir),
+            ("custom", self.custom_packs_dir),
+        ]
+
+        for source, pack_dir in pack_dirs:
+            if not pack_dir.exists():
+                if source == "core":
+                    logger.warning(f"Facilities dir not found: {pack_dir}")
+                continue
+
+            for pack_file in sorted(pack_dir.glob("*.json")):
+                pack_result, pack_id, facility_ids, skip_counts = self._sanitize_pack_file(pack_file, config)
+                logger.info(f"Pack file: {pack_file}")
+                if pack_result.errors:
+                    for err in pack_result.errors:
+                        logger.error(err)
+                if pack_result.warnings:
+                    for warn in pack_result.warnings:
+                        logger.warning(warn)
+                if not pack_result.errors and not pack_result.warnings:
+                    logger.info(f"Pack OK: {pack_file}")
+                report["packs"].append(
+                    {
+                        "file": str(pack_file),
+                        "source": source,
+                        "pack_id": pack_id,
+                        "errors": pack_result.errors,
+                        "warnings": pack_result.warnings,
+                        "facility_count": len(facility_ids),
+                        "skipped_facilities": skip_counts.get("facilities", 0),
+                        "skipped_orders": skip_counts.get("orders", 0),
+                        "skipped_effects": skip_counts.get("effects", 0),
+                    }
+                )
+                if pack_id:
+                    all_pack_ids.add(pack_id)
+                all_facility_ids.update(facility_ids)
+                report["errors"].extend(pack_result.errors)
+                report["warnings"].extend(pack_result.warnings)
 
         report["success"] = len(report["errors"]) == 0 and len(report["config"]["errors"]) == 0
         report["errors"].extend(report["config"]["errors"])

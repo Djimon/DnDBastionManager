@@ -349,6 +349,12 @@ function normalizeBaseToWallet(baseValue, model) {
     return wallet;
 }
 
+function formatFacilityUiName(facility, fallbackId = null) {
+    if (facility && (facility.name || facility.id)) {
+        return facility.name || facility.id;
+    }
+    return fallbackId || '[Facility]';
+}
 
 function getFacilityDisplayName(facilityId) {
     const def = appState.facilityById[facilityId];

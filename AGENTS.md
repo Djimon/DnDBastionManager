@@ -59,10 +59,15 @@ Zentrale Dokumentation aller vereinbarten Projekt-Regeln und Commitments zwische
 
 ## Freigaben & Push-Flow
 - Nach einem Commit erst Test/Abnahme durch den User, dann Push.
-- Pushen nur nach expliziter Rueckfrage, ob der User alles getestet hat.
 
 ## Tool-Permissions
 - Wenn eine Freigabe noetig ist, moeglichst breite, aber sinnvolle Prefix-Regeln vorschlagen (z. B. `["gh", "issue"]` statt eines exakten Kommandos), damit nicht jedes Mal erneut gefragt werden muss.
+- Standard-Freigaben (Option 1) fuer weniger Rueckfragen:
+- `Get-Content`
+- `rg`
+- `Get-ChildItem`
+- `git`
+- `gh`
 
 ## Offene Entscheidungen / TODOs
 - Noch offen.

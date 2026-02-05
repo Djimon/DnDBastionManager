@@ -20,6 +20,7 @@ class Api:
     def __init__(self):
         logger.info("Initializing Api...")
         self.data_dir = str(Path(__file__).parent / "core" / "facilities")
+        self.custom_dir = str(Path(__file__).parent / "custom_packs")
         self.sessions_dir = str(Path(__file__).parent / "sessions")
         
         # Slice 1: Session Management
@@ -300,12 +301,24 @@ class Api:
     
     # ===== FACILITY LOADING (Legacy) =====
     
+    def _split_pack_ref(self, facility_name: str):
+        if isinstance(facility_name, str) and ":" in facility_name:
+            source, name = facility_name.split(":", 1)
+            if source in ("core", "custom"):
+                return source, name
+        return "core", facility_name
+
     def load_facility(self, facility_name):
         """Lade JSON-Daten einer Facility"""
         try:
-            filepath = Path(self.data_dir) / f"{facility_name}.json"
+            source, pack_name = self._split_pack_ref(facility_name)
+            base_dir = self.data_dir if source == "core" else self.custom_dir
+            filepath = Path(base_dir) / f"{pack_name}.json"
             with open(filepath, 'r', encoding='utf-8') as f:
-                return json.load(f)
+                data = json.load(f)
+                if isinstance(data, dict):
+                    data["_pack_source"] = source
+                return data
         except FileNotFoundError:
             return {"error": f"Facility '{facility_name}' nicht gefunden"}
         except Exception as e:
@@ -314,9 +327,15 @@ class Api:
     def get_facilities(self):
         """Gebe Liste aller verfügbaren Facilities"""
         facilities = []
-        for file in Path(self.data_dir).glob("core_*.json"):
-            facilities.append(file.stem)
-        return sorted(facilities)
+        core_dir = Path(self.data_dir)
+        custom_dir = Path(self.custom_dir)
+        if core_dir.exists():
+            for file in sorted(core_dir.glob("*.json")):
+                facilities.append(f"core:{file.stem}")
+        if custom_dir.exists():
+            for file in sorted(custom_dir.glob("*.json")):
+                facilities.append(f"custom:{file.stem}")
+        return facilities
     
     def save_facility(self, facility_name, data):
         """Speichere Facility-Daten"""
