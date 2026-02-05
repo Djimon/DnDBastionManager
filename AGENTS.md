@@ -69,6 +69,7 @@ Zentrale Dokumentation aller vereinbarten Projekt-Regeln und Commitments zwische
 - `git`
 - `gh`
 - Zur Reduktion von Rueckfragen: wo moeglich `python` fuer Datei-Reads/kleine Auswertungen nutzen und keine verschachtelten `powershell.exe -Command` Aufrufe verwenden.
+- `cmd /c ...` hilft hier nicht, weil der Prompt trotzdem den kompletten Befehl als Prefix nimmt. Daher fuer Git/gh/rg bevorzugt `python`-Wrapper nutzen, damit keine neuen Prompts erscheinen.
 
 ## Offene Entscheidungen / TODOs
 - Noch offen.
