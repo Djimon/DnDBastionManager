@@ -68,6 +68,7 @@ Zentrale Dokumentation aller vereinbarten Projekt-Regeln und Commitments zwische
 - `Get-ChildItem`
 - `git`
 - `gh`
+- Zur Reduktion von Rueckfragen: wo moeglich `python` fuer Datei-Reads/kleine Auswertungen nutzen und keine verschachtelten `powershell.exe -Command` Aufrufe verwenden.
 
 ## Offene Entscheidungen / TODOs
 - Noch offen.
