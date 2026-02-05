@@ -8,7 +8,7 @@ function renderFacilityStates() {
     if (!appState.facilityStates || appState.facilityStates.length === 0) {
         const placeholder = document.createElement('div');
         placeholder.className = 'facility-list-item';
-        placeholder.textContent = 'Keine Facilities gebaut.';
+        placeholder.textContent = t('facility.none_built');
         list.appendChild(placeholder);
         return;
     }
@@ -24,9 +24,9 @@ function renderFacilityStates() {
 
         const statusSpan = document.createElement('span');
         statusSpan.className = 'facility-status';
-        let statusLabel = state.state || 'unknown';
-        if (Number.isInteger(state.remaining_turns) && statusLabel !== 'free') {
-            statusLabel = `${statusLabel} ${state.remaining_turns}T`;
+        let statusLabel = translateFacilityState(state.state);
+        if (Number.isInteger(state.remaining_turns) && state.state !== 'free') {
+            statusLabel = `${statusLabel} ${formatTurnsShort(state.remaining_turns)}`;
         }
         statusSpan.textContent = `[${statusLabel}]`;
 
@@ -77,13 +77,14 @@ function selectFacility(facilityId, element = null) {
         } else if (slots !== null) {
             slotsEl.textContent = `${slots}`;
         } else {
-            slotsEl.textContent = '?';
+            slotsEl.textContent = t('common.unknown');
         }
     }
     if (statusEl) {
-        let statusText = state && state.state ? state.state : 'unknown';
-        if (state && Number.isInteger(state.remaining_turns) && statusText !== 'free') {
-            statusText = `${statusText} (${state.remaining_turns} Turns)`;
+        const rawStatus = state && state.state ? state.state : 'unknown';
+        let statusText = translateFacilityState(rawStatus);
+        if (state && Number.isInteger(state.remaining_turns) && rawStatus !== 'free') {
+            statusText = `${statusText} (${formatTurnsLong(state.remaining_turns)})`;
         }
         statusEl.textContent = statusText;
     }
@@ -101,12 +102,13 @@ function updateUpgradeSection(facilityId) {
     const target = appState.facilityCatalog.find(facility => facility && facility.parent === facilityId);
     appState.selectedUpgradeTargetId = target ? target.id : null;
     const stateEntry = (appState.facilityStates || []).find(entry => entry.facility_id === facilityId);
-    const currentState = stateEntry && stateEntry.state ? stateEntry.state : 'unknown';
-    const isFree = currentState === 'free';
+    const currentStateRaw = stateEntry && stateEntry.state ? stateEntry.state : 'unknown';
+    const currentStateLabel = translateFacilityState(currentStateRaw);
+    const isFree = currentStateRaw === 'free';
 
     if (!target) {
-        infoEl.textContent = 'No upgrade available';
-        buttonEl.textContent = 'Upgrade';
+        infoEl.textContent = t('upgrade.no_available');
+        buttonEl.textContent = t('upgrade.button');
         buttonEl.disabled = true;
         return;
     }
@@ -114,25 +116,30 @@ function updateUpgradeSection(facilityId) {
     const buildInfo = getFacilityBuildInfo(target);
     const costText = formatCost(buildInfo.cost, getCurrencyOrder());
     const durationText = formatDuration(buildInfo.duration);
-    infoEl.textContent = `Cost: ${costText} | Duration: ${durationText} | Status: ${currentState}`;
-    buttonEl.textContent = `Upgrade to ${formatFacilityUiName(target, target && target.id)}`;
+    infoEl.textContent = t('upgrade.cost_duration_status', {
+        cost: costText,
+        duration: durationText,
+        status: currentStateLabel
+    });
+    buttonEl.textContent = t('upgrade.to', { name: formatFacilityUiName(target, target && target.id) });
     buttonEl.disabled = !isFree;
 }
 
 async function startUpgrade() {
     const facilityId = appState.selectedFacilityId;
     if (!facilityId) {
-        alert('Select a facility first.');
+        alert(t('alerts.upgrade_select_first'));
         return;
     }
     const stateEntry = (appState.facilityStates || []).find(entry => entry.facility_id === facilityId);
-    const currentState = stateEntry && stateEntry.state ? stateEntry.state : 'unknown';
-    if (currentState !== 'free') {
-        alert(`Upgrade nicht möglich: Facility ist ${currentState}.`);
+    const currentStateRaw = stateEntry && stateEntry.state ? stateEntry.state : 'unknown';
+    const currentStateLabel = translateFacilityState(currentStateRaw);
+    if (currentStateRaw !== 'free') {
+        alert(t('alerts.upgrade_not_free', { state: currentStateLabel }));
         return;
     }
     if (!(window.pywebview && window.pywebview.api)) {
-        alert('PyWebView not available');
+        alert(t('alerts.pywebview_unavailable'));
         return;
     }
 
@@ -143,9 +150,9 @@ async function startUpgrade() {
         if (typeof response.projected_treasury_base === 'number') {
             const projectedText = formatBaseValue(response.projected_treasury_base);
             const shortfallText = formatBaseValue(Math.abs(response.projected_treasury_base));
-            detail = `Ergebnis nach Upgrade: ${projectedText}\nÜberschreitung: ${shortfallText}\n`;
+            detail = t('upgrade.confirm_detail', { projected: projectedText, shortfall: shortfallText });
         }
-        const proceed = confirm(`Nicht genug Budget für ${facilityName}.\n${detail}Trotzdem upgraden?`);
+        const proceed = confirm(t('upgrade.overbudget_confirm', { facility: facilityName, detail }));
         if (!proceed) {
             return;
         }
@@ -154,7 +161,7 @@ async function startUpgrade() {
 
     if (!response || !response.success) {
         const message = response && response.message ? response.message : 'unknown error';
-        alert(`Upgrade failed: ${message}`);
+        alert(t('alerts.upgrade_failed', { message }));
         return;
     }
 
@@ -166,7 +173,7 @@ async function startUpgrade() {
 function resolveOrder() {
     const manualRoll = document.getElementById('manual-roll').value;
     if (!manualRoll) {
-        alert('Enter or roll a value');
+        alert(t('alerts.order_enter_roll'));
         return;
     }
     
@@ -180,8 +187,8 @@ function resolveOrder() {
         result: "resolved",
         log_text: `${sourceId} rolled ${manualRoll}`
     });
-    alert(`Resolved order with roll: ${manualRoll}`);
-    addLogEntry('Order resolved', 'success');
+    alert(t('alerts.order_resolved', { roll: manualRoll }));
+    addLogEntry(t('logs.order_resolved'), 'success');
 }
 
 function autoRoll() {
@@ -203,7 +210,7 @@ async function advanceTurn() {
     if (window.pywebview && window.pywebview.api && window.pywebview.api.advance_turn) {
         const response = await window.pywebview.api.advance_turn();
         if (!response || !response.success) {
-            alert(`Advance turn failed: ${response && response.message ? response.message : 'unknown error'}`);
+            alert(t('alerts.advance_failed', { message: response && response.message ? response.message : 'unknown error' }));
             return;
         }
         appState.session.current_turn = response.current_turn;
@@ -214,14 +221,14 @@ async function advanceTurn() {
         const completed = response.completed || [];
         if (completed.length) {
             const names = completed.map(entry => getFacilityDisplayName(entry.facility_id)).join(', ');
-            addLogEntry(`Turn ${response.current_turn} advanced (completed: ${names})`, 'event');
+            addLogEntry(t('logs.turn_advanced_completed', { turn: response.current_turn, names }), 'event');
         } else {
-            addLogEntry(`Turn ${response.current_turn} advanced`, 'event');
+            addLogEntry(t('logs.turn_advanced', { turn: response.current_turn }), 'event');
         }
     } else {
         appState.session.turn++;
         updateTurnCounter();
-        addLogEntry(`Turn ${appState.session.turn} advanced`, 'event');
+        addLogEntry(t('logs.turn_advanced', { turn: appState.session.turn }), 'event');
     }
 }
 
@@ -245,7 +252,7 @@ function saveSession() {
     } else {
         const sessionJson = JSON.stringify(appState.session, null, 2);
         console.log('Session saved:', sessionJson);
-        alert('Session saved (see console)');
+        alert(t('alerts.session_saved_console'));
     }
 }
 
@@ -256,7 +263,7 @@ function loadSession() {
         // Lade Liste der verfügbaren Sessions
         window.pywebview.api.list_sessions().then(response => {
             if (!response.success || response.sessions.length === 0) {
-                alert('No sessions available');
+                alert(t('alerts.no_sessions_available'));
                 return;
             }
             
@@ -271,7 +278,7 @@ function loadSession() {
                 div.innerHTML = `
                     <div style="display: flex; justify-content: space-between; align-items: center;">
                         <strong>${filename}</strong>
-                        <button class="btn btn-primary btn-small" onclick="loadSessionFile('${filename}')">Load</button>
+                        <button class="btn btn-primary btn-small" onclick="loadSessionFile('${filename}')">${t('load_session.load_button')}</button>
                     </div>
                 `;
                 sessionsList.appendChild(div);
@@ -281,10 +288,10 @@ function loadSession() {
             modal.classList.remove('hidden');
         }).catch(err => {
             logClient('error', `Failed to load session list: ${err}`);
-            alert('Error loading sessions');
+            alert(t('alerts.load_session_error'));
         });
     } else {
-        alert('PyWebView not available');
+        alert(t('alerts.pywebview_unavailable'));
     }
 }
 
@@ -302,28 +309,28 @@ function loadSessionFile(filename) {
                 loadCurrencyModel();
                 loadFacilityCatalog();
                 refreshFacilityStates();
-                document.querySelector('.session-name').textContent = 
+                document.querySelector('.session-name').textContent =
                     filename.replace('session_', '').replace('.json', '');
-                alert(`Session loaded: ${filename}`);
+                alert(t('alerts.session_loaded', { filename }));
                 closeModal('load-session-modal');
                 switchView(3);  // Gehe zu Turn Console
             } else {
                 logClient('error', `Failed to load session: ${response.message}`);
-                alert('Error: ' + response.message);
+                alert(t('alerts.error_prefix', { message: response.message }));
             }
         }).catch(err => {
             logClient('error', `Failed to load session file: ${err}`);
-            alert('Error: ' + err);
+            alert(t('alerts.error_prefix', { message: err }));
         });
     } else {
-        alert('PyWebView not available');
+        alert(t('alerts.pywebview_unavailable'));
     }
 }
 
 // ===== NPC MANAGEMENT =====
 
 function fireNPC() {
-    alert('Fire NPC - placeholder');
+    alert(t('alerts.fire_npc_placeholder'));
 }
 
 function hireNPC() {
@@ -334,12 +341,12 @@ function hireNPC() {
     const facility = document.getElementById('hire-facility').value;
     
     if (!name || !upkeep) {
-        alert('Fill in Name and Upkeep');
+        alert(t('alerts.fill_name_upkeep'));
         return;
     }
     
     appState.session.npcs.push({ name, profession, level, upkeep, facility });
-    alert(`Hired ${name}!`);
+    alert(t('alerts.hired_npc', { name }));
     closeModal('npc-modal');
 }
 

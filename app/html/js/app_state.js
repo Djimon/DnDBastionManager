@@ -178,7 +178,7 @@ function renderAuditLog() {
     if (entries.length === 0) {
         const placeholder = document.createElement('p');
         placeholder.className = 'log-entry event';
-        placeholder.textContent = 'No log entries yet.';
+        placeholder.textContent = t('logs.empty');
         logContent.appendChild(placeholder);
         return;
     }
@@ -195,7 +195,7 @@ function renderAuditLog() {
 
         const line = document.createElement('p');
         line.className = `log-entry ${cssType}`;
-        const turnText = entry.turn !== undefined ? `Turn ${entry.turn}` : 'Turn ?';
+        const turnText = entry.turn !== undefined ? t('logs.turn_label', { turn: entry.turn }) : t('logs.turn_unknown');
         const text = entry.log_text || formatAuditFallback(entry);
         line.textContent = `${turnText} ${text}`.trim();
         logContent.appendChild(line);
@@ -208,8 +208,43 @@ function updateTurnCounter() {
     const turn = (appState.session && (appState.session.current_turn ?? appState.session.turn)) || 0;
     const counter = document.querySelector('.turn-counter');
     if (counter) {
-        counter.textContent = `Turn: ${turn}`;
+        counter.textContent = t('header.turn', { turn });
     }
+}
+
+function updateSessionNamePlaceholder() {
+    const nameEl = document.querySelector('.session-name');
+    if (!nameEl) {
+        return;
+    }
+    const session = appState && appState.session ? appState.session : null;
+    const hasSession = !!(session && (session.session_id || (session.bastion && session.bastion.name)));
+    if (!hasSession) {
+        nameEl.textContent = t('header.no_session');
+    }
+}
+
+function formatTurnsLong(turns) {
+    if (!Number.isInteger(turns)) {
+        return t('common.turn_unknown');
+    }
+    const key = turns === 1 ? 'common.turn_singular' : 'common.turn_plural';
+    return t(key, { count: turns });
+}
+
+function formatTurnsShort(turns) {
+    if (!Number.isInteger(turns)) {
+        return t('common.turn_unknown');
+    }
+    const key = turns === 1 ? 'common.turn_short_singular' : 'common.turn_short_plural';
+    return t(key, { count: turns });
+}
+
+function translateFacilityState(state) {
+    const raw = state || 'unknown';
+    const key = `status.${raw}`;
+    const label = t(key);
+    return label === key ? raw : label;
 }
 
 function getCurrencyOrder() {
@@ -262,10 +297,7 @@ function formatCost(cost, currencyOrder = []) {
 }
 
 function formatDuration(turns) {
-    if (!Number.isInteger(turns)) {
-        return '? Turns';
-    }
-    return turns === 1 ? '1 Turn' : `${turns} Turns`;
+    return formatTurnsLong(turns);
 }
 
 function getCurrencyModel() {

@@ -61,15 +61,8 @@ Zentrale Dokumentation aller vereinbarten Projekt-Regeln und Commitments zwische
 - Nach einem Commit erst Test/Abnahme durch den User, dann Push.
 
 ## Tool-Permissions
-- Wenn eine Freigabe noetig ist, moeglichst breite, aber sinnvolle Prefix-Regeln vorschlagen (z. B. `["gh", "issue"]` statt eines exakten Kommandos), damit nicht jedes Mal erneut gefragt werden muss.
-- Standard-Freigaben (Option 1) fuer weniger Rueckfragen:
-- `Get-Content`
-- `rg`
-- `Get-ChildItem`
-- `git`
-- `gh`
+- Wenn eine Freigabe noetig ist, moeglichst breite, aber sinnvolle Prefix-Regeln vorschlagen (z. B. `["gh", "issue"]` 
 - Zur Reduktion von Rueckfragen: wo moeglich `python` fuer Datei-Reads/kleine Auswertungen nutzen und keine verschachtelten `powershell.exe -Command` Aufrufe verwenden.
-- `cmd /c ...` hilft hier nicht, weil der Prompt trotzdem den kompletten Befehl als Prefix nimmt. Daher fuer Git/gh/rg bevorzugt `python`-Wrapper nutzen, damit keine neuen Prompts erscheinen.
 
 ## Offene Entscheidungen / TODOs
 - Noch offen.

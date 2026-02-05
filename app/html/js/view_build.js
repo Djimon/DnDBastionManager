@@ -31,7 +31,7 @@ function populateCatalogFilters() {
         }
     });
 
-    packFilter.innerHTML = '<option value="">Alle Packs</option>';
+    packFilter.innerHTML = `<option value="">${t('build.filter_all_packs')}</option>`;
     Array.from(packs).sort().forEach(pack => {
         const option = document.createElement('option');
         option.value = pack;
@@ -39,7 +39,7 @@ function populateCatalogFilters() {
         packFilter.appendChild(option);
     });
 
-    tierFilter.innerHTML = '<option value="">Alle Tiers</option>';
+    tierFilter.innerHTML = `<option value="">${t('build.filter_all_tiers')}</option>`;
     Array.from(tiers).sort((a, b) => a - b).forEach(tier => {
         const option = document.createElement('option');
         option.value = tier;
@@ -53,7 +53,7 @@ function populateCatalogFilters() {
             tierFilter.value = desired;
         }
         tierFilter.disabled = true;
-        tierFilter.title = 'Nur Tier 1 kann direkt gebaut werden. Höhere Tiers nur per Upgrade.';
+        tierFilter.title = t('build.tier1_only');
     }
 }
 
@@ -99,7 +99,7 @@ function renderFacilityCatalog(items = null) {
     if (!facilities || facilities.length === 0) {
         const placeholder = document.createElement('div');
         placeholder.className = 'placeholder-item';
-        placeholder.textContent = 'Keine Facilities gefunden.';
+        placeholder.textContent = t('build.no_facilities');
         list.appendChild(placeholder);
         return;
     }
@@ -116,12 +116,14 @@ function renderFacilityCatalog(items = null) {
         const buildInfo = getFacilityBuildInfo(facility);
         const costText = formatCost(buildInfo.cost, currencyOrder);
         const durationText = formatDuration(buildInfo.duration);
-        const slotsText = Number.isInteger(facility.npc_slots) ? `Slots: ${facility.npc_slots}` : 'Slots: ?';
+        const slotsText = Number.isInteger(facility.npc_slots)
+            ? t('build.slots', { count: facility.npc_slots })
+            : t('build.slots_unknown');
         info.textContent = `${costText} | ${durationText} | ${slotsText}`;
 
         const button = document.createElement('button');
         button.className = 'btn btn-small';
-        button.textContent = '+ Add to Queue';
+        button.textContent = t('build.add_to_queue');
         button.addEventListener('click', () => addToQueue(facility.id));
 
         item.appendChild(title);
@@ -139,7 +141,7 @@ function buildPackBadgeElement(source) {
     const badge = document.createElement('span');
     const packSource = source === 'custom' ? 'custom' : 'core';
     badge.className = `pack-badge pack-${packSource}`;
-    badge.title = packSource === 'custom' ? 'Custom pack (auf eigene Gefahr)' : 'Core pack';
+    badge.title = packSource === 'custom' ? t('build.pack_custom') : t('build.pack_core');
     badge.innerHTML = packSource === 'custom'
         ? '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z"/></svg>'
         : '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19.14 12.94c.04-.31.06-.63.06-.94s-.02-.63-.06-.94l2.03-1.58a.5.5 0 0 0 .12-.64l-1.92-3.32a.5.5 0 0 0-.6-.22l-2.39.96a7.03 7.03 0 0 0-1.63-.94l-.36-2.54a.5.5 0 0 0-.5-.42h-3.84a.5.5 0 0 0-.5.42l-.36 2.54c-.58.24-1.12.55-1.63.94l-2.39-.96a.5.5 0 0 0-.6.22L2.7 7.84a.5.5 0 0 0 .12.64l2.03 1.58c-.04.31-.06.63-.06.94s.02.63.06.94L2.82 14.52a.5.5 0 0 0-.12.64l1.92 3.32a.5.5 0 0 0 .6.22l2.39-.96c.5.39 1.05.7 1.63.94l.36 2.54a.5.5 0 0 0 .5.42h3.84a.5.5 0 0 0 .5-.42l.36-2.54c.58-.24 1.12-.55 1.63-.94l2.39.96a.5.5 0 0 0 .6-.22l1.92-3.32a.5.5 0 0 0-.12-.64l-2.03-1.58zM12 15.5A3.5 3.5 0 1 1 12 8a3.5 3.5 0 0 1 0 7.5z"/></svg>';
@@ -154,7 +156,7 @@ function addPlayer() {
     const level = document.getElementById('player-level').value || '1';
     
     if (!name || !className) {
-        alert('Please fill in Name and Class');
+        alert(t('alerts.fill_name_class'));
         return;
     }
     
@@ -191,7 +193,7 @@ function createSession() {
     
     if (!dmName || !sessionName || !bastionName) {
         logClient('warn', 'Form incomplete - missing required fields');
-        alert('Please fill in DM Name, Session Name and Bastion Name');
+        alert(t('alerts.fill_required_fields'));
         return;
     }
     
@@ -228,15 +230,15 @@ function createSession() {
                 refreshFacilityStates();
                 document.querySelector('.session-name').textContent = 
                     `${sessionName} (${bastionName})`;
-                alert('Session created!');
+                alert(t('alerts.session_created'));
                 switchView(2);
             } else {
                 logClient('error', `Session creation failed: ${response.message}`);
-                alert('Error: ' + response.message);
+                alert(t('alerts.error_prefix', { message: response.message }));
             }
         }).catch(err => {
             logClient('error', `API call error: ${err}`);
-            alert('API Error: ' + err);
+            alert(t('alerts.error_prefix', { message: err }));
         });
     } else {
         // Fallback: lokales Frontend-Only Testing
@@ -254,7 +256,7 @@ function createSession() {
         updateTurnCounter();
         updateQueueDisplay();
         loadCurrencyModel();
-        alert('Session created (local mode)');
+        alert(t('alerts.session_created_local'));
         switchView(2);
     }
 }
@@ -268,7 +270,7 @@ function addToQueue(facilityId) {
         return;
     }
     if (Number.isInteger(BUILDABLE_TIER) && facility.tier !== BUILDABLE_TIER) {
-        alert('Nur Tier 1 kann direkt gebaut werden. Höhere Tiers bitte upgraden.');
+        alert(t('build.tier1_only'));
         return;
     }
     appState.buildQueue.push({
@@ -362,7 +364,7 @@ function updateQueueDisplay() {
     if (appState.buildQueue.length === 0) {
         const empty = document.createElement('div');
         empty.className = 'queue-item';
-        empty.textContent = 'Queue ist leer.';
+        empty.textContent = t('build.queue_empty');
         queueList.appendChild(empty);
     }
 
@@ -380,7 +382,7 @@ function updateQueueDisplay() {
                 <strong>${name}</strong>
                 <p>${costText} | ${durationText}</p>
             </div>
-            <button class="btn btn-danger" onclick="removeFromQueue(${index})">Remove</button>
+            <button class="btn btn-danger" onclick="removeFromQueue(${index})">${t('build.remove')}</button>
         `;
         queueList.appendChild(item);
     });
@@ -408,7 +410,7 @@ function updateQueueDisplay() {
             const remainingBase = treasuryBase - totalBase;
             const normalizedRemaining = normalizeBaseToWallet(remainingBase, model);
             if (normalizedRemaining) {
-                const suffix = remainingBase < 0 ? ' (Override!)' : '';
+                const suffix = remainingBase < 0 ? t('build.override_suffix') : '';
                 remainingText = `${formatCost(normalizedRemaining, currencyOrder)}${suffix}`;
             }
         }
@@ -426,12 +428,12 @@ function updateQueueDisplay() {
 
 async function startBuilding() {
     if (appState.buildQueue.length === 0) {
-        alert('Add facilities to queue first');
+        alert(t('alerts.build_add_first'));
         return;
     }
 
     if (!(window.pywebview && window.pywebview.api)) {
-        alert('PyWebView not available');
+        alert(t('alerts.pywebview_unavailable'));
         return;
     }
 
@@ -449,9 +451,9 @@ async function startBuilding() {
             if (typeof response.projected_treasury_base === 'number') {
                 const projectedText = formatBaseValue(response.projected_treasury_base);
                 const shortfallText = formatBaseValue(Math.abs(response.projected_treasury_base));
-                detail = `Ergebnis nach Bau: ${projectedText}\nÜberschreitung: ${shortfallText}\n`;
+                detail = t('build.confirm_detail', { projected: projectedText, shortfall: shortfallText });
             }
-            const confirmText = `Nicht genug Budget für ${facilityName}.\n${detail}Trotzdem bauen?`;
+            const confirmText = t('build.overbudget_confirm', { facility: facilityName, detail });
             const proceed = confirm(confirmText);
             if (!proceed) {
                 remainingQueue.push(entry);
@@ -476,7 +478,7 @@ async function startBuilding() {
     await refreshFacilityStates();
 
     if (errors.length) {
-        alert(`Build errors:\n${errors.join('\n')}`);
+        alert(t('alerts.build_errors', { errors: errors.join('\n') }));
     }
     if (builtCount > 0) {
         switchView(3); // Go to Turn Console

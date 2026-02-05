@@ -1,0 +1,211 @@
+{
+  "app": {
+    "title": "D&D Bastion Manager"
+  },
+  "languages": {
+    "de": "Deutsch",
+    "en": "English"
+  },
+  "header": {
+    "no_session": "[No Session]",
+    "turn": "Turn: {turn}",
+    "save": "💾 Save",
+    "load": "📂 Load",
+    "language": "Language"
+  },
+  "wizard": {
+    "title": "Create New Session",
+    "session_info": "Session Information",
+    "dm_name": "DM Name:",
+    "dm_placeholder": "e.g. 'Djih'",
+    "session_name": "Session Name:",
+    "session_placeholder": "e.g. 'Campaign Session 1'",
+    "bastion_config": "Bastion Configuration",
+    "bastion_name": "Bastion Name:",
+    "bastion_name_placeholder": "e.g. 'Shadowkeep'",
+    "bastion_location": "Location/Region:",
+    "bastion_location_placeholder": "e.g. 'Waterdeep, Dock Ward'",
+    "bastion_description": "Description:",
+    "bastion_description_placeholder": "Narrative description of the bastion...",
+    "players_register": "Register Players",
+    "player_name": "Character Name:",
+    "player_name_placeholder": "Character Name",
+    "player_class": "Class:",
+    "player_class_placeholder": "e.g. Rogue, Wizard",
+    "player_level": "Level (optional):",
+    "player_level_placeholder": "5",
+    "add_player": "+ Add Player",
+    "create_session": "Create Session"
+  },
+  "build": {
+    "title": "Build Bastion",
+    "back_to_view3": "← Back to View 3",
+    "catalog_title": "Facility Catalog",
+    "search_placeholder": "Search...",
+    "filter_all_packs": "All packs",
+    "filter_all_tiers": "All tiers",
+    "queue_title": "Build Queue",
+    "queue_empty": "Queue is empty.",
+    "no_facilities": "No facilities found.",
+    "add_to_queue": "+ Add to Queue",
+    "remove": "Remove",
+    "total_cost": "Total Cost:",
+    "remaining_budget": "Remaining Budget:",
+    "start_building": "Start Building",
+    "clear_queue": "Clear Queue",
+    "slots": "Slots: {count}",
+    "slots_unknown": "Slots: ?",
+    "confirm_detail": "Projected after build: {projected}\nOverrun: {shortfall}\n",
+    "overbudget_confirm": "Not enough budget for {facility}.\n{detail}Build anyway?",
+    "override_suffix": " (Override!)",
+    "pack_custom": "Custom pack (use at own risk)",
+    "pack_core": "Core pack",
+    "tier1_only": "Only Tier 1 can be built directly. Higher tiers must be upgraded.",
+    "build_errors": "Build errors:\n{errors}"
+  },
+  "facility": {
+    "list_title": "Facilities",
+    "none_built": "No facilities built."
+  },
+  "tabs": {
+    "details": "Details",
+    "npcs": "NPCs",
+    "orders": "Orders"
+  },
+  "details": {
+    "title": "Facility Details",
+    "name": "Name:",
+    "description": "Description:",
+    "tier": "Tier:",
+    "slots": "NPC Slots:",
+    "status": "Status:"
+  },
+  "upgrade": {
+    "title": "Upgrade",
+    "no_available": "No upgrade available",
+    "button": "Upgrade",
+    "to": "Upgrade to {name}",
+    "cost_duration_status": "Cost: {cost} | Duration: {duration} | Status: {status}",
+    "confirm_detail": "Projected after upgrade: {projected}\nOverrun: {shortfall}\n",
+    "overbudget_confirm": "Not enough budget for {facility}.\n{detail}Upgrade anyway?"
+  },
+  "npcs": {
+    "assigned_title": "Assigned NPCs",
+    "table_name": "Name",
+    "table_profession": "Profession",
+    "table_level": "Level",
+    "table_xp": "XP",
+    "table_upkeep": "Upkeep",
+    "table_action": "Action",
+    "hire_button": "+ Hire NPC",
+    "fire": "Fire"
+  },
+  "orders": {
+    "title": "Orders",
+    "current": "Active Order:",
+    "remaining": "Remaining: {turns}",
+    "roll_results": "Roll Results",
+    "manual_roll": "Manual Roll:",
+    "auto_roll": "🎲 Auto Roll",
+    "resolve": "Evaluate",
+    "outcome_preview": "Outcome Preview:",
+    "outcome_placeholder": "[Effects preview: +20 gold, +1 Heat, Event: ...]"
+  },
+  "turn": {
+    "validate_packs": "Validate Packs",
+    "advance_turn": "⏭️ Advance Turn",
+    "build_new": "+ Build New Facility",
+    "manage_npcs": "👥 Manage NPCs",
+    "save_session": "💾 Save Session",
+    "log_title": "Turn Log"
+  },
+  "dev": {
+    "validate_packs": "Validate Packs"
+  },
+  "modal": {
+    "npc_title": "NPC Management",
+    "tab_hired": "Hired",
+    "tab_hire": "New Hire",
+    "tab_roster": "Roster",
+    "hired_table_facility": "Facility",
+    "hired_table_upkeep": "Upkeep/Turn",
+    "total_upkeep": "Total Upkeep: {amount}",
+    "hire_name": "NPC Name:",
+    "hire_name_placeholder": "e.g. 'Rook'",
+    "hire_profession": "Profession:",
+    "hire_level": "Level:",
+    "hire_upkeep": "Upkeep per Turn:",
+    "hire_upkeep_placeholder": "e.g. '20g' or '5 silver'",
+    "hire_facility": "Facility:",
+    "hire_button": "Hire",
+    "roster_placeholder": "[Available NPCs in world - to be filled]",
+    "profession_spy": "Spy",
+    "profession_gardener": "Gardener",
+    "profession_craftsman": "Craftsman",
+    "level_apprentice": "Apprentice",
+    "level_experienced": "Experienced",
+    "level_master": "Master"
+  },
+  "load_session": {
+    "title": "Load Session",
+    "loading": "Loading sessions...",
+    "cancel": "Cancel",
+    "load_button": "Load",
+    "no_sessions": "No sessions available"
+  },
+  "alerts": {
+    "pywebview_unavailable": "PyWebView not available",
+    "fill_name_class": "Please fill in Name and Class",
+    "fill_required_fields": "Please fill in DM Name, Session Name and Bastion Name",
+    "session_created": "Session created!",
+    "session_created_local": "Session created (local mode)",
+    "error_prefix": "Error: {message}",
+    "build_add_first": "Add facilities to queue first",
+    "upgrade_select_first": "Select a facility first.",
+    "upgrade_not_free": "Upgrade not possible: facility is {state}.",
+    "upgrade_failed": "Upgrade failed: {message}",
+    "order_enter_roll": "Enter or roll a value",
+    "order_resolved": "Resolved order with roll: {roll}",
+    "advance_failed": "Advance turn failed: {message}",
+    "session_saved_console": "Session saved (see console)",
+    "no_sessions_available": "No sessions available",
+    "load_session_error": "Error loading sessions",
+    "load_session_file_error": "Error: {message}",
+    "build_errors": "Build errors:\n{errors}",
+    "session_loaded": "Session loaded: {filename}",
+    "fill_name_upkeep": "Please fill in Name and Upkeep",
+    "fire_npc_placeholder": "Fire NPC - placeholder",
+    "hired_npc": "Hired {name}!"
+  },
+  "pack_validation": {
+    "summary": "Pack Validation: {errors} errors, {warnings} warnings{config}",
+    "config_errors": " | Config errors: {count}",
+    "config_warnings": " | Config warnings: {count}",
+    "ok": "Pack Validation: OK (0 errors, 0 warnings)",
+    "details_in_log": "Details are in the log.",
+    "failed": "Pack Validation failed. Check logs."
+  },
+  "status": {
+    "building": "building",
+    "upgrading": "upgrading",
+    "busy": "busy",
+    "free": "free",
+    "unknown": "unknown"
+  },
+  "logs": {
+    "empty": "No log entries yet.",
+    "order_resolved": "Result evaluated",
+    "turn_advanced": "Turn {turn} advanced",
+    "turn_advanced_completed": "Turn {turn} advanced (completed: {names})",
+    "turn_label": "Turn {turn}",
+    "turn_unknown": "Turn ?"
+  },
+  "common": {
+    "turn_singular": "{count} Turn",
+    "turn_plural": "{count} Turns",
+    "turn_short_singular": "{count}T",
+    "turn_short_plural": "{count}T",
+    "turn_unknown": "? Turns",
+    "unknown": "?"
+  }
+}

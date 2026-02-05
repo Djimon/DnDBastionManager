@@ -1,0 +1,211 @@
+{
+  "app": {
+    "title": "D&D Bastion Manager"
+  },
+  "languages": {
+    "de": "Deutsch",
+    "en": "English"
+  },
+  "header": {
+    "no_session": "[Keine Session]",
+    "turn": "Runde: {turn}",
+    "save": "💾 Speichern",
+    "load": "📂 Laden",
+    "language": "Sprache"
+  },
+  "wizard": {
+    "title": "Neue Session erstellen",
+    "session_info": "Session-Informationen",
+    "dm_name": "DM-Name:",
+    "dm_placeholder": "z.B. 'Djih'",
+    "session_name": "Session-Name:",
+    "session_placeholder": "z.B. 'Campaign Session 1'",
+    "bastion_config": "Bastion-Konfiguration",
+    "bastion_name": "Bastion-Name:",
+    "bastion_name_placeholder": "z.B. 'Shadowkeep'",
+    "bastion_location": "Standort/Region:",
+    "bastion_location_placeholder": "z.B. 'Waterdeep, Dock Ward'",
+    "bastion_description": "Beschreibung:",
+    "bastion_description_placeholder": "Narrative Beschreibung der Bastion...",
+    "players_register": "Spieler registrieren",
+    "player_name": "Character-Name:",
+    "player_name_placeholder": "Character Name",
+    "player_class": "Klasse:",
+    "player_class_placeholder": "z.B. Rogue, Wizard",
+    "player_level": "Level (optional):",
+    "player_level_placeholder": "5",
+    "add_player": "+ Spieler hinzufügen",
+    "create_session": "Neue Session erstellen"
+  },
+  "build": {
+    "title": "Bastion bauen",
+    "back_to_view3": "← Zurück zu View 3",
+    "catalog_title": "Facility Katalog",
+    "search_placeholder": "Suche...",
+    "filter_all_packs": "Alle Packs",
+    "filter_all_tiers": "Alle Stufen",
+    "queue_title": "Bau-Queue",
+    "queue_empty": "Queue ist leer.",
+    "no_facilities": "Keine Facilities gefunden.",
+    "add_to_queue": "+ Zur Queue",
+    "remove": "Entfernen",
+    "total_cost": "Gesamtkosten:",
+    "remaining_budget": "Restbudget:",
+    "start_building": "Bauen starten",
+    "clear_queue": "Queue löschen",
+    "slots": "Slots: {count}",
+    "slots_unknown": "Slots: ?",
+    "confirm_detail": "Ergebnis nach Bau: {projected}\nÜberschreitung: {shortfall}\n",
+    "overbudget_confirm": "Nicht genug Budget für {facility}.\n{detail}Trotzdem bauen?",
+    "override_suffix": " (Override!)",
+    "pack_custom": "Custom pack (auf eigene Gefahr)",
+    "pack_core": "Core pack",
+    "tier1_only": "Nur Tier 1 kann direkt gebaut werden. Höhere Tiers bitte upgraden.",
+    "build_errors": "Bau-Fehler:\n{errors}"
+  },
+  "facility": {
+    "list_title": "Facilities",
+    "none_built": "Keine Facilities gebaut."
+  },
+  "tabs": {
+    "details": "Details",
+    "npcs": "NSCs",
+    "orders": "Aufträge"
+  },
+  "details": {
+    "title": "Facility-Details",
+    "name": "Name:",
+    "description": "Beschreibung:",
+    "tier": "Tier:",
+    "slots": "NPC Slots:",
+    "status": "Status:"
+  },
+  "upgrade": {
+    "title": "Upgrade",
+    "no_available": "Kein Upgrade verfügbar",
+    "button": "Upgrade",
+    "to": "Upgrade zu {name}",
+    "cost_duration_status": "Kosten: {cost} | Dauer: {duration} | Status: {status}",
+    "confirm_detail": "Ergebnis nach Upgrade: {projected}\nÜberschreitung: {shortfall}\n",
+    "overbudget_confirm": "Nicht genug Budget für {facility}.\n{detail}Trotzdem upgraden?"
+  },
+  "npcs": {
+    "assigned_title": "Zugewiesene NSCs",
+    "table_name": "Name",
+    "table_profession": "Beruf",
+    "table_level": "Stufe",
+    "table_xp": "EP",
+    "table_upkeep": "Unterhalt",
+    "table_action": "Aktion",
+    "hire_button": "+ NSC einstellen",
+    "fire": "Entlassen"
+  },
+  "orders": {
+    "title": "Aufträge",
+    "current": "Aktive Order:",
+    "remaining": "Rest: {turns}",
+    "roll_results": "Würfelergebnis",
+    "manual_roll": "Manueller Wurf:",
+    "auto_roll": "🎲 Auto-Wurf",
+    "resolve": "Auswerten",
+    "outcome_preview": "Ergebnis-Vorschau:",
+    "outcome_placeholder": "[Effekte: +20 Gold, +1 Heat, Event: ...]"
+  },
+  "turn": {
+    "validate_packs": "Packs prüfen",
+    "advance_turn": "⏭️ Runde vorrücken",
+    "build_new": "+ Neue Facility",
+    "manage_npcs": "👥 NSCs verwalten",
+    "save_session": "💾 Session speichern",
+    "log_title": "Runden-Log"
+  },
+  "dev": {
+    "validate_packs": "Packs prüfen"
+  },
+  "modal": {
+    "npc_title": "NSC Verwaltung",
+    "tab_hired": "Angestellt",
+    "tab_hire": "Neue Anstellung",
+    "tab_roster": "Roster",
+    "hired_table_facility": "Gebäude",
+    "hired_table_upkeep": "Unterhalt/Runde",
+    "total_upkeep": "Gesamt-Upkeep: {amount}",
+    "hire_name": "NPC-Name:",
+    "hire_name_placeholder": "z.B. 'Rook'",
+    "hire_profession": "Profession:",
+    "hire_level": "Level:",
+    "hire_upkeep": "Upkeep pro Turn:",
+    "hire_upkeep_placeholder": "z.B. '20g' oder '5 silver'",
+    "hire_facility": "Facility:",
+    "hire_button": "Anstellen",
+    "roster_placeholder": "[Verfügbare NSCs in der Welt - Platzhalter]",
+    "profession_spy": "Spion",
+    "profession_gardener": "Gärtner",
+    "profession_craftsman": "Handwerker",
+    "level_apprentice": "Lehrling",
+    "level_experienced": "Erfahren",
+    "level_master": "Meister"
+  },
+  "load_session": {
+    "title": "Session laden",
+    "loading": "Lade Sessions...",
+    "cancel": "Abbrechen",
+    "load_button": "Laden",
+    "no_sessions": "Keine Sessions verfügbar"
+  },
+  "alerts": {
+    "pywebview_unavailable": "PyWebView nicht verfügbar",
+    "fill_name_class": "Bitte Name und Klasse ausfüllen",
+    "fill_required_fields": "Bitte DM Name, Session Name und Bastion Name ausfüllen",
+    "session_created": "Session erstellt!",
+    "session_created_local": "Session erstellt (lokaler Modus)",
+    "error_prefix": "Fehler: {message}",
+    "build_add_first": "Bitte zuerst Facilities zur Queue hinzufügen",
+    "upgrade_select_first": "Bitte zuerst eine Facility auswählen.",
+    "upgrade_not_free": "Upgrade nicht möglich: Facility ist {state}.",
+    "upgrade_failed": "Upgrade fehlgeschlagen: {message}",
+    "order_enter_roll": "Bitte würfeln oder Wert eingeben",
+    "order_resolved": "Order aufgelöst mit Wurf: {roll}",
+    "advance_failed": "Runde vorrücken fehlgeschlagen: {message}",
+    "session_saved_console": "Session gespeichert (siehe Konsole)",
+    "no_sessions_available": "Keine Sessions verfügbar",
+    "load_session_error": "Fehler beim Laden der Sessions",
+    "load_session_file_error": "Fehler: {message}",
+    "build_errors": "Bau-Fehler:\n{errors}",
+    "session_loaded": "Session geladen: {filename}",
+    "fill_name_upkeep": "Bitte Name und Upkeep ausfüllen",
+    "fire_npc_placeholder": "NSC entlassen - Platzhalter",
+    "hired_npc": "{name} eingestellt!"
+  },
+  "pack_validation": {
+    "summary": "Pack-Prüfung: {errors} Fehler, {warnings} Warnungen{config}",
+    "config_errors": " | Config-Fehler: {count}",
+    "config_warnings": " | Config-Warnungen: {count}",
+    "ok": "Pack-Prüfung: OK (0 Fehler, 0 Warnungen)",
+    "details_in_log": "Details stehen im Log.",
+    "failed": "Pack-Prüfung fehlgeschlagen. Siehe Logs."
+  },
+  "status": {
+    "building": "im Bau",
+    "upgrading": "im Upgrade",
+    "busy": "belegt",
+    "free": "frei",
+    "unknown": "unbekannt"
+  },
+  "logs": {
+    "empty": "Noch keine Log-Einträge.",
+    "order_resolved": "Ergebnis ausgewertet",
+    "turn_advanced": "Runde {turn} vorrücken",
+    "turn_advanced_completed": "Runde {turn} vorrücken (fertig: {names})",
+    "turn_label": "Runde {turn}",
+    "turn_unknown": "Runde ?"
+  },
+  "common": {
+    "turn_singular": "{count} Runde",
+    "turn_plural": "{count} Runden",
+    "turn_short_singular": "{count}T",
+    "turn_short_plural": "{count}T",
+    "turn_unknown": "? Runden",
+    "unknown": "?"
+  }
+}

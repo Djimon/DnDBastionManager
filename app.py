@@ -278,6 +278,19 @@ class Api:
                 "error": str(e),
             }
 
+    def list_languages(self) -> dict:
+        """
+        List available UI language files from app/html/i18n.
+        """
+        try:
+            i18n_dir = Path(__file__).parent / "app" / "html" / "i18n"
+            languages = []
+            if i18n_dir.exists():
+                languages = sorted([p.stem for p in i18n_dir.glob("*.json")])
+            return {"success": True, "languages": languages}
+        except Exception as e:
+            return {"success": False, "languages": [], "message": str(e)}
+
     # ===== SLICE 2: PACK VALIDATION =====
 
     def validate_packs(self) -> dict:

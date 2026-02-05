@@ -28,27 +28,36 @@ function validatePacks(showAlert = true) {
             const warnings = (report && report.warnings) ? report.warnings : [];
             const configErrors = report && report.config && report.config.errors ? report.config.errors : [];
             const configWarnings = report && report.config && report.config.warnings ? report.config.warnings : [];
-            const summary = `Pack Validation: ${errors.length} errors, ${warnings.length} warnings` +
-                (configErrors.length ? ` | Config errors: ${configErrors.length}` : ``) +
-                (configWarnings.length ? ` | Config warnings: ${configWarnings.length}` : ``);
+            let configSuffix = '';
+            if (configErrors.length) {
+                configSuffix += t('pack_validation.config_errors', { count: configErrors.length });
+            }
+            if (configWarnings.length) {
+                configSuffix += t('pack_validation.config_warnings', { count: configWarnings.length });
+            }
+            const summary = t('pack_validation.summary', {
+                errors: errors.length,
+                warnings: warnings.length,
+                config: configSuffix
+            });
 
             logClient(errors.length ? "error" : (warnings.length ? "warn" : "info"), summary);
 
             if (showAlert) {
                 if (errors.length === 0 && warnings.length === 0) {
-                    alert("Pack Validation: OK (0 errors, 0 warnings)");
+                    alert(t('pack_validation.ok'));
                 } else {
-                    alert(summary + "\nDetails stehen im Log.");
+                    alert(`${summary}\n${t('pack_validation.details_in_log')}`);
                 }
             }
         }).catch(err => {
             logClient("error", `Pack validation failed: ${err}`);
             if (showAlert) {
-                alert("Pack Validation failed. Check logs.");
+                alert(t('pack_validation.failed'));
             }
         });
     } else if (showAlert) {
-        alert("PyWebView not available");
+        alert(t('alerts.pywebview_unavailable'));
     }
 }
 
