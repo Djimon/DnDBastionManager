@@ -108,6 +108,22 @@ class Ledger:
                 errors.append("Effect is not an object")
                 continue
 
+            # Currency shorthand {currency, amount}
+            currency_key = effect.get("currency")
+            amount_value = effect.get("amount")
+            if (
+                isinstance(currency_key, str)
+                and currency_key in self.currency_types
+                and isinstance(amount_value, int)
+                and currency_key not in effect
+            ):
+                factor = self.factor_to_base.get(currency_key)
+                if factor is None:
+                    errors.append(f"Currency '{currency_key}' has no base factor")
+                else:
+                    treasury_base += amount_value * factor
+                    entries.append({"type": "currency", "currency": currency_key, "delta": amount_value})
+
             # Currency deltas (configured types)
             for currency in self.currency_types:
                 if currency in effect:

@@ -17,6 +17,7 @@ if (window.addEventListener && typeof window.pywebviewready === 'undefined') {
         logClient('info', 'PyWebView connection established');
         validatePacks(false);
         loadCurrencyModel();
+        loadNpcProgression();
         loadFacilityCatalog();
     });
 }
@@ -88,6 +89,9 @@ async function loadCurrencyModel() {
         if (model && model.types) {
             appState.currencyModel = model;
             updateQueueDisplay();
+            if (typeof renderTreasuryControls === 'function') {
+                renderTreasuryControls();
+            }
         }
     } catch (err) {
         logClient('error', `Failed to load currency model: ${err}`);
@@ -165,7 +169,24 @@ async function refreshSessionState() {
             appState.session = state;
             updateTurnCounter();
             updateQueueDisplay();
+            if (typeof renderTreasuryControls === 'function') {
+                renderTreasuryControls();
+            }
         }
+    }
+}
+
+async function loadNpcProgression() {
+    if (!(window.pywebview && window.pywebview.api && window.pywebview.api.get_npc_progression)) {
+        return;
+    }
+    try {
+        const progression = await window.pywebview.api.get_npc_progression();
+        if (progression && typeof progression === 'object') {
+            appState.npcProgression = progression;
+        }
+    } catch (err) {
+        logClient('error', `Failed to load npc progression: ${err}`);
     }
 }
 

@@ -65,7 +65,8 @@
   },
   "facility": {
     "list_title": "Facilities",
-    "none_built": "Keine Facilities gebaut."
+    "none_built": "Keine Facilities gebaut.",
+    "select_prompt": "Bitte Facility wählen."
   },
   "tabs": {
     "details": "Details",
@@ -98,7 +99,13 @@
     "table_upkeep": "Unterhalt",
     "table_action": "Aktion",
     "hire_button": "+ NSC einstellen",
-    "fire": "Entlassen"
+    "fire": "Entlassen",
+    "move": "Verlegen",
+    "reserve": "Arbeitslos",
+    "none_assigned": "Keine NSCs zugewiesen.",
+    "none_reserve": "Keine arbeitslosen NSCs.",
+    "blocked_active_order": "Aktion blockiert: NSC hat aktive Order.",
+    "no_facility_available": "Keine Facility mit freien Slots"
   },
   "orders": {
     "title": "Aufträge",
@@ -121,8 +128,25 @@
     "manual_roll": "Manueller Wurf:",
     "auto_roll": "🎲 Auto-Wurf",
     "resolve": "Auswerten",
+    "result_summary": "{facility} – {order}: {result} | Effekte: {effects}",
+    "roll_label": "Wurf {roll}",
+    "bucket_success": "Erfolg",
+    "bucket_failure": "Fehlschlag",
+    "bucket_critical_success": "Kritischer Erfolg",
+    "bucket_critical_failure": "Kritischer Fehlschlag",
+    "bucket_unknown": "Ergebnis",
+    "no_effects": "keine Effekte",
+    "log_prefix": "Log:",
     "outcome_preview": "Ergebnis-Vorschau:",
     "outcome_placeholder": "[Effekte: +20 Gold, +1 Heat, Event: ...]"
+  },
+  "inventory": {
+    "title": "Inventar",
+    "wallet": "Schatzkammer: {amount}",
+    "table_item": "Item",
+    "table_qty": "Menge",
+    "empty": "Keine Items im Inventar.",
+    "group_misc": "Sonstiges"
   },
   "turn": {
     "validate_packs": "Packs prüfen",
@@ -132,6 +156,17 @@
     "save_session": "💾 Session speichern",
     "log_title": "Runden-Log"
   },
+  "treasury": {
+    "title": "Bastion-Kasse",
+    "mode_add": "Hinzufügen",
+    "mode_set": "Setzen",
+    "apply": "Anwenden",
+    "invalid": "Bitte gültigen Betrag und Währung angeben",
+    "no_change": "Keine Änderung",
+    "failed": "Kassenänderung fehlgeschlagen",
+    "applied": "Kasse aktualisiert: {effects}",
+    "log_text": "Kasse: {amount} {currency}"
+  },
   "dev": {
     "validate_packs": "Packs prüfen"
   },
@@ -139,19 +174,22 @@
     "npc_title": "NSC Verwaltung",
     "tab_hired": "Angestellt",
     "tab_hire": "Neue Anstellung",
-    "tab_roster": "Roster",
+    "tab_reserve": "Arbeitslos",
     "hired_table_facility": "Gebäude",
     "hired_table_upkeep": "Unterhalt/Runde",
-    "total_upkeep": "Gesamt-Upkeep: {amount}",
+    "total_upkeep": "Gesamt-Unterhalt: {amount}",
     "hire_name": "NPC-Name:",
     "hire_name_placeholder": "z.B. 'Rook'",
     "hire_profession": "Profession:",
+    "profession_custom": "Benutzerdefiniert",
+    "profession_custom_label": "Benutzerdefinierter Beruf:",
+    "profession_custom_placeholder": "z.B. Alchemist",
     "hire_level": "Level:",
-    "hire_upkeep": "Upkeep pro Runde:",
+    "hire_upkeep": "Unterhalt pro Runde:",
     "hire_upkeep_placeholder": "z.B. '20g' oder '5 silver'",
     "hire_facility": "Facility:",
     "hire_button": "Anstellen",
-    "roster_placeholder": "[Verfügbare NSCs in der Welt - Platzhalter]",
+    "upkeep_hint": "Richtwert: {amount}",
     "profession_spy": "Spion",
     "profession_gardener": "Gärtner",
     "profession_craftsman": "Handwerker",
@@ -186,9 +224,15 @@
     "load_session_file_error": "Fehler: {message}",
     "build_errors": "Bau-Fehler:\n{errors}",
     "session_loaded": "Session geladen: {filename}",
-    "fill_name_upkeep": "Bitte Name und Upkeep ausfüllen",
+    "fill_name_upkeep": "Bitte Name und Unterhalt ausfüllen",
+    "npc_fill_required": "Bitte Name, Beruf und Level ausfüllen",
     "fire_npc_placeholder": "NSC entlassen - Platzhalter",
     "hired_npc": "{name} eingestellt!",
+    "npc_hire_failed": "NSC einstellen fehlgeschlagen: {message}",
+    "npc_move_failed": "NSC verlegen fehlgeschlagen: {message}",
+    "npc_fire_failed": "NSC entlassen fehlgeschlagen: {message}",
+    "npc_moved": "NSC verlegt",
+    "npc_fired": "NSC entlassen",
     "order_start_failed": "Order starten fehlgeschlagen: {message}",
     "order_start_success": "Order gestartet",
     "roll_lock_failed": "Roll speichern fehlgeschlagen: {message}",

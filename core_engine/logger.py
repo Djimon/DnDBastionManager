@@ -7,6 +7,8 @@ import os
 from pathlib import Path
 from datetime import datetime
 
+_initialized_loggers = set()
+
 def setup_logger(name: str = "app"):
     """
     Erstelle einen Logger der in logs/ schreibt.
@@ -30,7 +32,8 @@ def setup_logger(name: str = "app"):
     logger.handlers.clear()
     
     # File Handler
-    file_handler = logging.FileHandler(log_file, encoding='utf-8')
+    file_mode = 'w' if name not in _initialized_loggers else 'a'
+    file_handler = logging.FileHandler(log_file, mode=file_mode, encoding='utf-8')
     file_handler.setLevel(logging.DEBUG)
     
     # Formatter
@@ -47,5 +50,7 @@ def setup_logger(name: str = "app"):
     console_handler.setLevel(logging.INFO)
     console_handler.setFormatter(formatter)
     logger.addHandler(console_handler)
+
+    _initialized_loggers.add(name)
     
     return logger

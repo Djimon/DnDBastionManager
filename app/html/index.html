@@ -192,93 +192,87 @@
 
                         <!-- CENTER: Facility Detail Panel (Tabs) -->
                         <section class="facility-detail-panel">
-                            <div class="tabs">
-                                <button class="tab-btn active" onclick="switchTab('details')" data-i18n="tabs.details">Details</button>
-                                <button class="tab-btn" onclick="switchTab('npcs')" data-i18n="tabs.npcs">NPCs</button>
-                                <button class="tab-btn" onclick="switchTab('orders')" data-i18n="tabs.orders">Orders</button>
-                            </div>
+                            <div id="facility-empty" class="facility-empty" data-i18n="facility.select_prompt">Bitte Facility wählen</div>
 
-                            <!-- TAB: Details -->
-                            <div id="tab-details" class="tab-content active">
-                                <h3 data-i18n="details.title">Facility Details</h3>
-                                <div class="detail-info">
-                                    <p><strong data-i18n="details.name">Name:</strong> <span id="detail-name">[Facility Name]</span></p>
-                                    <p><strong data-i18n="details.description">Beschreibung:</strong> <span id="detail-desc">[Placeholder]</span></p>
-                                    <p><strong data-i18n="details.tier">Tier:</strong> <span id="detail-tier">★★</span></p>
-                                    <p><strong data-i18n="details.slots">NPC Slots:</strong> <span id="detail-slots">2/3</span><span id="detail-slot-bubbles" class="slot-bubbles"></span></p>
-                                    <p><strong data-i18n="details.status">Status:</strong> <span id="detail-status">idle</span></p>
+                            <div id="facility-main" class="facility-main hidden">
+                                <div class="tabs">
+                                    <button class="tab-btn active" onclick="switchTab('details')" data-i18n="tabs.details">Details</button>
+                                    <button class="tab-btn" onclick="switchTab('npcs')" data-i18n="tabs.npcs">NPCs</button>
+                                    <button class="tab-btn" onclick="switchTab('orders')" data-i18n="tabs.orders">Orders</button>
                                 </div>
 
-                                <div class="upgrade-section">
-                                    <h4 data-i18n="upgrade.title">Upgrade</h4>
-                                    <p id="upgrade-info">Cost: 500g | Duration: 2 Turns</p>
-                                    <button id="upgrade-button" class="btn btn-secondary" onclick="startUpgrade()" data-i18n="upgrade.button">Upgrade</button>
-                                </div>
-                            </div>
-
-                            <!-- TAB: NPCs -->
-                            <div id="tab-npcs" class="tab-content">
-                                <h3 data-i18n="npcs.assigned_title">Assigned NPCs</h3>
-                                <table class="npcs-table">
-                                    <thead>
-                                        <tr>
-                                            <th data-i18n="npcs.table_name">Name</th>
-                                            <th data-i18n="npcs.table_profession">Profession</th>
-                                            <th data-i18n="npcs.table_level">Level</th>
-                                            <th data-i18n="npcs.table_xp">XP</th>
-                                            <th data-i18n="npcs.table_upkeep">Upkeep</th>
-                                            <th data-i18n="npcs.table_action">Action</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <tr>
-                                            <td>Rook</td>
-                                            <td>Spy</td>
-                                            <td>Experienced</td>
-                                            <td>7/10</td>
-                                            <td>20g</td>
-                                            <td><button class="btn btn-danger btn-small" data-i18n="npcs.fire">Fire</button></td>
-                                        </tr>
-                                        <tr>
-                                            <td>Mara</td>
-                                            <td>Informant</td>
-                                            <td>Master</td>
-                                            <td>12/10</td>
-                                            <td>50g</td>
-                                            <td><button class="btn btn-danger btn-small" data-i18n="npcs.fire">Fire</button></td>
-                                        </tr>
-                                    </tbody>
-                                </table>
-                                <button class="btn btn-secondary" onclick="openHireModal()" data-i18n="npcs.hire_button">+ Hire NPC</button>
-                            </div>
-
-                            <!-- TAB: Orders -->
-                            <div id="tab-orders" class="tab-content">
-                                <h3 data-i18n="orders.title">Orders</h3>
-
-                                <div class="order-new">
-                                    <h4 data-i18n="orders.new_title">Neue Order</h4>
-                                    <div class="form-group">
-                                        <label for="order-npc-select" data-i18n="orders.npc_label">NPC:</label>
-                                        <select id="order-npc-select"></select>
+                                <!-- TAB: Details -->
+                                <div id="tab-details" class="tab-content active">
+                                    <h3 data-i18n="details.title">Facility Details</h3>
+                                    <div class="detail-info">
+                                        <p><strong data-i18n="details.name">Name:</strong> <span id="detail-name">[Facility Name]</span></p>
+                                        <p><strong data-i18n="details.description">Beschreibung:</strong> <span id="detail-desc">[Placeholder]</span></p>
+                                        <p><strong data-i18n="details.tier">Tier:</strong> <span id="detail-tier">★★</span></p>
+                                        <p><strong data-i18n="details.slots">NPC Slots:</strong> <span id="detail-slots">2/3</span><span id="detail-slot-bubbles" class="slot-bubbles"></span></p>
+                                        <p><strong data-i18n="details.status">Status:</strong> <span id="detail-status">idle</span></p>
                                     </div>
-                                    <div class="form-group">
-                                        <label for="order-select" data-i18n="orders.order_label">Order:</label>
-                                        <select id="order-select"></select>
+
+                                    <div class="upgrade-section">
+                                        <h4 data-i18n="upgrade.title">Upgrade</h4>
+                                        <p id="upgrade-info">Cost: 500g | Duration: 2 Turns</p>
+                                        <button id="upgrade-button" class="btn btn-secondary" onclick="startUpgrade()" data-i18n="upgrade.button">Upgrade</button>
                                     </div>
-                                    <button class="btn btn-primary" onclick="startOrder()" data-i18n="orders.start">Order starten</button>
-                                    <p id="order-new-hint" class="text-muted"></p>
                                 </div>
 
-                                <div class="orders-active">
-                                    <div class="orders-header">
-                                        <h4 data-i18n="orders.active_title">Aktive Orders</h4>
-                                        <button id="orders-evaluate-all" class="btn btn-secondary btn-small" onclick="evaluateAllReady()" data-i18n="orders.evaluate_all">Alle auswerten</button>
+                                <!-- TAB: NPCs -->
+                                <div id="tab-npcs" class="tab-content">
+                                    <h3 data-i18n="npcs.assigned_title">Assigned NPCs</h3>
+                                    <table class="npcs-table">
+                                        <thead>
+                                            <tr>
+                                                <th data-i18n="npcs.table_name">Name</th>
+                                                <th data-i18n="npcs.table_profession">Profession</th>
+                                                <th data-i18n="npcs.table_level">Level</th>
+                                                <th data-i18n="npcs.table_xp">XP</th>
+                                                <th data-i18n="npcs.table_upkeep">Upkeep</th>
+                                                <th data-i18n="npcs.table_action">Action</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="npc-assigned-body"></tbody>
+                                    </table>
+                                    <p id="npc-assigned-empty" class="text-muted hidden" data-i18n="npcs.none_assigned">No NPCs assigned.</p>
+                                    <button class="btn btn-secondary" onclick="openHireModal()" data-i18n="npcs.hire_button">+ Hire NPC</button>
+                                </div>
+
+                                <!-- TAB: Orders -->
+                                <div id="tab-orders" class="tab-content">
+                                    <h3 data-i18n="orders.title">Orders</h3>
+
+                                    <div class="order-new">
+                                        <h4 data-i18n="orders.new_title">Neue Order</h4>
+                                        <div class="form-group">
+                                            <label for="order-npc-select" data-i18n="orders.npc_label">NPC:</label>
+                                            <select id="order-npc-select"></select>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="order-select" data-i18n="orders.order_label">Order:</label>
+                                            <select id="order-select"></select>
+                                        </div>
+                                        <button class="btn btn-primary" onclick="startOrder()" data-i18n="orders.start">Order starten</button>
+                                        <p id="order-new-hint" class="text-muted"></p>
                                     </div>
-                                    <div id="orders-list" class="orders-list"></div>
+
+                                    <div class="orders-active">
+                                        <div class="orders-header">
+                                            <h4 data-i18n="orders.active_title">Aktive Orders</h4>
+                                            <button id="orders-evaluate-all" class="btn btn-secondary btn-small" onclick="evaluateAllReady()" data-i18n="orders.evaluate_all">Alle auswerten</button>
+                                        </div>
+                                        <div id="orders-list" class="orders-list"></div>
+                                    </div>
                                 </div>
                             </div>
                         </section>
+                        <aside id="inventory-panel" class="inventory-panel hidden">
+                            <h4 data-i18n="inventory.title">Inventar</h4>
+                            <div id="inventory-wallet" class="inventory-wallet"></div>
+                            <div id="inventory-groups" class="inventory-groups"></div>
+                            <p id="inventory-empty" class="text-muted hidden" data-i18n="inventory.empty">Keine Items im Inventar.</p>
+                        </aside>
                     </div>
 
                     <!-- BOTTOM: Turn Controls & Log -->
@@ -289,6 +283,19 @@
                             <button class="btn btn-secondary" onclick="switchView(2)" data-i18n="turn.build_new">+ Build New Facility</button>
                             <button class="btn btn-secondary" onclick="openNPCModal()" data-i18n="turn.manage_npcs">👥 Manage NPCs</button>
                             <button class="btn btn-success" onclick="saveSession()" data-i18n="turn.save_session">💾 Save Session</button>
+                        </div>
+
+                        <div class="treasury-adjust">
+                            <label class="treasury-label" data-i18n="treasury.title">Treasury</label>
+                            <div class="treasury-row">
+                                <select id="treasury-mode" class="treasury-select">
+                                    <option value="add" data-i18n="treasury.mode_add">Add</option>
+                                    <option value="set" data-i18n="treasury.mode_set">Set</option>
+                                </select>
+                                <input type="number" id="treasury-amount" class="treasury-input" min="0" step="1" placeholder="0" />
+                                <select id="treasury-currency" class="treasury-select"></select>
+                                <button class="btn btn-secondary btn-small" onclick="adjustTreasury()" data-i18n="treasury.apply">Apply</button>
+                            </div>
                         </div>
 
                         <div class="turn-log">
@@ -322,9 +329,9 @@
             </div>
 
             <div class="modal-tabs">
-                <button class="modal-tab-btn active" onclick="switchModalTab('hired')" data-i18n="modal.tab_hired">Angestellt</button>
-                <button class="modal-tab-btn" onclick="switchModalTab('hire')" data-i18n="modal.tab_hire">Neue Anstellung</button>
-                <button class="modal-tab-btn" onclick="switchModalTab('roster')" data-i18n="modal.tab_roster">Roster</button>
+                <button class="modal-tab-btn active" data-modal-tab="hired" onclick="switchModalTab('hired')" data-i18n="modal.tab_hired">Angestellt</button>
+                <button class="modal-tab-btn" data-modal-tab="hire" onclick="switchModalTab('hire')" data-i18n="modal.tab_hire">Neue Anstellung</button>
+                <button class="modal-tab-btn" data-modal-tab="reserve" onclick="switchModalTab('reserve')" data-i18n="modal.tab_reserve">Reserve</button>
             </div>
 
             <!-- Hired NPCs -->
@@ -334,22 +341,16 @@
                         <tr>
                             <th data-i18n="npcs.table_name">Name</th>
                             <th data-i18n="modal.hired_table_facility">Facility</th>
+                            <th data-i18n="npcs.table_profession">Profession</th>
                             <th data-i18n="npcs.table_level">Level</th>
+                            <th data-i18n="npcs.table_xp">XP</th>
                             <th data-i18n="modal.hired_table_upkeep">Upkeep/Turn</th>
                             <th data-i18n="npcs.table_action">Action</th>
                         </tr>
                     </thead>
-                    <tbody>
-                        <tr>
-                            <td>Rook</td>
-                            <td>Whisper Office</td>
-                            <td>Experienced</td>
-                            <td>20g</td>
-                            <td><button class="btn btn-danger btn-small" onclick="fireNPC()" data-i18n="npcs.fire">Fire</button></td>
-                        </tr>
-                    </tbody>
+                    <tbody id="modal-npcs-body"></tbody>
                 </table>
-                <p class="text-muted" data-i18n="modal.total_upkeep">Total Upkeep: 20g</p>
+                <p id="modal-total-upkeep" class="text-muted" data-i18n="modal.total_upkeep">Total Upkeep: 0g</p>
             </div>
 
             <!-- Hire New NPC -->
@@ -364,33 +365,52 @@
                         <option value="spy" data-i18n="modal.profession_spy">Spy</option>
                         <option value="gardener" data-i18n="modal.profession_gardener">Gardener</option>
                         <option value="craftsman" data-i18n="modal.profession_craftsman">Craftsman</option>
+                        <option value="custom" data-i18n="modal.profession_custom">Custom</option>
                     </select>
+                </div>
+                <div class="form-group hidden" id="hire-profession-custom-wrap">
+                    <label for="hire-profession-custom" data-i18n="modal.profession_custom_label">Custom Profession:</label>
+                    <input type="text" id="hire-profession-custom" placeholder="e.g. Alchemist" data-i18n-placeholder="modal.profession_custom_placeholder" />
                 </div>
                 <div class="form-group">
                     <label for="hire-level" data-i18n="modal.hire_level">Level:</label>
                     <select id="hire-level">
-                        <option value="Apprentice" data-i18n="modal.level_apprentice">Apprentice</option>
-                        <option value="Experienced" data-i18n="modal.level_experienced">Experienced</option>
-                        <option value="Master" data-i18n="modal.level_master">Master</option>
+                        <option value="1" data-i18n="modal.level_apprentice">Apprentice</option>
+                        <option value="2" data-i18n="modal.level_experienced">Experienced</option>
+                        <option value="3" data-i18n="modal.level_master">Master</option>
                     </select>
                 </div>
                 <div class="form-group">
-                    <label for="hire-upkeep" data-i18n="modal.hire_upkeep">Upkeep pro Turn:</label>
-                    <input type="text" id="hire-upkeep" placeholder="z.B. '20g' oder '5 silver'" data-i18n-placeholder="modal.hire_upkeep_placeholder" />
+                    <label data-i18n="modal.hire_upkeep">Upkeep pro Turn:</label>
+                    <div class="form-row">
+                        <input type="number" id="hire-upkeep-amount" min="0" step="1" placeholder="0" />
+                        <select id="hire-upkeep-currency"></select>
+                    </div>
+                    <p id="hire-upkeep-hint" class="text-muted"></p>
                 </div>
                 <div class="form-group">
-                    <label for="hire-facility" data-i18n="modal.hire_facility">Facility:</label>
-                    <select id="hire-facility">
-                        <option>[Facility 1]</option>
-                        <option>[Facility 2]</option>
-                    </select>
+                    <label for="hire-assign-facility" data-i18n="modal.hire_facility">Facility:</label>
+                    <select id="hire-assign-facility"></select>
                 </div>
                 <button class="btn btn-primary" onclick="hireNPC()" data-i18n="modal.hire_button">Hire</button>
             </div>
 
-            <!-- Roster -->
-            <div id="modal-tab-roster" class="modal-tab-content">
-                <p class="placeholder" data-i18n="modal.roster_placeholder">[Available NPCs in world - to be filled]</p>
+            <!-- Reserve -->
+            <div id="modal-tab-reserve" class="modal-tab-content">
+                <table class="npcs-table">
+                    <thead>
+                        <tr>
+                            <th data-i18n="npcs.table_name">Name</th>
+                            <th data-i18n="npcs.table_profession">Profession</th>
+                            <th data-i18n="npcs.table_level">Level</th>
+                            <th data-i18n="npcs.table_xp">XP</th>
+                            <th data-i18n="modal.hired_table_upkeep">Upkeep/Turn</th>
+                            <th data-i18n="npcs.table_action">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="modal-reserve-body"></tbody>
+                </table>
+                <p id="modal-reserve-empty" class="text-muted hidden" data-i18n="npcs.none_reserve">No NPCs in reserve.</p>
             </div>
         </div>
     </div>
@@ -418,5 +438,7 @@
     <script src="/js/app_api.js"></script>
     <script src="/js/view_build.js"></script>
     <script src="/js/view_turn.js"></script>
+
+    <div id="toast-container" class="toast-container"></div>
 </body>
 </html>

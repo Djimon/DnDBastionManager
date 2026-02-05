@@ -29,6 +29,7 @@ let appState = {
     facilityById: {},
     facilityStates: [],
     currencyModel: null,
+    npcProgression: null,
 };
 
 const BUILDABLE_TIER = 1;
@@ -65,6 +66,7 @@ function switchTab(tabName) {
     
     // Mark button as active
     event.target.classList.add('active');
+
 }
 
 function switchModalTab(tabName) {
@@ -76,8 +78,15 @@ function switchModalTab(tabName) {
     if (tab) {
         tab.classList.add('active');
     }
-    
-    event.target.classList.add('active');
+    const trigger = (typeof event !== 'undefined' && event && event.target)
+        ? event.target
+        : document.querySelector(`.modal-tab-btn[data-modal-tab="${tabName}"]`);
+    if (trigger) {
+        trigger.classList.add('active');
+    }
+    if (typeof renderNpcModal === 'function') {
+        renderNpcModal();
+    }
 }
 
 // ===== MODALS =====
@@ -87,6 +96,15 @@ function openNPCModal() {
     if (modal) {
         modal.classList.remove('hidden');
     }
+    if (typeof refreshSessionState === 'function') {
+        refreshSessionState().then(() => {
+            if (typeof renderNpcModal === 'function') {
+                renderNpcModal();
+            }
+        });
+    } else if (typeof renderNpcModal === 'function') {
+        renderNpcModal();
+    }
 }
 
 function openHireModal() {
@@ -94,6 +112,15 @@ function openHireModal() {
     if (modal) {
         modal.classList.remove('hidden');
         switchModalTab('hire');
+    }
+    if (typeof refreshSessionState === 'function') {
+        refreshSessionState().then(() => {
+            if (typeof renderNpcModal === 'function') {
+                renderNpcModal();
+            }
+        });
+    } else if (typeof renderNpcModal === 'function') {
+        renderNpcModal();
     }
 }
 

@@ -265,6 +265,33 @@ class Api:
         except Exception as e:
             return {"success": False, "message": str(e)}
 
+    def hire_npc(self, name: str, profession: str, level: int, upkeep: dict, facility_id: str = None) -> dict:
+        """Hire an NPC and optionally assign to a facility."""
+        try:
+            if not self.current_session:
+                return {"success": False, "message": "No session loaded"}
+            return self._facility_manager.hire_npc(self.current_session, name, profession, level, upkeep, facility_id)
+        except Exception as e:
+            return {"success": False, "message": str(e)}
+
+    def move_npc(self, npc_id: str, target_facility_id: str = None) -> dict:
+        """Move NPC to another facility or to reserve."""
+        try:
+            if not self.current_session:
+                return {"success": False, "message": "No session loaded"}
+            return self._facility_manager.move_npc(self.current_session, npc_id, target_facility_id)
+        except Exception as e:
+            return {"success": False, "message": str(e)}
+
+    def fire_npc(self, npc_id: str) -> dict:
+        """Fire an NPC."""
+        try:
+            if not self.current_session:
+                return {"success": False, "message": "No session loaded"}
+            return self._facility_manager.fire_npc(self.current_session, npc_id)
+        except Exception as e:
+            return {"success": False, "message": str(e)}
+
     # ===== DEBUGGING & LOGGING =====
     
     def log_client(self, level: str, message: str) -> dict:
@@ -326,6 +353,15 @@ class Api:
             return {"success": True, "languages": languages}
         except Exception as e:
             return {"success": False, "languages": [], "message": str(e)}
+
+    def get_npc_progression(self) -> dict:
+        """
+        Return NPC progression config (xp per success, thresholds, level names).
+        """
+        try:
+            return self._facility_manager.config.get("npc_progression", {})
+        except Exception as e:
+            return {"error": str(e)}
 
     # ===== SLICE 2: PACK VALIDATION =====
 

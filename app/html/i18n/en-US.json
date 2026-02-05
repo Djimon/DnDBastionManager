@@ -65,7 +65,8 @@
   },
   "facility": {
     "list_title": "Facilities",
-    "none_built": "No facilities built."
+    "none_built": "No facilities built.",
+    "select_prompt": "Please select a facility."
   },
   "tabs": {
     "details": "Details",
@@ -98,7 +99,13 @@
     "table_upkeep": "Upkeep",
     "table_action": "Action",
     "hire_button": "+ Hire NPC",
-    "fire": "Fire"
+    "fire": "Fire",
+    "move": "Move",
+    "reserve": "Unassigned",
+    "none_assigned": "No NPCs assigned.",
+    "none_reserve": "No unassigned NPCs.",
+    "blocked_active_order": "Action blocked: NPC has an active order.",
+    "no_facility_available": "No facility with free slots"
   },
   "orders": {
     "title": "Orders",
@@ -121,8 +128,25 @@
     "manual_roll": "Manual Roll:",
     "auto_roll": "🎲 Auto Roll",
     "resolve": "Evaluate",
+    "result_summary": "{facility} – {order}: {result} | Effects: {effects}",
+    "roll_label": "Roll {roll}",
+    "bucket_success": "Success",
+    "bucket_failure": "Failure",
+    "bucket_critical_success": "Critical Success",
+    "bucket_critical_failure": "Critical Failure",
+    "bucket_unknown": "Result",
+    "no_effects": "no effects",
+    "log_prefix": "Log:",
     "outcome_preview": "Outcome Preview:",
     "outcome_placeholder": "[Effects preview: +20 gold, +1 Heat, Event: ...]"
+  },
+  "inventory": {
+    "title": "Inventory",
+    "wallet": "Treasury: {amount}",
+    "table_item": "Item",
+    "table_qty": "Qty",
+    "empty": "No items in inventory.",
+    "group_misc": "Misc"
   },
   "turn": {
     "validate_packs": "Validate Packs",
@@ -132,6 +156,17 @@
     "save_session": "💾 Save Session",
     "log_title": "Turn Log"
   },
+  "treasury": {
+    "title": "Bastion Treasury",
+    "mode_add": "Add",
+    "mode_set": "Set",
+    "apply": "Apply",
+    "invalid": "Please enter a valid amount and currency",
+    "no_change": "No change",
+    "failed": "Treasury update failed",
+    "applied": "Treasury updated: {effects}",
+    "log_text": "Treasury: {amount} {currency}"
+  },
   "dev": {
     "validate_packs": "Validate Packs"
   },
@@ -139,19 +174,22 @@
     "npc_title": "NPC Management",
     "tab_hired": "Hired",
     "tab_hire": "New Hire",
-    "tab_roster": "Roster",
+    "tab_reserve": "Unassigned",
     "hired_table_facility": "Facility",
     "hired_table_upkeep": "Upkeep/Turn",
     "total_upkeep": "Total Upkeep: {amount}",
     "hire_name": "NPC Name:",
     "hire_name_placeholder": "e.g. 'Rook'",
     "hire_profession": "Profession:",
+    "profession_custom": "Custom",
+    "profession_custom_label": "Custom Profession:",
+    "profession_custom_placeholder": "e.g. Alchemist",
     "hire_level": "Level:",
     "hire_upkeep": "Upkeep per Turn:",
     "hire_upkeep_placeholder": "e.g. '20g' or '5 silver'",
     "hire_facility": "Facility:",
     "hire_button": "Hire",
-    "roster_placeholder": "[Available NPCs in world - to be filled]",
+    "upkeep_hint": "Baseline: {amount}",
     "profession_spy": "Spy",
     "profession_gardener": "Gardener",
     "profession_craftsman": "Craftsman",
@@ -187,8 +225,14 @@
     "build_errors": "Build errors:\n{errors}",
     "session_loaded": "Session loaded: {filename}",
     "fill_name_upkeep": "Please fill in Name and Upkeep",
+    "npc_fill_required": "Please fill in Name, Profession and Level",
     "fire_npc_placeholder": "Fire NPC - placeholder",
     "hired_npc": "Hired {name}!",
+    "npc_hire_failed": "Hire failed: {message}",
+    "npc_move_failed": "Move failed: {message}",
+    "npc_fire_failed": "Fire failed: {message}",
+    "npc_moved": "NPC moved",
+    "npc_fired": "NPC fired",
     "order_start_failed": "Start order failed: {message}",
     "order_start_success": "Order started",
     "roll_lock_failed": "Lock roll failed: {message}",

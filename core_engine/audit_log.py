@@ -60,4 +60,16 @@ class AuditLog:
             "log_text": log_text,
         }
         entries.append(entry)
+        self._trim_entries(entries)
         logger.info(f"AuditLog: T{turn} {event_type} {source_type}:{source_id} {action} {result}")
+
+    def _trim_entries(self, entries: List[Dict[str, Any]]) -> None:
+        if not entries:
+            return
+        turns = [e.get("turn") for e in entries if isinstance(e, dict) and isinstance(e.get("turn"), int)]
+        if not turns:
+            return
+        max_turn = max(turns)
+        min_turn = max_turn - 2
+        filtered = [e for e in entries if isinstance(e, dict) and isinstance(e.get("turn"), int) and e.get("turn") >= min_turn]
+        entries[:] = filtered
