@@ -303,7 +303,10 @@
                         </div>
 
                         <div class="turn-log">
-                            <h4 data-i18n="turn.log_title">Turn Log</h4>
+                            <div class="turn-log-header">
+                                <h4 data-i18n="turn.log_title">Turn Log</h4>
+                                <button class="btn btn-secondary btn-small" onclick="openEventHistoryModal()" data-i18n="events.history_button">Event-Historie</button>
+                            </div>
                             <div id="log-content" class="log-messages">
                                 <p class="log-entry success">✓ Garden +20 gold</p>
                                 <p class="log-entry event">⚠ Office agent killed (event)</p>
@@ -433,6 +436,30 @@
 
             <div class="modal-footer">
                 <button class="btn btn-secondary" onclick="closeModal('load-session-modal')" data-i18n="load_session.cancel">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Event History Modal -->
+    <div id="event-history-modal" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 data-i18n="events.history_title">Event-Historie</h3>
+                <button class="modal-close" onclick="closeModal('event-history-modal')">×</button>
+            </div>
+
+            <div class="event-history-panel">
+                <table id="event-history-table" class="event-history-table">
+                    <thead>
+                        <tr>
+                            <th data-i18n="events.table_turn">Runde</th>
+                            <th data-i18n="events.table_id">Event-ID</th>
+                            <th data-i18n="events.table_text">Text</th>
+                        </tr>
+                    </thead>
+                    <tbody id="event-history-body"></tbody>
+                </table>
+                <p id="event-history-empty" class="text-muted hidden" data-i18n="events.history_empty">Keine Events.</p>
             </div>
         </div>
     </div>

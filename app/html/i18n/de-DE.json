@@ -138,7 +138,8 @@
     "no_effects": "keine Effekte",
     "log_prefix": "Log:",
     "outcome_preview": "Ergebnis-Vorschau:",
-    "outcome_placeholder": "[Effekte: +20 Gold, +1 Heat, Event: ...]"
+    "outcome_placeholder": "[Effekte: +20 Gold, +1 Heat, Event: ...]",
+    "event_chance": "Chance auf Event"
   },
   "inventory": {
     "title": "Inventar",
@@ -277,5 +278,15 @@
     "turn_short_plural": "{count}T",
     "turn_unknown": "? Runden",
     "unknown": "?"
+  },
+  "events": {
+    "history_button": "Event-Historie",
+    "history_title": "Event-Historie",
+    "history_empty": "Keine Events.",
+    "table_turn": "Runde",
+    "table_id": "Event-ID",
+    "table_text": "Text",
+    "toast": "Event: {id} ? {text}",
+    "unknown_id": "unbekannt"
   }
 }

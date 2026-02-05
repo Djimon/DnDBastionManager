@@ -124,6 +124,85 @@ function openHireModal() {
     }
 }
 
+function getEventHistoryList() {
+    const session = appState && appState.session ? appState.session : {};
+    if (Array.isArray(session.event_history)) {
+        return session.event_history;
+    }
+    if (Array.isArray(session.EventHistory)) {
+        return session.EventHistory;
+    }
+    if (Array.isArray(session.Eventhsitory)) {
+        return session.Eventhsitory;
+    }
+    return [];
+}
+
+function renderEventHistoryModal() {
+    const body = document.getElementById('event-history-body');
+    const empty = document.getElementById('event-history-empty');
+    const table = document.getElementById('event-history-table');
+    if (!body) {
+        return;
+    }
+    body.innerHTML = '';
+
+    const entries = getEventHistoryList();
+    if (!entries.length) {
+        if (table) {
+            table.classList.add('hidden');
+        }
+        if (empty) {
+            empty.classList.remove('hidden');
+        }
+        return;
+    }
+
+    if (table) {
+        table.classList.remove('hidden');
+    }
+    if (empty) {
+        empty.classList.add('hidden');
+    }
+
+    entries.forEach(entry => {
+        if (!entry || typeof entry !== 'object') {
+            return;
+        }
+        const row = document.createElement('tr');
+        const turnCell = document.createElement('td');
+        const idCell = document.createElement('td');
+        const textCell = document.createElement('td');
+
+        const turnValue = entry.turn !== undefined && entry.turn !== null ? entry.turn : '?';
+        const eventId = entry.event_id || entry.id || '-';
+        const textValue = entry.text || '';
+
+        turnCell.textContent = turnValue;
+        idCell.textContent = eventId;
+        textCell.textContent = textValue;
+
+        row.appendChild(turnCell);
+        row.appendChild(idCell);
+        row.appendChild(textCell);
+        body.appendChild(row);
+    });
+}
+
+function openEventHistoryModal() {
+    const modal = document.getElementById('event-history-modal');
+    if (modal) {
+        modal.classList.remove('hidden');
+    }
+    if (typeof refreshSessionState === 'function') {
+        refreshSessionState().then(() => {
+            renderEventHistoryModal();
+        });
+    } else {
+        renderEventHistoryModal();
+    }
+}
+
 function closeModal(modalId) {
     const modal = document.getElementById(modalId);
     if (modal) {
@@ -214,14 +293,19 @@ function renderAuditLog() {
     recent.forEach(entry => {
         const result = (entry.result || '').toString().toLowerCase();
         let cssType = 'event';
+        let extraClass = '';
         if (result.includes('success')) {
             cssType = 'success';
         } else if (result.includes('fail') || result.includes('error')) {
             cssType = 'fail';
         }
+        if (entry.event_type === 'event' || result === 'event') {
+            cssType = 'event';
+            extraClass = 'event-highlight';
+        }
 
         const line = document.createElement('p');
-        line.className = `log-entry ${cssType}`;
+        line.className = `log-entry ${cssType} ${extraClass}`.trim();
         const turnText = entry.turn !== undefined ? t('logs.turn_label', { turn: entry.turn }) : t('logs.turn_unknown');
         const text = entry.log_text || formatAuditFallback(entry);
         line.textContent = `${turnText} ${text}`.trim();

@@ -40,6 +40,7 @@ class SessionManager:
             (success: bool, message: str)
         """
         try:
+            self._ensure_event_history(session_state)
             filename = session_state.get("_session_filename")
 
             if not filename:
@@ -72,6 +73,23 @@ class SessionManager:
         except Exception as e:
             logger.error(f"Error saving session: {str(e)}", exc_info=True)
             return (False, f"Error saving session: {str(e)}")
+
+    def _ensure_event_history(self, session_state: Dict[str, Any]) -> None:
+        if not isinstance(session_state, dict):
+            return
+        history = session_state.get("event_history")
+        if isinstance(history, list):
+            return
+        for alt_key in ("EventHistory", "Eventhsitory"):
+            alt = session_state.get(alt_key)
+            if isinstance(alt, list):
+                session_state["event_history"] = alt
+                try:
+                    del session_state[alt_key]
+                except KeyError:
+                    pass
+                return
+        session_state["event_history"] = []
     
     def load_session(self, filename: str) -> Tuple[bool, Optional[Dict[str, Any]], str]:
         """

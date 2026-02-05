@@ -118,6 +118,32 @@ async function autoSaveSession(reason = '') {
     }
 }
 
+let autosaveClickTimer = null;
+
+function scheduleAutosaveFromClick(reason = 'button_click') {
+    if (!(window.pywebview && window.pywebview.api && window.pywebview.api.save_session)) {
+        return;
+    }
+    if (autosaveClickTimer) {
+        clearTimeout(autosaveClickTimer);
+    }
+    autosaveClickTimer = setTimeout(() => {
+        autosaveClickTimer = null;
+        autoSaveSession(reason);
+    }, 800);
+}
+
+document.addEventListener('click', event => {
+    const button = event.target && event.target.closest ? event.target.closest('button') : null;
+    if (!button) {
+        return;
+    }
+    if (button.disabled) {
+        return;
+    }
+    scheduleAutosaveFromClick('button_click');
+});
+
 async function loadFacilityCatalog() {
     if (!(window.pywebview && window.pywebview.api)) {
         return;

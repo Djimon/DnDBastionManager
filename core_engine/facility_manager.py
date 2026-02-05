@@ -20,6 +20,7 @@ class FacilityManager:
         self.config_path = root_dir / "core" / "config" / "bastion_config.json"
         self.config = self._load_config()
         self.catalog = self._load_facility_catalog()
+        self.event_index, self.event_groups = self._load_event_tables()
         self._audit_log = AuditLog()
 
     def _load_config(self) -> Dict[str, Any]:
@@ -69,6 +70,81 @@ class FacilityManager:
                     catalog[facility_id] = item
 
         return catalog
+
+    def _load_event_tables(self) -> Tuple[Dict[str, Dict[str, Any]], Dict[str, List[Dict[str, Any]]]]:
+        event_index: Dict[str, Dict[str, Any]] = {}
+        event_groups: Dict[str, List[Dict[str, Any]]] = {}
+        pack_dirs = [
+            ("core", self.facilities_dir),
+            ("custom", self.custom_packs_dir),
+        ]
+
+        for source, pack_dir in pack_dirs:
+            if not pack_dir.exists():
+                continue
+
+            for pack_file in sorted(pack_dir.glob("*.json")):
+                try:
+                    data = json.loads(pack_file.read_text(encoding="utf-8"))
+                except Exception as e:
+                    logger.warning(f"Failed to read pack file {pack_file.name}: {e}")
+                    continue
+
+                pack_id = data.get("pack_id") or pack_file.stem
+                mechanics = data.get("custom_mechanics", []) or []
+                if not isinstance(mechanics, list):
+                    continue
+
+                for mech in mechanics:
+                    if not isinstance(mech, dict):
+                        continue
+                    if mech.get("type") != "event_table":
+                        continue
+
+                    config = mech.get("config", {}) if isinstance(mech.get("config"), dict) else {}
+                    groups = config.get("groups", [])
+                    if not isinstance(groups, list):
+                        continue
+
+                    for group in groups:
+                        if not isinstance(group, dict):
+                            continue
+                        group_id = group.get("id")
+                        if not isinstance(group_id, str) or not group_id:
+                            continue
+                        entries = group.get("entries", [])
+                        if not isinstance(entries, list):
+                            continue
+
+                        group_entries = event_groups.setdefault(group_id, [])
+                        for entry in entries:
+                            if not isinstance(entry, dict):
+                                continue
+                            event_id = entry.get("id")
+                            text = entry.get("text")
+                            if not isinstance(event_id, str) or not event_id:
+                                continue
+                            if not isinstance(text, str) or not text:
+                                continue
+                            weight = entry.get("weight")
+                            if not isinstance(weight, int) or weight <= 0:
+                                weight = 1
+
+                            item = {
+                                "id": event_id,
+                                "text": text,
+                                "weight": weight,
+                                "group_id": group_id,
+                                "pack_id": pack_id,
+                                "pack_source": source,
+                            }
+                            group_entries.append(item)
+                            if event_id not in event_index:
+                                event_index[event_id] = item
+                            else:
+                                logger.warning(f"Duplicate event id '{event_id}' in {pack_file.name}")
+
+        return event_index, event_groups
 
     def add_build_facility(self, session_state: Dict[str, Any], facility_id: str, allow_negative: bool = False) -> Dict[str, Any]:
         if not session_state:
@@ -608,6 +684,7 @@ class FacilityManager:
             "roll": "-" if roll is None else str(roll),
             "result": result_bucket.replace("on_", ""),
         }
+        events = self._resolve_event_effects(session_state, effects, facility_id, order_id, roll)
         ledger_result = self.ledger.apply_effects(session_state, effects, context)
 
         xp_gain, duration_turns = self._xp_gain_for_order(order_entry, order_def)
@@ -624,7 +701,112 @@ class FacilityManager:
             "bucket": result_bucket,
             "roll": roll,
             "entries": ledger_result.get("entries", []),
+            "events": events,
         }
+
+    def _resolve_event_effects(
+        self,
+        session_state: Dict[str, Any],
+        effects: List[Dict[str, Any]],
+        facility_id: Optional[str],
+        order_id: Optional[str],
+        roll: Optional[int],
+    ) -> List[Dict[str, Any]]:
+        if not session_state or not isinstance(effects, list):
+            return []
+
+        turn = int(session_state.get("current_turn", 0))
+        events: List[Dict[str, Any]] = []
+
+        for effect in effects:
+            if not isinstance(effect, dict):
+                continue
+
+            event_id = effect.get("event")
+            if isinstance(event_id, str) and event_id:
+                entry = self.event_index.get(event_id)
+                if entry:
+                    events.append({"turn": turn, "event_id": event_id, "text": entry.get("text", "")})
+                else:
+                    logger.warning(f"Event id not found: {event_id}")
+
+            random_ref = effect.get("random_event")
+            if isinstance(random_ref, str) and random_ref:
+                if random_ref.startswith("group:"):
+                    group_id = random_ref[len("group:"):]
+                    picked = self._pick_random_event(group_id)
+                    if picked:
+                        events.append({"turn": turn, "event_id": picked.get("id", ""), "text": picked.get("text", "")})
+                    else:
+                        logger.warning(f"Random event group empty or missing: {group_id}")
+                else:
+                    entry = self.event_index.get(random_ref)
+                    if entry:
+                        events.append({"turn": turn, "event_id": random_ref, "text": entry.get("text", "")})
+                    else:
+                        logger.warning(f"Random event ref not found: {random_ref}")
+
+        if events:
+            history = self._get_event_history_list(session_state)
+            history.extend(events)
+            roll_text = "-" if roll is None else str(roll)
+            for event in events:
+                event_id = event.get("event_id") or "unknown"
+                text = event.get("text") or ""
+                log_text = f"Event: {text}".strip()
+                self._audit_log.add_entry(
+                    session_state,
+                    turn,
+                    "event",
+                    "facility",
+                    facility_id or "*",
+                    order_id or "-",
+                    roll_text,
+                    "event",
+                    event_id,
+                    log_text,
+                )
+
+        return events
+
+    def _pick_random_event(self, group_id: str) -> Optional[Dict[str, Any]]:
+        if not isinstance(group_id, str) or not group_id:
+            return None
+        entries = self.event_groups.get(group_id, [])
+        if not entries:
+            return None
+        total_weight = 0
+        weights: List[int] = []
+        for entry in entries:
+            weight = entry.get("weight") if isinstance(entry, dict) else None
+            if not isinstance(weight, int) or weight <= 0:
+                weight = 1
+            weights.append(weight)
+            total_weight += weight
+        if total_weight <= 0:
+            return entries[0]
+        roll = random.randint(1, total_weight)
+        for entry, weight in zip(entries, weights):
+            roll -= weight
+            if roll <= 0:
+                return entry
+        return entries[-1]
+
+    def _get_event_history_list(self, session_state: Dict[str, Any]) -> List[Dict[str, Any]]:
+        history = session_state.get("event_history")
+        if isinstance(history, list):
+            return history
+        for alt_key in ("EventHistory", "Eventhsitory"):
+            alt = session_state.get(alt_key)
+            if isinstance(alt, list):
+                session_state["event_history"] = alt
+                try:
+                    del session_state[alt_key]
+                except KeyError:
+                    pass
+                return alt
+        session_state["event_history"] = []
+        return session_state["event_history"]
 
     def evaluate_ready_orders(self, session_state: Dict[str, Any]) -> Dict[str, Any]:
         if not session_state:
@@ -661,6 +843,7 @@ class FacilityManager:
                         "bucket": result.get("bucket"),
                         "roll": result.get("roll"),
                         "entries": result.get("entries", []),
+                        "events": result.get("events", []),
                     })
                 else:
                     skipped.append({"facility_id": facility_id, "order_id": order.get("order_id"), "reason": result.get("message")})
@@ -710,6 +893,7 @@ class FacilityManager:
                         "bucket": result.get("bucket"),
                         "roll": result.get("roll"),
                         "entries": result.get("entries", []),
+                        "events": result.get("events", []),
                     })
                 else:
                     skipped.append({"facility_id": facility_id, "order_id": order_id, "reason": result.get("message")})

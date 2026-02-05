@@ -191,9 +191,13 @@ function formatRawEffectEntries(entries) {
     const effects = [];
     const logs = [];
     const currencyOrder = getCurrencyDisplayOrder();
+    let eventChance = false;
     entries.forEach(entry => {
         if (!entry || typeof entry !== 'object') {
             return;
+        }
+        if (entry.event || entry.random_event) {
+            eventChance = true;
         }
         if (entry.currency && Number.isInteger(entry.amount)) {
             effects.push(`${entry.currency} ${formatSigned(entry.amount)}`);
@@ -213,6 +217,9 @@ function formatRawEffectEntries(entries) {
             }
         });
     });
+    if (eventChance) {
+        effects.push(t('orders.event_chance'));
+    }
     let text = effects.length ? effects.join(', ') : t('orders.no_effects');
     if (logs.length) {
         text = `${text} | ${t('orders.log_prefix')} ${logs.join(' | ')}`;
@@ -349,7 +356,7 @@ function showToast(message, type = 'info', duration = 4500) {
         return;
     }
     const toast = document.createElement('div');
-    toast.className = `toast ${type === 'success' ? 'toast-success' : ''} ${type === 'warn' ? 'toast-warn' : ''}`;
+    toast.className = `toast ${type === 'success' ? 'toast-success' : ''} ${type === 'warn' ? 'toast-warn' : ''} ${type === 'event' ? 'toast-event' : ''}`;
 
     const text = document.createElement('span');
     text.textContent = message;
@@ -369,6 +376,21 @@ function showToast(message, type = 'info', duration = 4500) {
             toast.remove();
         }, duration);
     }
+}
+
+function handleEventNotifications(events) {
+    if (!Array.isArray(events) || events.length === 0) {
+        return;
+    }
+    events.forEach(event => {
+        if (!event || typeof event !== 'object') {
+            return;
+        }
+        const eventId = event.event_id || event.id || t('events.unknown_id');
+        const text = event.text || '';
+        const summary = t('events.toast', { id: eventId, text });
+        showToast(summary, 'event', 8000);
+    });
 }
 
 function getNpcProgression() {
@@ -1374,6 +1396,7 @@ async function evaluateOrder(orderId) {
     const summary = buildOrderResultSummary(facilityId, orderId, response);
     addLogEntry(summary, 'event');
     showToast(summary, 'success');
+    handleEventNotifications(response.events);
     await autoSaveSession('evaluate_order');
 }
 
@@ -1414,6 +1437,7 @@ async function evaluateAllReady() {
             const summary = buildOrderResultSummary(result.facility_id, result.order_id, result);
             addLogEntry(summary, 'event');
             showToast(summary, 'success', 6000);
+            handleEventNotifications(result.events);
         });
     }
     await autoSaveSession('evaluate_all_ready');
@@ -1453,6 +1477,7 @@ async function rollAndEvaluateAllReady() {
             const summary = buildOrderResultSummary(result.facility_id, result.order_id, result);
             addLogEntry(summary, 'event');
             showToast(summary, 'success', 6000);
+            handleEventNotifications(result.events);
         });
     }
     if (skipped.length) {
