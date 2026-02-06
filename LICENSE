@@ -1,0 +1,29 @@
+﻿Custom Attribution License
+
+Copyright (c) 2026 Christoph Dollase
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of
+this software and associated documentation files (the "Software"), to use, copy,
+modify, merge, publish, distribute, and create derivative works of the Software,
+subject to the following conditions:
+
+1. Attribution. Any public use or distribution of the Software or derivative
+   works must include attribution to the original author and this repository.
+   Acceptable places include README files, documentation, or credits.
+
+2. Contributions. By submitting a contribution to this repository, you grant the
+   maintainers a perpetual, irrevocable, worldwide, royalty-free license to use,
+   modify, distribute, and sublicense your contribution as part of the Software
+   under the terms of this license. Contributions may be merged into core after
+   review.
+
+3. No Trademark Rights. This license does not grant any rights in the name,
+   logo, or branding of the project.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
