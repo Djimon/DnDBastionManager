@@ -61,7 +61,11 @@
     "pack_custom": "Custom pack (use at own risk)",
     "pack_core": "Core pack",
     "tier1_only": "Only Tier 1 can be built directly. Higher tiers must be upgraded.",
-    "build_errors": "Build errors:\n{errors}"
+    "build_errors": "Build errors:\n{errors}",
+    "orders_count": "Orders: {count}",
+    "allowed_professions": "Allowed professions:",
+    "allowed_professions_any": "Any",
+    "lore_label": "Lore:"
   },
   "facility": {
     "list_title": "Facilities",
@@ -79,6 +83,8 @@
     "description": "Description:",
     "tier": "Tier:",
     "slots": "NPC Slots:",
+    "allowed_professions": "Allowed Professions:",
+    "allowed_professions_any": "Any",
     "status": "Status:"
   },
   "upgrade": {
@@ -102,10 +108,31 @@
     "fire": "Fire",
     "move": "Move",
     "reserve": "Unassigned",
+    "management_title": "Manage NPCs",
+    "management_back": "<- Back to Main View",
+    "management_empty": "No NPCs available.",
+    "fire_confirm": "Really fire NPC: {name}?",
+    "move_title": "Move NPC",
+    "move_name": "Name",
+    "move_level": "Level",
+    "move_job": "Current Job",
+    "move_status": "Status",
+    "move_status_idle": "idle",
+    "move_status_resting": "resting",
+    "move_status_working": "working",
+    "move_target": "Target Facility:",
+    "move_target_ok": "matches",
+    "move_target_warn": "Warning: profession mismatch",
+    "move_target_hint_ok": "Profession matches the facility.",
+    "move_target_hint_warn": "Warning: profession does not match the facility.",
+    "move_warning_active_order": "Moving will cancel the active order.",
+    "move_no_targets": "No facility with free slots.",
+    "move_submit": "Move",
     "none_assigned": "No NPCs assigned.",
     "none_reserve": "No unassigned NPCs.",
     "blocked_active_order": "Action blocked: NPC has an active order.",
-    "no_facility_available": "No facility with free slots"
+    "profession_mismatch_title": "Profession does not match facility",
+    "profession_mismatch_note": "Profession does not match facility."
   },
   "orders": {
     "title": "Orders",
@@ -118,7 +145,7 @@
     "active_title": "Active Orders",
     "evaluate_all": "Evaluate All",
     "no_npc_assigned": "No NPC assigned.",
-    "no_orders_available": "No orders available.",
+    "no_orders_available": "No orders for this profession.",
     "none_active": "No active orders.",
     "ready_label": "ready",
     "in_progress_label": "in progress",
@@ -139,7 +166,9 @@
     "log_prefix": "Log:",
     "outcome_preview": "Outcome Preview:",
     "outcome_placeholder": "[Effects preview: +20 gold, +1 Heat, Event: ...]",
-    "event_chance": "Chance of event"
+    "event_chance": "Chance of event",
+    "no_orders_for_level": "No orders for this level.",
+    "no_orders_configured": "No orders configured for this facility."
   },
   "inventory": {
     "title": "Inventory",
@@ -272,6 +301,9 @@
     "turn_unknown": "Turn ?"
   },
   "common": {
+    "confirm_title": "Confirm",
+    "confirm_yes": "Confirm",
+    "confirm_no": "Cancel",
     "turn_singular": "{count} Turn",
     "turn_plural": "{count} Turns",
     "turn_short_singular": "{count}T",

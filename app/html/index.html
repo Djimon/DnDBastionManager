@@ -209,6 +209,7 @@
                                         <p><strong data-i18n="details.description">Beschreibung:</strong> <span id="detail-desc">[Placeholder]</span></p>
                                         <p><strong data-i18n="details.tier">Tier:</strong> <span id="detail-tier">★★</span></p>
                                         <p><strong data-i18n="details.slots">NPC Slots:</strong> <span id="detail-slots">2/3</span><span id="detail-slot-bubbles" class="slot-bubbles"></span></p>
+                                        <p><strong data-i18n="details.allowed_professions">Erlaubte Berufe:</strong> <span id="detail-professions" class="tag-list"></span></p>
                                         <p><strong data-i18n="details.status">Status:</strong> <span id="detail-status">idle</span></p>
                                     </div>
 
@@ -225,6 +226,7 @@
                                     <table class="npcs-table">
                                         <thead>
                                             <tr>
+                                                <th class="npcs-icon-col"></th>
                                                 <th data-i18n="npcs.table_name">Name</th>
                                                 <th data-i18n="npcs.table_profession">Profession</th>
                                                 <th data-i18n="npcs.table_level">Level</th>
@@ -235,6 +237,12 @@
                                         </thead>
                                         <tbody id="npc-assigned-body"></tbody>
                                     </table>
+                                    <p id="npc-profession-note" class="text-muted npc-profession-note hidden">
+                                        <span class="profession-warning-icon" aria-hidden="true">
+                                            <svg viewBox="0 0 24 24" focusable="false"><path d="M12 2L1 21h22L12 2zm0 5l7.53 13H4.47L12 7zm-1 4h2v5h-2v-5zm0 6h2v2h-2v-2z"></path></svg>
+                                        </span>
+                                        <span data-i18n="npcs.profession_mismatch_note">Beruf passt nicht zur Facility.</span>
+                                    </p>
                                     <p id="npc-assigned-empty" class="text-muted hidden" data-i18n="npcs.none_assigned">No NPCs assigned.</p>
                                     <button class="btn btn-secondary" onclick="openHireModal()" data-i18n="npcs.hire_button">+ Hire NPC</button>
                                 </div>
@@ -318,6 +326,40 @@
                 </div>
             </div>
 
+            <!-- ===== VIEW 4: NPC MANAGEMENT ===== -->
+            <div id="view-4" class="view">
+                <div class="npc-management-container">
+                    <div class="npc-management-header">
+                        <div>
+                            <h2 data-i18n="npcs.management_title">NSCs verwalten</h2>
+                        </div>
+                        <div class="npc-management-actions">
+                            <button class="btn btn-secondary btn-small" onclick="switchView(3)" data-i18n="npcs.management_back">&lt;- Zurueck zur Hauptansicht</button>
+                            <button class="btn btn-primary btn-small" onclick="openHireModal()" data-i18n="npcs.hire_button">+ NSC einstellen</button>
+                        </div>
+                    </div>
+
+                    <div class="npc-management-panel">
+                        <table class="npcs-table">
+                            <thead>
+                                <tr>
+                                    <th data-sort-key="name" data-i18n="npcs.table_name">Name</th>
+                                    <th data-sort-key="facility" data-i18n="modal.hired_table_facility">Facility</th>
+                                    <th data-sort-key="profession" data-i18n="npcs.table_profession">Profession</th>
+                                    <th data-sort-key="level" data-i18n="npcs.table_level">Level</th>
+                                    <th data-sort-key="xp" data-i18n="npcs.table_xp">XP</th>
+                                    <th data-sort-key="upkeep" data-i18n="modal.hired_table_upkeep">Upkeep/Turn</th>
+                                    <th data-i18n="npcs.table_action">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="npc-management-body"></tbody>
+                        </table>
+                        <p id="npc-management-empty" class="text-muted hidden" data-i18n="npcs.management_empty">Keine NSCs vorhanden.</p>
+                        <p id="npc-management-total-upkeep" class="text-muted" data-i18n="modal.total_upkeep">Total Upkeep: 0g</p>
+                    </div>
+                </div>
+            </div>
+
         </main>
         <!-- GLOBAL DEV FOOTER -->
         <footer class="global-dev-footer">
@@ -327,41 +369,15 @@
 
     <!-- ===== MODALS ===== -->
     
-    <!-- NPC Management Modal -->
+    <!-- NPC Hire Modal -->
     <div id="npc-modal" class="modal hidden">
         <div class="modal-content">
             <div class="modal-header">
-                <h3 data-i18n="modal.npc_title">NPC Management</h3>
-                <button class="modal-close" onclick="closeModal('npc-modal')">×</button>
+                <h3 data-i18n="modal.tab_hire">Neue Anstellung</h3>
+                <button class="modal-close" onclick="closeModal('npc-modal')">x</button>
             </div>
 
-            <div class="modal-tabs">
-                <button class="modal-tab-btn active" data-modal-tab="hired" onclick="switchModalTab('hired')" data-i18n="modal.tab_hired">Angestellt</button>
-                <button class="modal-tab-btn" data-modal-tab="hire" onclick="switchModalTab('hire')" data-i18n="modal.tab_hire">Neue Anstellung</button>
-                <button class="modal-tab-btn" data-modal-tab="reserve" onclick="switchModalTab('reserve')" data-i18n="modal.tab_reserve">Reserve</button>
-            </div>
-
-            <!-- Hired NPCs -->
-            <div id="modal-tab-hired" class="modal-tab-content active">
-                <table class="npcs-table">
-                    <thead>
-                        <tr>
-                            <th data-i18n="npcs.table_name">Name</th>
-                            <th data-i18n="modal.hired_table_facility">Facility</th>
-                            <th data-i18n="npcs.table_profession">Profession</th>
-                            <th data-i18n="npcs.table_level">Level</th>
-                            <th data-i18n="npcs.table_xp">XP</th>
-                            <th data-i18n="modal.hired_table_upkeep">Upkeep/Turn</th>
-                            <th data-i18n="npcs.table_action">Action</th>
-                        </tr>
-                    </thead>
-                    <tbody id="modal-npcs-body"></tbody>
-                </table>
-                <p id="modal-total-upkeep" class="text-muted" data-i18n="modal.total_upkeep">Total Upkeep: 0g</p>
-            </div>
-
-            <!-- Hire New NPC -->
-            <div id="modal-tab-hire" class="modal-tab-content">
+            <div class="modal-tab-content active">
                 <div class="form-group">
                     <label for="hire-name" data-i18n="modal.hire_name">NPC-Name:</label>
                     <input type="text" id="hire-name" placeholder="z.B. 'Rook'" data-i18n-placeholder="modal.hire_name_placeholder" />
@@ -401,23 +417,61 @@
                 </div>
                 <button class="btn btn-primary" onclick="hireNPC()" data-i18n="modal.hire_button">Hire</button>
             </div>
+        </div>
+    </div>
 
-            <!-- Reserve -->
-            <div id="modal-tab-reserve" class="modal-tab-content">
-                <table class="npcs-table">
-                    <thead>
-                        <tr>
-                            <th data-i18n="npcs.table_name">Name</th>
-                            <th data-i18n="npcs.table_profession">Profession</th>
-                            <th data-i18n="npcs.table_level">Level</th>
-                            <th data-i18n="npcs.table_xp">XP</th>
-                            <th data-i18n="modal.hired_table_upkeep">Upkeep/Turn</th>
-                            <th data-i18n="npcs.table_action">Action</th>
-                        </tr>
-                    </thead>
-                    <tbody id="modal-reserve-body"></tbody>
-                </table>
-                <p id="modal-reserve-empty" class="text-muted hidden" data-i18n="npcs.none_reserve">No NPCs in reserve.</p>
+    <!-- NPC Move Modal -->
+    <div id="npc-move-modal" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 data-i18n="npcs.move_title">NSC verlegen</h3>
+                <button class="modal-close" onclick="closeModal('npc-move-modal')">x</button>
+            </div>
+
+            <div class="modal-tab-content active">
+                <div class="npc-move-summary">
+                    <div class="npc-move-label" data-i18n="npcs.move_name">Name</div>
+                    <div id="npc-move-name"></div>
+
+                    <div class="npc-move-label" data-i18n="npcs.move_level">Level</div>
+                    <div id="npc-move-level"></div>
+
+                    <div class="npc-move-label" data-i18n="npcs.move_job">Aktueller Job</div>
+                    <div id="npc-move-job"></div>
+
+                    <div class="npc-move-label" data-i18n="npcs.move_status">Status</div>
+                    <div id="npc-move-status" class="npc-move-status"></div>
+                </div>
+
+                <p id="npc-move-warning" class="npc-move-warning hidden" data-i18n="npcs.move_warning_active_order">
+                    Beim Verlegen wird die aktive Order abgebrochen.
+                </p>
+
+                <div class="form-group">
+                    <label for="npc-move-target" data-i18n="npcs.move_target">Ziel-Facility:</label>
+                    <select id="npc-move-target"></select>
+                    <p id="npc-move-target-hint" class="npc-move-hint"></p>
+                    <p id="npc-move-target-empty" class="text-muted hidden" data-i18n="npcs.move_no_targets">Keine Facility mit freien Slots.</p>
+                </div>
+
+                <button id="npc-move-submit" class="btn btn-primary" data-i18n="npcs.move_submit">Verlegen</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Confirm Modal -->
+    <div id="confirm-modal" class="modal hidden">
+        <div class="modal-content confirm-modal-content">
+            <div class="modal-header">
+                <h3 id="confirm-title" data-i18n="common.confirm_title">Bestaetigen</h3>
+                <button class="modal-close" onclick="cancelConfirmModal()">x</button>
+            </div>
+            <div class="modal-tab-content active">
+                <p id="confirm-message" class="confirm-message"></p>
+                <div class="confirm-actions">
+                    <button id="confirm-cancel" class="btn btn-secondary" data-i18n="common.confirm_no">Abbrechen</button>
+                    <button id="confirm-ok" class="btn btn-primary" data-i18n="common.confirm_yes">Bestaetigen</button>
+                </div>
             </div>
         </div>
     </div>

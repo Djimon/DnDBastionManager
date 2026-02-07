@@ -61,7 +61,11 @@
     "pack_custom": "Custom pack (auf eigene Gefahr)",
     "pack_core": "Core pack",
     "tier1_only": "Nur Tier 1 kann direkt gebaut werden. Höhere Tiers bitte upgraden.",
-    "build_errors": "Bau-Fehler:\n{errors}"
+    "build_errors": "Bau-Fehler:\n{errors}",
+    "orders_count": "Orders: {count}",
+    "allowed_professions": "Erlaubte Berufe:",
+    "allowed_professions_any": "Alle",
+    "lore_label": "Lore:"
   },
   "facility": {
     "list_title": "Facilities",
@@ -79,6 +83,8 @@
     "description": "Beschreibung:",
     "tier": "Tier:",
     "slots": "NPC Slots:",
+    "allowed_professions": "Erlaubte Berufe:",
+    "allowed_professions_any": "Alle",
     "status": "Status:"
   },
   "upgrade": {
@@ -102,10 +108,31 @@
     "fire": "Entlassen",
     "move": "Verlegen",
     "reserve": "Arbeitslos",
+    "management_title": "NSCs verwalten",
+    "management_back": "<- Zurueck zur Hauptansicht",
+    "management_empty": "Keine NSCs vorhanden.",
+    "fire_confirm": "NSC wirklich entlassen: {name}?",
+    "move_title": "NSC verlegen",
+    "move_name": "Name",
+    "move_level": "Level",
+    "move_job": "Aktueller Job",
+    "move_status": "Status",
+    "move_status_idle": "idle",
+    "move_status_resting": "ruht sich aus",
+    "move_status_working": "arbeitet",
+    "move_target": "Ziel-Facility:",
+    "move_target_ok": "passt",
+    "move_target_warn": "Achtung: Beruf passt nicht",
+    "move_target_hint_ok": "Beruf passt zur Facility.",
+    "move_target_hint_warn": "Achtung: Beruf passt nicht zur Facility.",
+    "move_warning_active_order": "Beim Verlegen wird die aktive Order abgebrochen.",
+    "move_no_targets": "Keine Facility mit freien Slots.",
+    "move_submit": "Verlegen",
     "none_assigned": "Keine NSCs zugewiesen.",
     "none_reserve": "Keine arbeitslosen NSCs.",
     "blocked_active_order": "Aktion blockiert: NSC hat aktive Order.",
-    "no_facility_available": "Keine Facility mit freien Slots"
+    "profession_mismatch_title": "Beruf passt nicht zur Facility",
+    "profession_mismatch_note": "Beruf passt nicht zur Facility."
   },
   "orders": {
     "title": "Aufträge",
@@ -118,7 +145,7 @@
     "active_title": "Aktive Orders",
     "evaluate_all": "Alle auswerten",
     "no_npc_assigned": "Kein NSC zugewiesen.",
-    "no_orders_available": "Keine Orders verfügbar.",
+    "no_orders_available": "Keine Orders für diesen Beruf.",
     "none_active": "Keine aktiven Orders.",
     "ready_label": "bereit zur Auswertung",
     "in_progress_label": "läuft",
@@ -139,7 +166,9 @@
     "log_prefix": "Log:",
     "outcome_preview": "Ergebnis-Vorschau:",
     "outcome_placeholder": "[Effekte: +20 Gold, +1 Heat, Event: ...]",
-    "event_chance": "Chance auf Event"
+    "event_chance": "Chance auf Event",
+    "no_orders_for_level": "Keine Orders f?r dieses Level.",
+    "no_orders_configured": "Keine Orders in dieser Facility."
   },
   "inventory": {
     "title": "Inventar",
@@ -272,6 +301,9 @@
     "turn_unknown": "Runde ?"
   },
   "common": {
+    "confirm_title": "Bestaetigen",
+    "confirm_yes": "Bestaetigen",
+    "confirm_no": "Abbrechen",
     "turn_singular": "{count} Runde",
     "turn_plural": "{count} Runden",
     "turn_short_singular": "{count}T",

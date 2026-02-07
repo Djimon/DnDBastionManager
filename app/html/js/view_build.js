@@ -121,6 +121,65 @@ function renderFacilityCatalog(items = null) {
             : t('build.slots_unknown');
         info.textContent = `${costText} | ${durationText} | ${slotsText}`;
 
+        const descText = facility && facility.description ? facility.description.trim() : '';
+        let descEl = null;
+        if (descText) {
+            descEl = document.createElement('div');
+            descEl.className = 'facility-desc';
+            descEl.title = descText;
+            descEl.textContent = descText;
+        }
+
+        const meta = document.createElement('div');
+        meta.className = 'facility-meta';
+
+        const ordersCount = Array.isArray(facility.orders) ? facility.orders.length : 0;
+        const ordersEl = document.createElement('div');
+        ordersEl.className = 'facility-orders';
+        ordersEl.textContent = t('build.orders_count', { count: ordersCount });
+        meta.appendChild(ordersEl);
+
+        const professionsWrap = document.createElement('div');
+        professionsWrap.className = 'facility-professions';
+        const professionsLabel = document.createElement('span');
+        professionsLabel.className = 'facility-meta-label';
+        professionsLabel.textContent = t('build.allowed_professions');
+        professionsWrap.appendChild(professionsLabel);
+
+        const professionsList = document.createElement('span');
+        professionsList.className = 'tag-list';
+        if (!facility || !Array.isArray(facility.npc_allowed_professions)) {
+            const tag = document.createElement('span');
+            tag.className = 'tag tag-muted';
+            tag.textContent = t('common.unknown');
+            professionsList.appendChild(tag);
+        } else if (facility.npc_allowed_professions.length === 0) {
+            const tag = document.createElement('span');
+            tag.className = 'tag tag-muted';
+            tag.textContent = t('build.allowed_professions_any');
+            professionsList.appendChild(tag);
+        } else {
+            facility.npc_allowed_professions
+                .filter(Boolean)
+                .forEach(prof => {
+                    const tag = document.createElement('span');
+                    tag.className = 'tag';
+                    tag.textContent = prof;
+                    professionsList.appendChild(tag);
+                });
+        }
+        professionsWrap.appendChild(professionsList);
+        meta.appendChild(professionsWrap);
+
+        const loreText = getFacilityLoreText(facility);
+        if (loreText) {
+            const loreEl = document.createElement('div');
+            loreEl.className = 'facility-lore';
+            loreEl.title = loreText;
+            loreEl.textContent = `${t('build.lore_label')} ${loreText}`;
+            meta.appendChild(loreEl);
+        }
+
         const button = document.createElement('button');
         button.className = 'btn btn-small';
         button.textContent = t('build.add_to_queue');
@@ -128,6 +187,10 @@ function renderFacilityCatalog(items = null) {
 
         item.appendChild(title);
         item.appendChild(info);
+        if (descEl) {
+            item.appendChild(descEl);
+        }
+        item.appendChild(meta);
         item.appendChild(button);
         const badge = buildPackBadgeElement(facility && facility._pack_source ? facility._pack_source : 'core');
         if (badge) {
@@ -135,6 +198,27 @@ function renderFacilityCatalog(items = null) {
         }
         list.appendChild(item);
     });
+}
+
+function getFacilityLoreText(facility) {
+    if (!facility || typeof facility !== 'object') {
+        return '';
+    }
+    const candidates = [
+        facility.lore,
+        facility.lore_description,
+        facility.lore_text,
+        facility.flavor,
+        facility.flavor_text,
+        facility.story,
+        facility.history
+    ];
+    for (const value of candidates) {
+        if (typeof value === 'string' && value.trim()) {
+            return value.trim();
+        }
+    }
+    return '';
 }
 
 function buildPackBadgeElement(source) {
@@ -454,7 +538,7 @@ async function startBuilding() {
                 detail = t('build.confirm_detail', { projected: projectedText, shortfall: shortfallText });
             }
             const confirmText = t('build.overbudget_confirm', { facility: facilityName, detail });
-            const proceed = confirm(confirmText);
+            const proceed = await showConfirmModal(confirmText);
             if (!proceed) {
                 remainingQueue.push(entry);
                 continue;

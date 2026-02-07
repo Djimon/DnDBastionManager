@@ -489,12 +489,10 @@ class FacilityManager:
         if not npc_entry:
             return {"success": False, "message": "NPC not found"}
 
-        if current_facility and self._npc_has_active_order(current_facility, npc_id):
-            return {"success": False, "message": "NPC has active order"}
-
         if not target_facility_id:
             if current_facility is None:
                 return {"success": False, "message": "NPC already in reserve"}
+            canceled = self._remove_npc_orders(current_facility, npc_id)
             self._remove_npc_from_facility(current_facility, npc_id)
             bastion = session_state.setdefault("bastion", {})
             unassigned = bastion.setdefault("npcs_unassigned", [])
@@ -502,7 +500,7 @@ class FacilityManager:
                 unassigned = []
                 bastion["npcs_unassigned"] = unassigned
             unassigned.append(npc_entry)
-            return {"success": True, "message": "NPC moved to reserve"}
+            return {"success": True, "message": "NPC moved to reserve", "canceled_orders": canceled}
 
         if current_facility and current_facility.get("facility_id") == target_facility_id:
             return {"success": False, "message": "NPC already assigned to facility"}
@@ -511,12 +509,14 @@ class FacilityManager:
         if error:
             return {"success": False, "message": error}
 
+        canceled = 0
         if current_facility:
+            canceled = self._remove_npc_orders(current_facility, npc_id)
             self._remove_npc_from_facility(current_facility, npc_id)
         else:
             self._remove_npc_from_unassigned(session_state, npc_id)
 
-        return {"success": True, "message": "NPC moved"}
+        return {"success": True, "message": "NPC moved", "canceled_orders": canceled}
 
     def fire_npc(self, session_state: Dict[str, Any], npc_id: str) -> Dict[str, Any]:
         if not session_state:
@@ -1059,6 +1059,24 @@ class FacilityManager:
             if self._is_order_active(order):
                 return True
         return False
+
+    def _remove_npc_orders(self, facility_entry: Dict[str, Any], npc_id: str) -> int:
+        if not facility_entry or not npc_id:
+            return 0
+        removed = 0
+        orders = self._normalize_orders(facility_entry)
+        for order in list(orders):
+            if not isinstance(order, dict):
+                continue
+            if order.get("npc_id") != npc_id:
+                continue
+            if self._is_order_active(order):
+                orders.remove(order)
+                removed += 1
+        current_order = facility_entry.get("current_order")
+        if isinstance(current_order, dict) and current_order.get("npc_id") == npc_id and self._is_order_active(current_order):
+            facility_entry["current_order"] = None
+        return removed
 
     def _collect_npcs_with_location(self, session_state: Dict[str, Any]) -> List[Tuple[Dict[str, Any], Optional[str]]]:
         results: List[Tuple[Dict[str, Any], Optional[str]]] = []

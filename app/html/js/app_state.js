@@ -30,6 +30,8 @@ let appState = {
     facilityStates: [],
     currencyModel: null,
     npcProgression: null,
+    moveNpcContext: null,
+    npcManagementSort: { key: null, dir: 'desc' },
 };
 
 const BUILDABLE_TIER = 1;
@@ -92,10 +94,7 @@ function switchModalTab(tabName) {
 // ===== MODALS =====
 
 function openNPCModal() {
-    const modal = document.getElementById('npc-modal');
-    if (modal) {
-        modal.classList.remove('hidden');
-    }
+    switchView(4);
     if (typeof refreshSessionState === 'function') {
         refreshSessionState().then(() => {
             if (typeof renderNpcModal === 'function') {
@@ -111,7 +110,6 @@ function openHireModal() {
     const modal = document.getElementById('npc-modal');
     if (modal) {
         modal.classList.remove('hidden');
-        switchModalTab('hire');
     }
     if (typeof refreshSessionState === 'function') {
         refreshSessionState().then(() => {
@@ -204,6 +202,10 @@ function openEventHistoryModal() {
 }
 
 function closeModal(modalId) {
+    if (modalId === 'confirm-modal') {
+        cancelConfirmModal();
+        return;
+    }
     const modal = document.getElementById(modalId);
     if (modal) {
         modal.classList.add('hidden');
@@ -215,10 +217,69 @@ window.addEventListener('click', function(event) {
     const modals = document.querySelectorAll('.modal:not(.hidden)');
     modals.forEach(modal => {
         if (event.target === modal) {
+            if (modal.id === 'confirm-modal') {
+                cancelConfirmModal();
+                return;
+            }
             modal.classList.add('hidden');
         }
     });
 });
+
+let pendingConfirmResolve = null;
+
+function showConfirmModal(message, options = {}) {
+    const modal = document.getElementById('confirm-modal');
+    const titleEl = document.getElementById('confirm-title');
+    const messageEl = document.getElementById('confirm-message');
+    const okBtn = document.getElementById('confirm-ok');
+    const cancelBtn = document.getElementById('confirm-cancel');
+    if (!modal || !messageEl || !okBtn || !cancelBtn) {
+        return Promise.resolve(false);
+    }
+
+    if (pendingConfirmResolve) {
+        pendingConfirmResolve(false);
+        pendingConfirmResolve = null;
+    }
+
+    if (titleEl) {
+        titleEl.textContent = options.title || t('common.confirm_title');
+    }
+    messageEl.textContent = message || '';
+
+    okBtn.textContent = options.okText || t('common.confirm_yes');
+    cancelBtn.textContent = options.cancelText || t('common.confirm_no');
+
+    if (!okBtn.dataset.bound) {
+        okBtn.addEventListener('click', () => resolveConfirmModal(true));
+        okBtn.dataset.bound = 'true';
+    }
+    if (!cancelBtn.dataset.bound) {
+        cancelBtn.addEventListener('click', () => resolveConfirmModal(false));
+        cancelBtn.dataset.bound = 'true';
+    }
+
+    modal.classList.remove('hidden');
+    return new Promise(resolve => {
+        pendingConfirmResolve = resolve;
+    });
+}
+
+function resolveConfirmModal(result) {
+    const modal = document.getElementById('confirm-modal');
+    if (modal) {
+        modal.classList.add('hidden');
+    }
+    if (pendingConfirmResolve) {
+        pendingConfirmResolve(result);
+        pendingConfirmResolve = null;
+    }
+}
+
+function cancelConfirmModal() {
+    resolveConfirmModal(false);
+}
 
 function getCurrentFacilityName() {
     const nameEl = document.getElementById('detail-name');
