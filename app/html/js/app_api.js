@@ -215,6 +215,9 @@ async function refreshSessionState() {
             appState.session = state;
             updateTurnCounter();
             updateQueueDisplay();
+            if (typeof renderAuditLog === 'function') {
+                renderAuditLog();
+            }
             if (typeof renderTreasuryControls === 'function') {
                 renderTreasuryControls();
             }

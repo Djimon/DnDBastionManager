@@ -1880,14 +1880,30 @@ async function advanceTurn() {
 }
 
 function addLogEntry(message, type = 'success') {
+    if (typeof logAuditEvent === 'function') {
+        const entry = {
+            event_type: type === 'event' ? 'event' : 'ui',
+            source_type: 'ui',
+            source_id: '*',
+            action: '-',
+            roll: '-',
+            result: type,
+            changes: '',
+            log_text: message,
+        };
+        logAuditEvent(entry);
+        return;
+    }
+
     const logContent = document.getElementById('log-content');
-    const entry = document.createElement('p');
-    entry.className = `log-entry ${type}`;
-    
+    if (!logContent) {
+        return;
+    }
+    const entryEl = document.createElement('p');
+    entryEl.className = `log-entry ${type}`;
     const prefix = type === 'success' ? '✓' : (type === 'fail' ? '✗' : '⚠');
-    entry.textContent = `${prefix} ${message}`;
-    
-    logContent.appendChild(entry);
+    entryEl.textContent = `${prefix} ${message}`;
+    logContent.appendChild(entryEl);
     logContent.scrollTop = logContent.scrollHeight;
 }
 

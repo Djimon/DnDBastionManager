@@ -350,7 +350,7 @@ function renderAuditLog() {
         return;
     }
 
-    const recent = entries.slice(-50);
+    const recent = entries.slice(-20);
     recent.forEach(entry => {
         const result = (entry.result || '').toString().toLowerCase();
         let cssType = 'event';
@@ -367,9 +367,10 @@ function renderAuditLog() {
 
         const line = document.createElement('p');
         line.className = `log-entry ${cssType} ${extraClass}`.trim();
-        const turnText = entry.turn !== undefined ? t('logs.turn_label', { turn: entry.turn }) : t('logs.turn_unknown');
+        const icon = cssType === 'success' ? '✓' : (cssType === 'fail' ? '✗' : '⚠');
         const text = entry.log_text || formatAuditFallback(entry);
-        line.textContent = `${turnText} ${text}`.trim();
+        const parts = [icon, text].filter(Boolean);
+        line.textContent = parts.join(' ').trim();
         logContent.appendChild(line);
     });
 
