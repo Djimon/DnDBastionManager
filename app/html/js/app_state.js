@@ -30,7 +30,10 @@ let appState = {
     facilityStates: [],
     currencyModel: null,
     npcProgression: null,
+    checkProfiles: null,
+    formulaRegistry: {},
     moveNpcContext: null,
+    formulaInputContext: null,
     npcManagementSort: { key: null, dir: 'desc' },
 };
 

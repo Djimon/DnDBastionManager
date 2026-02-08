@@ -292,10 +292,10 @@
                     <!-- BOTTOM: Turn Controls & Log -->
                     <footer class="turn-controls">
                         <div class="controls-buttons">
-                            <button class="btn btn-primary" onclick="advanceTurn()" data-i18n="turn.advance_turn">⏭️ Advance Turn</button>
+                            <button id="turn-advance-btn" class="btn btn-primary" onclick="advanceTurn()" data-i18n="turn.advance_turn">⏭️ Advance Turn</button>
                             <button class="btn btn-secondary" onclick="switchView(2)" data-i18n="turn.build_new">+ Build New Facility</button>
                             <button class="btn btn-secondary" onclick="openNPCModal()" data-i18n="turn.manage_npcs">👥 Manage NPCs</button>
-                            <button class="btn btn-secondary" onclick="rollAndEvaluateAllReady()" data-i18n="turn.roll_evaluate_all">🎲 Alles rollen & auswerten</button>
+                            <button id="orders-roll-eval-all" class="btn btn-secondary" onclick="rollAndEvaluateAllReady()" data-i18n="turn.roll_evaluate_all">🎲 Alles rollen & auswerten</button>
                             <button class="btn btn-secondary" onclick="toggleTreasuryPanel()" data-i18n="treasury.manage">Schatzkammer verwalten</button>
                             <button class="btn btn-success" onclick="saveSession()" data-i18n="turn.save_session">💾 Save Session</button>
                         </div>
@@ -471,6 +471,25 @@
                 <div class="confirm-actions">
                     <button id="confirm-cancel" class="btn btn-secondary" data-i18n="common.confirm_no">Abbrechen</button>
                     <button id="confirm-ok" class="btn btn-primary" data-i18n="common.confirm_yes">Bestaetigen</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Formula Input Modal -->
+    <div id="formula-input-modal" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="formula-input-title" data-i18n="orders.formula_modal_title">Formel-Input</h3>
+                <button class="modal-close" onclick="closeModal('formula-input-modal')">x</button>
+            </div>
+            <div class="modal-tab-content active">
+                <p id="formula-input-meta" class="text-muted"></p>
+                <div id="formula-input-fields" class="formula-input-fields"></div>
+                <p id="formula-input-empty" class="text-muted hidden" data-i18n="orders.formula_no_inputs">Keine Inputs nötig.</p>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" onclick="closeModal('formula-input-modal')" data-i18n="common.confirm_no">Abbrechen</button>
+                    <button id="formula-input-save" class="btn btn-primary" data-i18n="orders.formula_save">Speichern</button>
                 </div>
             </div>
         </div>

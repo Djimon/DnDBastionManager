@@ -1,0 +1,212 @@
+{
+  "pack_id": "custom.test.formula_multi",
+  "name": "Test Formula Multi",
+  "version": 1,
+  "author": "Codex",
+  "custom_mechanics": [
+    {
+      "name": "Test Formula A",
+      "type": "formula_engine",
+      "config": {
+        "inputs": [
+          {
+            "name": "base_gold",
+            "source": "fixed",
+            "default": 10,
+            "label": "Base Gold"
+          },
+          {
+            "name": "bonus",
+            "source": "prompt",
+            "label": "Bonus Gold"
+          }
+        ],
+        "calculations": [
+          {
+            "name": "total_gold",
+            "formula": "base_gold + bonus"
+          }
+        ],
+        "effects": [
+          {
+            "gold": "${total_gold}"
+          },
+          {
+            "log": "Formula A applied."
+          }
+        ]
+      }
+    },
+    {
+      "name": "Test Formula B",
+      "type": "formula_engine",
+      "config": {
+        "inputs": [
+          {
+            "name": "loss",
+            "source": "prompt",
+            "label": "Loss Amount"
+          },
+          {
+            "name": "fee",
+            "source": "fixed",
+            "default": 2,
+            "label": "Admin Fee"
+          }
+        ],
+        "calculations": [
+          {
+            "name": "net_loss",
+            "formula": "0 - (loss + fee)"
+          }
+        ],
+        "effects": [
+          {
+            "gold": "${net_loss}"
+          },
+          {
+            "log": "Formula B applied."
+          }
+        ]
+      }
+    },
+    {
+      "name": "Test Formula C",
+      "type": "formula_engine",
+      "config": {
+        "inputs": [
+          {
+            "name": "reputation_stat",
+            "source": "stat",
+            "default": "reputation",
+            "label": "Reputation Stat"
+          }
+        ],
+        "calculations": [
+          {
+            "name": "rep_gain",
+            "conditions": [
+              {
+                "if": "reputation_stat > 5",
+                "then": 2
+              },
+              {
+                "else": 1
+              }
+            ]
+          }
+        ],
+        "effects": [
+          {
+            "stat": "reputation",
+            "delta": "${rep_gain}"
+          },
+          {
+            "log": "Formula C applied."
+          }
+        ]
+      }
+    },
+    {
+      "name": "Test Events",
+      "type": "event_table",
+      "config": {
+        "groups": [
+          {
+            "id": "test_events",
+            "entries": [
+              {
+                "id": "test.event.good",
+                "text": "A good test event happened.",
+                "weight": 2
+              },
+              {
+                "id": "test.event.bad",
+                "text": "A bad test event happened.",
+                "weight": 1
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ],
+  "facilities": [
+    {
+      "id": "custom.test:multi:t1",
+      "name": "Formula Test Facility",
+      "description": "Simple facility to test multiple formula triggers and events.",
+      "tier": 1,
+      "parent": null,
+      "build": {
+        "cost": {
+          "gold": 10
+        },
+        "duration_turns": 1
+      },
+      "npc_slots": 1,
+      "npc_allowed_professions": [
+        "tester"
+      ],
+      "npc_base_upkeep": {
+        "copper": 1
+      },
+      "orders": [
+        {
+          "id": "test_combo",
+          "name": "Test Combo",
+          "description": "Single order that triggers three formulas and events.",
+          "min_npc_level": 1,
+          "duration_turns": 1,
+          "outcome": {
+            "check_profile": "d20",
+            "on_success": {
+              "effects": [
+                {
+                  "trigger": "Test Formula A"
+                },
+                {
+                  "trigger": "Test Formula B"
+                },
+                {
+                  "trigger": "Test Formula C"
+                },
+                {
+                  "event": "test.event.good"
+                },
+                {
+                  "random_event": "group:test_events"
+                },
+                {
+                  "log": "Test order resolved."
+                }
+              ]
+            },
+            "on_failure": {
+              "effects": [
+                {
+                  "trigger": "Test Formula A"
+                },
+                {
+                  "trigger": "Test Formula B"
+                },
+                {
+                  "trigger": "Test Formula C"
+                },
+                {
+                  "event": "test.event.good"
+                },
+                {
+                  "random_event": "group:test_events"
+                },
+                {
+                  "log": "Test order resolved."
+                }
+              ]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

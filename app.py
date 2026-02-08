@@ -401,6 +401,28 @@ class Api:
         except Exception as e:
             return {"error": str(e)}
 
+    def get_check_profiles(self) -> dict:
+        """
+        Return check profile config for rolls.
+        """
+        try:
+            return self._facility_manager.config.get("check_profiles", {})
+        except Exception as e:
+            return {"error": str(e)}
+
+    def save_formula_inputs(self, facility_id: str, order_id: str, trigger_id: str, inputs: dict) -> dict:
+        """
+        Save formula inputs for a ready order.
+        """
+        try:
+            if not self.current_session:
+                return {"success": False, "message": "No session loaded"}
+            return self._facility_manager.save_formula_inputs(
+                self.current_session, facility_id, order_id, trigger_id, inputs
+            )
+        except Exception as e:
+            return {"success": False, "message": str(e)}
+
     # ===== SLICE 2: PACK VALIDATION =====
 
     def validate_packs(self) -> dict:

@@ -1,5 +1,8 @@
+import ast
 import json
+import math
 import random
+import re
 import uuid
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
@@ -21,6 +24,7 @@ class FacilityManager:
         self.config = self._load_config()
         self.catalog = self._load_facility_catalog()
         self.event_index, self.event_groups = self._load_event_tables()
+        self.formula_index = self._load_formula_engines()
         self._audit_log = AuditLog()
 
     def _load_config(self) -> Dict[str, Any]:
@@ -145,6 +149,54 @@ class FacilityManager:
                                 logger.warning(f"Duplicate event id '{event_id}' in {pack_file.name}")
 
         return event_index, event_groups
+
+    def _load_formula_engines(self) -> Dict[str, Dict[str, Any]]:
+        formula_index: Dict[str, Dict[str, Any]] = {}
+        pack_dirs = [
+            ("core", self.facilities_dir),
+            ("custom", self.custom_packs_dir),
+        ]
+
+        for source, pack_dir in pack_dirs:
+            if not pack_dir.exists():
+                continue
+
+            for pack_file in sorted(pack_dir.glob("*.json")):
+                try:
+                    data = json.loads(pack_file.read_text(encoding="utf-8"))
+                except Exception as e:
+                    logger.warning(f"Failed to read pack file {pack_file.name}: {e}")
+                    continue
+
+                pack_id = data.get("pack_id") or pack_file.stem
+                mechanics = data.get("custom_mechanics", []) or []
+                if not isinstance(mechanics, list):
+                    continue
+
+                for mech in mechanics:
+                    if not isinstance(mech, dict):
+                        continue
+                    if mech.get("type") != "formula_engine":
+                        continue
+                    name = mech.get("name") or mech.get("id")
+                    if not isinstance(name, str) or not name:
+                        continue
+                    item = {
+                        "id": mech.get("id") or name,
+                        "name": mech.get("name") or name,
+                        "config": mech.get("config") if isinstance(mech.get("config"), dict) else {},
+                        "pack_id": pack_id,
+                        "pack_source": source,
+                    }
+                    if name in formula_index:
+                        logger.warning(f"Duplicate formula engine name '{name}' in {pack_file.name}")
+                        continue
+                    formula_index[name] = item
+                    alt_id = mech.get("id")
+                    if isinstance(alt_id, str) and alt_id and alt_id != name and alt_id not in formula_index:
+                        formula_index[alt_id] = item
+
+        return formula_index
 
     def add_build_facility(self, session_state: Dict[str, Any], facility_id: str, allow_negative: bool = False) -> Dict[str, Any]:
         if not session_state:
@@ -306,13 +358,20 @@ class FacilityManager:
         if not session_state:
             return {"success": False, "message": "No session loaded"}
 
+        bastion = session_state.setdefault("bastion", {})
+        facilities = bastion.setdefault("facilities", [])
+        for facility in facilities:
+            if not isinstance(facility, dict):
+                continue
+            orders = self._normalize_orders(facility)
+            if any(self._infer_order_status(order) == "ready" for order in orders if isinstance(order, dict)):
+                return {"success": False, "message": "Pending orders ready for evaluation"}
+
         session_state["current_turn"] = int(session_state.get("current_turn", 0)) + 1
         current_turn = session_state["current_turn"]
 
         self._apply_npc_upkeep(session_state, current_turn)
 
-        bastion = session_state.setdefault("bastion", {})
-        facilities = bastion.setdefault("facilities", [])
         completed = []
 
         for facility in facilities:
@@ -646,6 +705,58 @@ class FacilityManager:
 
         return {"success": True, "message": "Roll locked", "roll": roll}
 
+    def save_formula_inputs(
+        self,
+        session_state: Dict[str, Any],
+        facility_id: str,
+        order_id: str,
+        trigger_id: str,
+        inputs: Any,
+    ) -> Dict[str, Any]:
+        if not session_state:
+            return {"success": False, "message": "No session loaded"}
+        if not facility_id or not order_id or not trigger_id:
+            return {"success": False, "message": "Missing facility, order or trigger id"}
+
+        facility_entry = self._find_facility_entry(session_state, facility_id)
+        if not facility_entry:
+            return {"success": False, "message": f"Facility not found in bastion: {facility_id}"}
+
+        order_entry = self._find_order_entry(facility_entry, order_id)
+        if not order_entry:
+            return {"success": False, "message": f"Order not found: {order_id}"}
+
+        formula_def = self.formula_index.get(trigger_id)
+        if not formula_def:
+            return {"success": False, "message": f"Formula not found: {trigger_id}"}
+
+        config = formula_def.get("config", {}) if isinstance(formula_def, dict) else {}
+        input_defs = config.get("inputs", []) if isinstance(config.get("inputs"), list) else []
+        prompt_inputs = [i for i in input_defs if isinstance(i, dict) and i.get("source") == "prompt"]
+
+        if not isinstance(inputs, dict):
+            return {"success": False, "message": "Invalid formula inputs"}
+
+        parsed_inputs: Dict[str, float] = {}
+        for input_def in prompt_inputs:
+            name = input_def.get("name")
+            if not isinstance(name, str) or not name:
+                continue
+            if input_def.get("default") is not None and name not in inputs:
+                continue
+            if name not in inputs:
+                return {"success": False, "message": "Formula inputs missing"}
+            raw_val = inputs.get(name)
+            try:
+                parsed_inputs[name] = float(raw_val)
+            except (TypeError, ValueError):
+                return {"success": False, "message": "Formula inputs invalid"}
+
+        order_entry.setdefault("formula_inputs", {})
+        order_entry["formula_inputs"][trigger_id] = parsed_inputs
+
+        return {"success": True, "message": "Formula inputs saved"}
+
     def evaluate_order(self, session_state: Dict[str, Any], facility_id: str, order_id: str) -> Dict[str, Any]:
         if not session_state:
             return {"success": False, "message": "No session loaded"}
@@ -675,6 +786,15 @@ class FacilityManager:
         npc_level = order_entry.get("npc_level")
         result_bucket = self._determine_outcome(check_profile, npc_level, roll)
         effects = self._get_effects_for_bucket(outcome, result_bucket)
+        effects, formula_errors = self._expand_formula_triggers(
+            session_state,
+            effects,
+            facility_id,
+            order_id,
+            order_entry,
+        )
+        if formula_errors:
+            return {"success": False, "message": "; ".join(formula_errors)}
 
         context = {
             "event_type": "order_resolve",
@@ -768,6 +888,353 @@ class FacilityManager:
                 )
 
         return events
+
+    def _expand_formula_triggers(
+        self,
+        session_state: Dict[str, Any],
+        effects: List[Dict[str, Any]],
+        facility_id: Optional[str],
+        order_id: Optional[str],
+        order_entry: Optional[Dict[str, Any]] = None,
+    ) -> Tuple[List[Dict[str, Any]], List[str]]:
+        if not session_state or not isinstance(effects, list):
+            return effects, []
+
+        resolved: List[Dict[str, Any]] = []
+        errors: List[str] = []
+        stored_inputs_all = {}
+        if isinstance(order_entry, dict) and isinstance(order_entry.get("formula_inputs"), dict):
+            stored_inputs_all = order_entry.get("formula_inputs", {})
+
+        for effect in effects:
+            if not isinstance(effect, dict):
+                continue
+            trigger_id = effect.get("trigger")
+            if isinstance(trigger_id, str) and trigger_id:
+                formula_def = self.formula_index.get(trigger_id)
+                if not formula_def:
+                    errors.append(f"Formula not found: {trigger_id}")
+                else:
+                    stored_inputs = stored_inputs_all.get(trigger_id, {}) if isinstance(stored_inputs_all, dict) else {}
+                    missing = self._missing_prompt_inputs(formula_def, stored_inputs)
+                    if missing:
+                        errors.append("Formula inputs missing")
+                    else:
+                        formula_effects, formula_errors = self._execute_formula_engine(
+                            session_state,
+                            formula_def,
+                            stored_inputs,
+                        )
+                        if formula_errors:
+                            errors.extend(formula_errors)
+                        else:
+                            resolved.extend(formula_effects)
+            trimmed = {k: v for k, v in effect.items() if k != "trigger"}
+            if trimmed:
+                resolved.append(trimmed)
+
+        return resolved, errors
+
+    def _missing_prompt_inputs(self, formula_def: Dict[str, Any], stored_inputs: Any) -> List[str]:
+        config = formula_def.get("config", {}) if isinstance(formula_def, dict) else {}
+        inputs = config.get("inputs", []) if isinstance(config.get("inputs"), list) else []
+        missing = []
+        for input_def in inputs:
+            if not isinstance(input_def, dict):
+                continue
+            if input_def.get("source") != "prompt":
+                continue
+            name = input_def.get("name")
+            if not isinstance(name, str) or not name:
+                continue
+            if input_def.get("default") is not None:
+                continue
+            value = stored_inputs.get(name) if isinstance(stored_inputs, dict) else None
+            if value is None or (isinstance(value, str) and not value.strip()):
+                missing.append(name)
+                continue
+            try:
+                float(value)
+            except (TypeError, ValueError):
+                missing.append(name)
+        return missing
+
+    def _execute_formula_engine(
+        self,
+        session_state: Dict[str, Any],
+        formula_def: Dict[str, Any],
+        stored_inputs: Any,
+    ) -> Tuple[List[Dict[str, Any]], List[str]]:
+        config = formula_def.get("config", {}) if isinstance(formula_def, dict) else {}
+        inputs = config.get("inputs", []) if isinstance(config.get("inputs"), list) else []
+        calculations = config.get("calculations", []) if isinstance(config.get("calculations"), list) else []
+        effects = config.get("effects", []) if isinstance(config.get("effects"), list) else []
+
+        variables, errors = self._build_formula_inputs(inputs, session_state, stored_inputs)
+        if errors:
+            return [], errors
+
+        for calc in calculations:
+            if not isinstance(calc, dict):
+                continue
+            name = calc.get("name")
+            if not isinstance(name, str) or not name:
+                continue
+            value = 0
+            if "formula" in calc and isinstance(calc.get("formula"), str):
+                value = self._eval_formula_expression(calc.get("formula"), variables)
+            elif "conditions" in calc and isinstance(calc.get("conditions"), list):
+                value = self._eval_formula_conditions(calc.get("conditions"), variables)
+            variables[name] = value
+
+        resolved_effects: List[Dict[str, Any]] = []
+        for effect in effects:
+            if not isinstance(effect, dict):
+                continue
+            resolved: Dict[str, Any] = {}
+            for key, raw_value in effect.items():
+                resolved_value = self._resolve_formula_value(raw_value, variables)
+                resolved_value = self._normalize_formula_effect_value(key, resolved_value)
+                if resolved_value is None:
+                    continue
+                resolved[key] = resolved_value
+            if resolved:
+                resolved_effects.append(resolved)
+
+        return resolved_effects, []
+
+    def _build_formula_inputs(
+        self,
+        inputs: List[Dict[str, Any]],
+        session_state: Dict[str, Any],
+        stored_inputs: Any,
+    ) -> Tuple[Dict[str, float], List[str]]:
+        variables: Dict[str, float] = {}
+        errors: List[str] = []
+        bastion = session_state.get("bastion", {}) if isinstance(session_state, dict) else {}
+        stats = bastion.get("stats", {}) if isinstance(bastion.get("stats"), dict) else {}
+        inventory = bastion.get("inventory", []) if isinstance(bastion.get("inventory"), list) else []
+
+        for input_def in inputs:
+            if not isinstance(input_def, dict):
+                continue
+            name = input_def.get("name")
+            if not isinstance(name, str) or not name:
+                continue
+            source = input_def.get("source") or "fixed"
+            default = input_def.get("default")
+            value: Any = 0
+
+            if source == "prompt":
+                if isinstance(stored_inputs, dict) and name in stored_inputs:
+                    value = stored_inputs.get(name)
+                elif default is not None:
+                    value = default
+                else:
+                    errors.append(f"Missing formula input: {name}")
+                    continue
+            elif source == "fixed":
+                value = default if default is not None else 0
+            elif source == "stat":
+                stat_key = default if isinstance(default, str) else name
+                value = stats.get(stat_key, 0)
+            elif source == "item":
+                item_key = default if isinstance(default, str) else name
+                value = self._get_inventory_qty(inventory, item_key)
+            elif source == "currency":
+                value = self._currency_to_base(default)
+            elif source == "market":
+                value = 0
+            else:
+                value = default if default is not None else 0
+
+            variables[name] = self._coerce_number(value)
+
+        return variables, errors
+
+    def _get_inventory_qty(self, inventory: List[Dict[str, Any]], item_key: Any) -> int:
+        if not isinstance(item_key, str) or not item_key:
+            return 0
+        for entry in inventory:
+            if not isinstance(entry, dict):
+                continue
+            if entry.get("item") == item_key and isinstance(entry.get("qty"), int):
+                return entry.get("qty")
+        return 0
+
+    def _currency_to_base(self, value: Any) -> float:
+        if isinstance(value, (int, float)):
+            return float(value)
+        if not isinstance(value, dict):
+            return 0.0
+        total = 0.0
+        for currency, amount in value.items():
+            if not isinstance(currency, str):
+                continue
+            if not isinstance(amount, (int, float)):
+                continue
+            factor = self.ledger.factor_to_base.get(currency)
+            if not factor:
+                continue
+            total += float(amount) * float(factor)
+        return total
+
+    def _coerce_number(self, value: Any) -> float:
+        if isinstance(value, bool):
+            return 1.0 if value else 0.0
+        if isinstance(value, (int, float)):
+            return float(value)
+        if isinstance(value, str):
+            try:
+                return float(value)
+            except ValueError:
+                return 0.0
+        return 0.0
+
+    def _eval_formula_expression(self, expr: str, variables: Dict[str, float]) -> float:
+        if not isinstance(expr, str) or not expr:
+            return 0.0
+        rolled = self._roll_dice(expr)
+        try:
+            tree = ast.parse(rolled, mode="eval")
+            return float(self._eval_ast(tree.body, variables))
+        except Exception:
+            return 0.0
+
+    def _eval_formula_conditions(self, conditions: List[Dict[str, Any]], variables: Dict[str, float]) -> float:
+        for cond in conditions:
+            if not isinstance(cond, dict):
+                continue
+            if "if" in cond and isinstance(cond.get("if"), str):
+                result = self._eval_formula_expression(cond.get("if"), variables)
+                if result:
+                    if "then_formula" in cond and isinstance(cond.get("then_formula"), str):
+                        return self._eval_formula_expression(cond.get("then_formula"), variables)
+                    if "then" in cond:
+                        return self._coerce_number(cond.get("then"))
+            if "else" in cond:
+                return self._coerce_number(cond.get("else"))
+        return 0.0
+
+    def _eval_ast(self, node: ast.AST, variables: Dict[str, float]) -> float:
+        if isinstance(node, ast.Num):
+            return float(node.n)
+        if isinstance(node, ast.Constant):
+            if isinstance(node.value, (int, float)):
+                return float(node.value)
+            if isinstance(node.value, bool):
+                return 1.0 if node.value else 0.0
+            return 0.0
+        if isinstance(node, ast.Name):
+            return float(variables.get(node.id, 0.0))
+        if isinstance(node, ast.UnaryOp):
+            operand = self._eval_ast(node.operand, variables)
+            if isinstance(node.op, ast.UAdd):
+                return +operand
+            if isinstance(node.op, ast.USub):
+                return -operand
+            return 0.0
+        if isinstance(node, ast.BinOp):
+            left = self._eval_ast(node.left, variables)
+            right = self._eval_ast(node.right, variables)
+            if isinstance(node.op, ast.Add):
+                return left + right
+            if isinstance(node.op, ast.Sub):
+                return left - right
+            if isinstance(node.op, ast.Mult):
+                return left * right
+            if isinstance(node.op, ast.Div):
+                return left / right if right != 0 else 0.0
+            if isinstance(node.op, ast.FloorDiv):
+                return math.floor(left / right) if right != 0 else 0.0
+            return 0.0
+        if isinstance(node, ast.Compare):
+            left = self._eval_ast(node.left, variables)
+            for op, comparator in zip(node.ops, node.comparators):
+                right = self._eval_ast(comparator, variables)
+                if isinstance(op, ast.Gt) and not (left > right):
+                    return 0.0
+                if isinstance(op, ast.GtE) and not (left >= right):
+                    return 0.0
+                if isinstance(op, ast.Lt) and not (left < right):
+                    return 0.0
+                if isinstance(op, ast.LtE) and not (left <= right):
+                    return 0.0
+                if isinstance(op, ast.Eq) and not (left == right):
+                    return 0.0
+                if isinstance(op, ast.NotEq) and not (left != right):
+                    return 0.0
+                left = right
+            return 1.0
+        if isinstance(node, ast.BoolOp):
+            if isinstance(node.op, ast.And):
+                return 1.0 if all(self._eval_ast(v, variables) for v in node.values) else 0.0
+            if isinstance(node.op, ast.Or):
+                return 1.0 if any(self._eval_ast(v, variables) for v in node.values) else 0.0
+        return 0.0
+
+    def _roll_dice(self, expr: str) -> str:
+        pattern = re.compile(r'(?<![\w.])(\d*)d(\d+)', re.IGNORECASE)
+
+        def repl(match: re.Match) -> str:
+            count_raw = match.group(1)
+            count = int(count_raw) if count_raw else 1
+            sides = int(match.group(2))
+            if count <= 0 or sides <= 0:
+                return "0"
+            total = 0
+            for _ in range(count):
+                total += random.randint(1, sides)
+            return str(total)
+
+        return pattern.sub(repl, expr)
+
+    def _resolve_formula_value(self, raw_value: Any, variables: Dict[str, float]) -> Any:
+        if isinstance(raw_value, str):
+            def repl(match: re.Match) -> str:
+                key = match.group(1)
+                return str(variables.get(key, ""))
+
+            replaced = re.sub(r"\$\{([^}]+)\}", repl, raw_value)
+            if self._is_number(replaced):
+                try:
+                    return float(replaced)
+                except ValueError:
+                    return replaced
+            return replaced
+        return raw_value
+
+    def _normalize_formula_effect_value(self, key: str, value: Any) -> Any:
+        if key in ("stat", "item"):
+            if value is None:
+                return ""
+            return str(value)
+        if key == "log":
+            return str(value) if value is not None else ""
+        if isinstance(value, (int, float)):
+            return int(self._round_commercial(float(value)))
+        if isinstance(value, str) and self._is_number(value):
+            try:
+                return int(self._round_commercial(float(value)))
+            except ValueError:
+                return value
+        return value
+
+    def _round_commercial(self, value: float) -> float:
+        if value >= 0:
+            return math.floor(value + 0.5)
+        return math.ceil(value - 0.5)
+
+    def _is_number(self, value: Any) -> bool:
+        if isinstance(value, (int, float)):
+            return True
+        if isinstance(value, str):
+            try:
+                float(value)
+                return True
+            except ValueError:
+                return False
+        return False
 
     def _pick_random_event(self, group_id: str) -> Optional[Dict[str, Any]]:
         if not isinstance(group_id, str) or not group_id:

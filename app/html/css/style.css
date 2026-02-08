@@ -490,6 +490,80 @@ legend {
     width: 90px;
 }
 
+.order-custom {
+    padding: 0.6rem;
+    border: 1px dashed var(--border);
+    border-radius: 6px;
+    background: #f7f8fb;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.order-custom-wait {
+    font-size: 0.85rem;
+    color: var(--text-light);
+}
+
+.order-custom-title {
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-light);
+}
+
+.order-custom-row {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    flex-wrap: wrap;
+}
+
+.order-custom-name {
+    font-weight: 600;
+}
+
+.order-custom-status {
+    padding: 0.15rem 0.5rem;
+    border-radius: 999px;
+    font-size: 0.75rem;
+}
+
+.order-custom-status.status-ok {
+    background: #d5f4e6;
+    color: #1e8449;
+}
+
+.order-custom-status.status-warn {
+    background: #fef5e7;
+    color: #b9770e;
+}
+
+.order-custom-status.status-muted {
+    background: #edf0f3;
+    color: #6b7280;
+}
+
+.formula-input-fields {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    margin-top: 0.75rem;
+}
+
+.formula-input-row {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+}
+
+.formula-input-row input {
+    padding: 0.5rem;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+}
+
 .slot-bubbles {
     display: inline-flex;
     gap: 0.3rem;

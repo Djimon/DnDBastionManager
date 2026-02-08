@@ -539,6 +539,273 @@ function getDiceSides(checkProfile) {
     return Number.isInteger(sides) ? sides : null;
 }
 
+function getOrderStatus(order) {
+    if (!order || typeof order !== 'object') {
+        return 'unknown';
+    }
+    if (order.status) {
+        return order.status;
+    }
+    const duration = Number.isInteger(order.duration_turns) ? order.duration_turns : 0;
+    const progress = Number.isInteger(order.progress) ? order.progress : 0;
+    if (duration > 0 && progress >= duration) {
+        return 'ready';
+    }
+    return 'in_progress';
+}
+
+function toNumberSet(value) {
+    const set = new Set();
+    if (Array.isArray(value)) {
+        value.forEach(item => {
+            if (Number.isInteger(item)) {
+                set.add(item);
+            }
+        });
+    } else if (Number.isInteger(value)) {
+        set.add(value);
+    }
+    return set;
+}
+
+function resolveNpcLevelKey(level) {
+    const levelNames = appState.npcProgression && appState.npcProgression.level_names
+        ? appState.npcProgression.level_names
+        : {};
+    return levelNames[level] || levelNames[String(level)] || (level === 3 ? 'master' : level === 2 ? 'experienced' : 'apprentice');
+}
+
+function determineOutcomeBucket(checkProfileId, npcLevel, roll) {
+    const profiles = appState.checkProfiles || {};
+    const profile = profiles[checkProfileId];
+    if (!profile || !Number.isInteger(roll)) {
+        return 'on_failure';
+    }
+    const levelKey = resolveNpcLevelKey(npcLevel);
+    const levelProfile = profile[levelKey];
+    if (!levelProfile) {
+        return 'on_failure';
+    }
+    const critSuccess = toNumberSet(levelProfile.crit_success);
+    const critFail = toNumberSet(levelProfile.crit_fail);
+    if (critSuccess.has(roll)) {
+        return 'on_critical_success';
+    }
+    if (critFail.has(roll)) {
+        return 'on_critical_failure';
+    }
+    const dc = levelProfile.dc;
+    if (Number.isInteger(dc) && roll >= dc) {
+        return 'on_success';
+    }
+    return 'on_failure';
+}
+
+function getOrderOutcomeBucket(orderDef, orderEntry) {
+    if (!orderDef || !orderDef.outcome) {
+        return null;
+    }
+    const outcome = orderDef.outcome;
+    const checkProfile = outcome.check_profile || null;
+    if (!checkProfile) {
+        return 'on_success';
+    }
+    if (!orderEntry || !orderEntry.roll_locked) {
+        return null;
+    }
+    return determineOutcomeBucket(checkProfile, orderEntry.npc_level, orderEntry.roll);
+}
+
+function collectTriggerIds(effects) {
+    const ids = [];
+    if (!Array.isArray(effects)) {
+        return ids;
+    }
+    effects.forEach(effect => {
+        if (!effect || typeof effect !== 'object') {
+            return;
+        }
+        if (effect.trigger && typeof effect.trigger === 'string') {
+            ids.push(effect.trigger);
+        }
+    });
+    return Array.from(new Set(ids));
+}
+
+function getTriggerIdsForOutcome(orderDef, bucket) {
+    if (!orderDef || !orderDef.outcome || !bucket) {
+        return [];
+    }
+    const block = orderDef.outcome[bucket];
+    if (!block || typeof block !== 'object') {
+        return [];
+    }
+    return collectTriggerIds(block.effects);
+}
+
+function getTriggerIdsAnyOutcome(orderDef) {
+    if (!orderDef || !orderDef.outcome) {
+        return [];
+    }
+    const buckets = ['on_success', 'on_critical_success', 'on_failure', 'on_critical_failure'];
+    const all = [];
+    buckets.forEach(bucket => {
+        all.push(...getTriggerIdsForOutcome(orderDef, bucket));
+    });
+    return Array.from(new Set(all));
+}
+
+function getFormulaDefinition(triggerId) {
+    if (!triggerId || !appState.formulaRegistry) {
+        return null;
+    }
+    return appState.formulaRegistry[triggerId] || null;
+}
+
+function getFormulaPromptInputs(formulaDef) {
+    const config = formulaDef && formulaDef.config ? formulaDef.config : {};
+    const inputs = Array.isArray(config.inputs) ? config.inputs : [];
+    return inputs.filter(input => input && input.source === 'prompt' && input.name);
+}
+
+function getSavedFormulaInputs(orderEntry, triggerId) {
+    if (!orderEntry || !orderEntry.formula_inputs || typeof orderEntry.formula_inputs !== 'object') {
+        return {};
+    }
+    const saved = orderEntry.formula_inputs[triggerId];
+    return saved && typeof saved === 'object' ? saved : {};
+}
+
+function isNumericValue(value) {
+    if (value === null || value === undefined) {
+        return false;
+    }
+    if (typeof value === 'number') {
+        return !Number.isNaN(value);
+    }
+    if (typeof value === 'string') {
+        if (!value.trim()) {
+            return false;
+        }
+        return !Number.isNaN(Number(value));
+    }
+    return false;
+}
+
+function areFormulaInputsSaved(orderEntry, triggerId, promptInputs) {
+    if (!promptInputs || promptInputs.length === 0) {
+        return true;
+    }
+    const saved = getSavedFormulaInputs(orderEntry, triggerId);
+    return promptInputs.every(input => isNumericValue(saved[input.name]));
+}
+
+function getFormulaInfoForOrder(orderDef, orderEntry) {
+    if (!orderDef || !orderDef.outcome) {
+        return { state: 'none' };
+    }
+    const checkProfile = orderDef.outcome.check_profile || null;
+    if (checkProfile && (!orderEntry || !orderEntry.roll_locked)) {
+        const possible = getTriggerIdsAnyOutcome(orderDef);
+        if (possible.length) {
+            return { state: 'wait_roll' };
+        }
+        return { state: 'none' };
+    }
+    const bucket = getOrderOutcomeBucket(orderDef, orderEntry);
+    if (!bucket) {
+        return { state: 'none' };
+    }
+    const triggerIds = getTriggerIdsForOutcome(orderDef, bucket);
+    if (!triggerIds.length) {
+        return { state: 'none' };
+    }
+    const items = triggerIds.map(triggerId => {
+        const formulaDef = getFormulaDefinition(triggerId);
+        const promptInputs = formulaDef ? getFormulaPromptInputs(formulaDef) : [];
+        const saved = formulaDef ? areFormulaInputsSaved(orderEntry, triggerId, promptInputs) : false;
+        return { triggerId, formulaDef, promptInputs, saved };
+    });
+    const hasMissing = items.some(item => !item.formulaDef || (item.promptInputs.length > 0 && !item.saved));
+    return { state: 'active', items, hasMissing };
+}
+
+function collectReadyOrders() {
+    const results = [];
+    const facilities = appState.session && appState.session.bastion && Array.isArray(appState.session.bastion.facilities)
+        ? appState.session.bastion.facilities
+        : [];
+    facilities.forEach(entry => {
+        if (!entry || !entry.facility_id) {
+            return;
+        }
+        const facilityId = entry.facility_id;
+        const orders = getFacilityOrders(entry);
+        orders.forEach(order => {
+            if (getOrderStatus(order) !== 'ready') {
+                return;
+            }
+            const orderDef = getOrderDefinition(facilityId, order.order_id);
+            const outcome = orderDef && orderDef.outcome ? orderDef.outcome : null;
+            const checkProfile = outcome && outcome.check_profile ? outcome.check_profile : null;
+            const needsRoll = !!checkProfile && !order.roll_locked;
+            const formulaInfo = getFormulaInfoForOrder(orderDef, order);
+            const missingFormula = formulaInfo.state === 'active' && formulaInfo.hasMissing;
+            const evaluatable = !needsRoll && !missingFormula;
+            results.push({ facilityId, orderId: order.order_id, needsRoll, missingFormula, evaluatable });
+        });
+    });
+    return results;
+}
+
+function hasBlockingReadyOrders() {
+    return collectReadyOrders().length > 0;
+}
+
+function updateGlobalActionLocks() {
+    const readyOrders = collectReadyOrders();
+    const hasReady = readyOrders.length > 0;
+    const hasEvaluatable = readyOrders.some(order => order.evaluatable);
+    const hasBlocking = readyOrders.some(order => !order.evaluatable);
+    const hasMissingFormula = readyOrders.some(order => order.missingFormula);
+
+    const evalAllBtn = document.getElementById('orders-evaluate-all');
+    if (evalAllBtn) {
+        evalAllBtn.disabled = !hasEvaluatable || hasBlocking;
+    }
+
+    const rollAllBtn = document.getElementById('orders-roll-eval-all');
+    if (rollAllBtn) {
+        rollAllBtn.disabled = !hasReady || hasMissingFormula;
+    }
+
+    const advanceBtn = document.getElementById('turn-advance-btn');
+    if (advanceBtn) {
+        advanceBtn.disabled = hasReady;
+    }
+}
+
+function formatFormulaErrorMessage(message) {
+    if (!message) {
+        return 'unknown error';
+    }
+    if (message.includes('Formula inputs missing')) {
+        return t('alerts.formula_inputs_missing');
+    }
+    if (message.includes('Formula not found')) {
+        return t('alerts.formula_not_found');
+    }
+    return message;
+}
+
+function getOrderDefinition(facilityId, orderId) {
+    const facilityDef = appState.facilityById[facilityId];
+    if (!facilityDef || !Array.isArray(facilityDef.orders)) {
+        return null;
+    }
+    return facilityDef.orders.find(order => order && order.id === orderId) || null;
+}
+
 function renderSlotBubbles(facility, entry) {
     const bubbles = document.getElementById('detail-slot-bubbles');
     if (!bubbles) {
@@ -717,6 +984,7 @@ function renderOrdersPanel(facilityId) {
         empty.className = 'order-item';
         empty.textContent = t('orders.none_active');
         list.appendChild(empty);
+        updateGlobalActionLocks();
         return;
     }
 
@@ -726,14 +994,14 @@ function renderOrdersPanel(facilityId) {
         if (!order || typeof order !== 'object') {
             return;
         }
-        const orderDef = orders.find(o => o && o.id === order.order_id);
+        const orderDef = getOrderDefinition(facilityId, order.order_id);
         const outcome = orderDef && typeof orderDef.outcome === 'object' ? orderDef.outcome : null;
         const checkProfile = outcome && outcome.check_profile ? outcome.check_profile : null;
         const diceSides = checkProfile ? getDiceSides(checkProfile) : null;
         const npc = assignedNpcs.find(n => n && n.npc_id === order.npc_id);
         const orderName = orderDef ? (orderDef.name || orderDef.id) : order.order_id;
         const npcName = npc ? (npc.name || npc.npc_id) : (order.npc_name || order.npc_id);
-        const status = order.status || (order.progress >= order.duration_turns ? 'ready' : 'in_progress');
+        const status = getOrderStatus(order);
         const statusLabel = status === 'ready' ? t('orders.ready_label') : t('orders.in_progress_label');
 
         const duration = Number.isInteger(order.duration_turns) ? order.duration_turns : 0;
@@ -764,13 +1032,16 @@ function renderOrdersPanel(facilityId) {
         item.appendChild(detail);
 
         if (status === 'ready') {
+            const formulaInfo = getFormulaInfoForOrder(orderDef, order);
+            const needsRoll = !!checkProfile && !order.roll_locked;
+            const missingFormula = formulaInfo.state === 'active' && formulaInfo.hasMissing;
             const actions = document.createElement('div');
             actions.className = 'order-actions';
 
             const evalBtn = document.createElement('button');
             evalBtn.className = 'btn btn-primary btn-small';
             evalBtn.textContent = t('orders.resolve');
-            evalBtn.disabled = !!checkProfile && !order.roll_locked;
+            evalBtn.disabled = needsRoll || missingFormula;
             evalBtn.addEventListener('click', () => evaluateOrder(order.order_id));
 
             const rollInfo = document.createElement('span');
@@ -807,7 +1078,63 @@ function renderOrdersPanel(facilityId) {
 
             item.appendChild(actions);
 
-            if (!checkProfile || order.roll_locked) {
+            if (formulaInfo.state === 'wait_roll') {
+                const custom = document.createElement('div');
+                custom.className = 'order-custom order-custom-wait';
+                custom.textContent = t('orders.formula_wait_roll');
+                item.appendChild(custom);
+            } else if (formulaInfo.state === 'active') {
+                const custom = document.createElement('div');
+                custom.className = 'order-custom';
+
+                const customTitle = document.createElement('div');
+                customTitle.className = 'order-custom-title';
+                customTitle.textContent = t('orders.formula_custom');
+                custom.appendChild(customTitle);
+
+                formulaInfo.items.forEach(info => {
+                    const row = document.createElement('div');
+                    row.className = 'order-custom-row';
+
+                    const name = document.createElement('span');
+                    name.className = 'order-custom-name';
+                    name.textContent = info.formulaDef ? (info.formulaDef.name || info.triggerId) : info.triggerId;
+
+                    const statusTag = document.createElement('span');
+                    statusTag.className = 'order-custom-status';
+                    if (!info.formulaDef) {
+                        statusTag.classList.add('status-warn');
+                        statusTag.textContent = t('orders.formula_missing_def');
+                    } else if (info.promptInputs.length === 0) {
+                        statusTag.classList.add('status-muted');
+                        statusTag.textContent = t('orders.formula_no_inputs');
+                    } else if (info.saved) {
+                        statusTag.classList.add('status-ok');
+                        statusTag.textContent = t('orders.formula_inputs_saved');
+                    } else {
+                        statusTag.classList.add('status-warn');
+                        statusTag.textContent = t('orders.formula_inputs_needed');
+                    }
+
+                    row.appendChild(name);
+                    row.appendChild(statusTag);
+
+                    if (info.formulaDef && info.promptInputs.length > 0) {
+                        const btn = document.createElement('button');
+                        btn.className = 'btn btn-secondary btn-small';
+                        btn.textContent = t('orders.formula_input_button');
+                        btn.addEventListener('click', () => {
+                            openFormulaInputModal(facilityId, order.order_id, info.triggerId, info.formulaDef, getSavedFormulaInputs(order, info.triggerId));
+                        });
+                        row.appendChild(btn);
+                    }
+                    custom.appendChild(row);
+                });
+
+                item.appendChild(custom);
+            }
+
+            if (!needsRoll && !missingFormula) {
                 hasEvaluatable = true;
             }
         }
@@ -817,6 +1144,105 @@ function renderOrdersPanel(facilityId) {
 
     if (evalAllBtn) {
         evalAllBtn.disabled = !hasEvaluatable;
+    }
+    updateGlobalActionLocks();
+}
+
+function openFormulaInputModal(facilityId, orderId, triggerId, formulaDef, savedInputs = {}) {
+    const modal = document.getElementById('formula-input-modal');
+    const titleEl = document.getElementById('formula-input-title');
+    const metaEl = document.getElementById('formula-input-meta');
+    const fieldsEl = document.getElementById('formula-input-fields');
+    const emptyEl = document.getElementById('formula-input-empty');
+    const saveBtn = document.getElementById('formula-input-save');
+    if (!modal || !fieldsEl || !saveBtn) {
+        return;
+    }
+
+    const promptInputs = formulaDef ? getFormulaPromptInputs(formulaDef) : [];
+    appState.formulaInputContext = { facilityId, orderId, triggerId, formulaDef, promptInputs };
+
+    if (titleEl) {
+        titleEl.textContent = t('orders.formula_modal_title');
+    }
+    if (metaEl) {
+        const mechName = formulaDef ? (formulaDef.name || triggerId) : triggerId;
+        metaEl.textContent = t('orders.formula_modal_meta', { name: mechName });
+    }
+
+    fieldsEl.innerHTML = '';
+    if (promptInputs.length === 0) {
+        if (emptyEl) {
+            emptyEl.classList.remove('hidden');
+        }
+        saveBtn.disabled = true;
+    } else {
+        if (emptyEl) {
+            emptyEl.classList.add('hidden');
+        }
+        saveBtn.disabled = false;
+        promptInputs.forEach(input => {
+            const row = document.createElement('div');
+            row.className = 'formula-input-row';
+
+            const label = document.createElement('label');
+            label.textContent = input.label || input.name;
+            label.setAttribute('for', `formula-input-${input.name}`);
+
+            const field = document.createElement('input');
+            field.type = 'number';
+            field.step = 'any';
+            field.id = `formula-input-${input.name}`;
+            const existing = savedInputs && savedInputs[input.name] !== undefined ? savedInputs[input.name] : input.default;
+            field.value = existing !== undefined && existing !== null ? existing : '';
+
+            row.appendChild(label);
+            row.appendChild(field);
+            fieldsEl.appendChild(row);
+        });
+    }
+
+    saveBtn.onclick = saveFormulaInputs;
+    modal.classList.remove('hidden');
+}
+
+async function saveFormulaInputs() {
+    const ctx = appState.formulaInputContext;
+    if (!ctx) {
+        return;
+    }
+    const { facilityId, orderId, triggerId, promptInputs } = ctx;
+    if (!Array.isArray(promptInputs) || promptInputs.length === 0) {
+        closeModal('formula-input-modal');
+        return;
+    }
+    const inputs = {};
+    for (const input of promptInputs) {
+        const field = document.getElementById(`formula-input-${input.name}`);
+        const value = field ? field.value : '';
+        if (!isNumericValue(value)) {
+            alert(t('alerts.formula_inputs_missing'));
+            return;
+        }
+        inputs[input.name] = Number(value);
+    }
+
+    if (!(window.pywebview && window.pywebview.api && window.pywebview.api.save_formula_inputs)) {
+        alert(t('alerts.pywebview_unavailable'));
+        return;
+    }
+
+    const response = await window.pywebview.api.save_formula_inputs(facilityId, orderId, triggerId, inputs);
+    if (!response || !response.success) {
+        const message = response && response.message ? response.message : 'unknown error';
+        alert(t('alerts.formula_inputs_failed', { message }));
+        return;
+    }
+
+    closeModal('formula-input-modal');
+    await refreshSessionState();
+    if (appState.selectedFacilityId) {
+        renderOrdersPanel(appState.selectedFacilityId);
     }
 }
 
@@ -1700,7 +2126,9 @@ async function evaluateOrder(orderId) {
     }
     const response = await window.pywebview.api.evaluate_order(facilityId, orderId);
     if (!response || !response.success) {
-        alert(t('alerts.evaluate_failed', { message: response && response.message ? response.message : 'unknown error' }));
+        const rawMessage = response && response.message ? response.message : 'unknown error';
+        const message = formatFormulaErrorMessage(rawMessage);
+        alert(t('alerts.evaluate_failed', { message }));
         return;
     }
     await refreshSessionState();
@@ -1849,10 +2277,18 @@ async function startUpgrade() {
 }
 
 async function advanceTurn() {
+    if (hasBlockingReadyOrders()) {
+        alert(t('alerts.advance_blocked_ready_orders'));
+        return;
+    }
     if (window.pywebview && window.pywebview.api && window.pywebview.api.advance_turn) {
         const response = await window.pywebview.api.advance_turn();
         if (!response || !response.success) {
-            alert(t('alerts.advance_failed', { message: response && response.message ? response.message : 'unknown error' }));
+            const rawMessage = response && response.message ? response.message : 'unknown error';
+            const message = rawMessage.includes('Pending orders ready')
+                ? t('alerts.advance_blocked_ready_orders')
+                : rawMessage;
+            alert(t('alerts.advance_failed', { message }));
             return;
         }
         appState.session.current_turn = response.current_turn;
@@ -1969,6 +2405,9 @@ async function applyLoadedSession(filename, sessionState, options = {}) {
     await loadCurrencyModel();
     await loadFacilityCatalog();
     await refreshFacilityStates();
+    if (typeof updateGlobalActionLocks === 'function') {
+        updateGlobalActionLocks();
+    }
     if (appState.selectedFacilityId) {
         renderInventoryPanel();
     }

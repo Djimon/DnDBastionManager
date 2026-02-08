@@ -18,6 +18,7 @@ if (window.addEventListener && typeof window.pywebviewready === 'undefined') {
         validatePacks(false);
         loadCurrencyModel();
         loadNpcProgression();
+        loadCheckProfiles();
         loadFacilityCatalog();
         if (typeof autoLoadLatestSession === 'function') {
             autoLoadLatestSession();
@@ -152,6 +153,7 @@ async function loadFacilityCatalog() {
         const facilityFiles = await window.pywebview.api.get_facilities();
         const catalog = [];
         const seenIds = new Set();
+        const formulaRegistry = {};
 
         if (Array.isArray(facilityFiles)) {
             for (const fileId of facilityFiles) {
@@ -170,6 +172,27 @@ async function loadFacilityCatalog() {
                 if (!data || data.error) {
                     logClient('warn', `Failed to load facility pack ${fileId}: ${data && data.error ? data.error : 'unknown'}`);
                     continue;
+                }
+                if (Array.isArray(data.custom_mechanics)) {
+                    data.custom_mechanics.forEach(mech => {
+                        if (!mech || typeof mech !== 'object') {
+                            return;
+                        }
+                        if (mech.type !== 'formula_engine') {
+                            return;
+                        }
+                        const key = mech.name || mech.id;
+                        if (!key || formulaRegistry[key]) {
+                            return;
+                        }
+                        formulaRegistry[key] = {
+                            id: mech.id || key,
+                            name: mech.name || key,
+                            config: mech.config && typeof mech.config === 'object' ? mech.config : {},
+                            pack_id: data.pack_id || packStem || fileId,
+                            pack_source: data._pack_source || sourceHint || 'core'
+                        };
+                    });
                 }
                 const packId = data.pack_id || packStem || fileId;
                 const packSource = data._pack_source || sourceHint || 'core';
@@ -194,6 +217,7 @@ async function loadFacilityCatalog() {
 
         appState.facilityCatalog = catalog;
         appState.facilityById = {};
+        appState.formulaRegistry = formulaRegistry;
         catalog.forEach(facility => {
             if (facility && facility.id) {
                 appState.facilityById[facility.id] = facility;
@@ -224,6 +248,9 @@ async function refreshSessionState() {
             if (appState.selectedFacilityId && typeof renderInventoryPanel === 'function') {
                 renderInventoryPanel();
             }
+            if (typeof updateGlobalActionLocks === 'function') {
+                updateGlobalActionLocks();
+            }
         }
     }
 }
@@ -239,6 +266,20 @@ async function loadNpcProgression() {
         }
     } catch (err) {
         logClient('error', `Failed to load npc progression: ${err}`);
+    }
+}
+
+async function loadCheckProfiles() {
+    if (!(window.pywebview && window.pywebview.api && window.pywebview.api.get_check_profiles)) {
+        return;
+    }
+    try {
+        const profiles = await window.pywebview.api.get_check_profiles();
+        if (profiles && typeof profiles === 'object') {
+            appState.checkProfiles = profiles;
+        }
+    } catch (err) {
+        logClient('error', `Failed to load check profiles: ${err}`);
     }
 }
 
