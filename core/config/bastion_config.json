@@ -2,109 +2,27 @@
   "version": "1.0.0",
   "game_name": "D&D Bastion Manager",
   "turn_duration": "1 week",
-  
-  "check_profiles": {
-    "d20": {
-      "apprentice": {
-        "npc_level": 1,
-        "dc": 10,
-        "crit_success": 20,
-        "crit_fail": [1, 2]
+
+  "currency": {
+    "types": [
+      "copper",
+      "silver",
+      "gold"
+    ],
+    "conversion": [
+      {
+        "from": "copper",
+        "to": "silver",
+        "rate": 10
       },
-      "experienced": {
-        "npc_level": 2,
-        "dc": 8,
-        "crit_success": 20,
-        "crit_fail": 1
-      },
-      "master": {
-        "npc_level": 3,
-        "dc": 5,
-        "crit_success": [19, 20],
-        "crit_fail": 1
+      {
+        "from": "silver",
+        "to": "gold",
+        "rate": 10
       }
-    },
-    "d20_hard": {
-      "apprentice": {
-        "npc_level": 1,
-        "dc": 15,
-        "crit_success": 20,
-        "crit_fail": [1, 2, 3]
-      },
-      "experienced": {
-        "npc_level": 2,
-        "dc": 12,
-        "crit_success": 20,
-        "crit_fail": [1, 2]
-      },
-      "master": {
-        "npc_level": 3,
-        "dc": 10,
-        "crit_success": [19, 20],
-        "crit_fail": 1
-      }
-    },
-    "d20_easy": {
-      "apprentice": {
-        "npc_level": 1,
-        "dc": 7,
-        "crit_success": [19, 20],
-        "crit_fail": 1
-      },
-      "experienced": {
-        "npc_level": 2,
-        "dc": 5,
-        "crit_success": [18, 19, 20],
-        "crit_fail": 1
-      },
-      "master": {
-        "npc_level": 3,
-        "dc": 3,
-        "crit_success": [17, 18, 19, 20],
-        "crit_fail": 1
-      }
-    },
-    "d10": {
-      "apprentice": {
-        "npc_level": 1,
-        "dc": 6,
-        "crit_success": 99,
-        "crit_fail": 0
-      },
-      "experienced": {
-        "npc_level": 2,
-        "dc": 5,
-        "crit_success": 99,
-        "crit_fail": 0
-      },
-      "master": {
-        "npc_level": 3,
-        "dc": 4,
-        "crit_success": 10,
-        "crit_fail": 0
-      }
-    },
-    "d6": {
-      "apprentice": {
-        "npc_level": 1,
-        "dc": 4,
-        "crit_success": 99,
-        "crit_fail": 0
-      },
-      "experienced": {
-        "npc_level": 2,
-        "dc": 3,
-        "crit_success": 99,
-        "crit_fail": 0
-      },
-      "master": {
-        "npc_level": 3,
-        "dc": 2,
-        "crit_success": 99,
-        "crit_fail": 0
-      }
-    }
+    ]
   },
+  
   
   "npc_progression": {
     "xp_per_success": 1,
@@ -118,15 +36,95 @@
       "3": "master"
     }
   },
-  
-  "currency": {
-    "types": ["copper", "silver", "gold"],
-    "conversion": [
-      {"from": "copper", "to": "silver", "rate": 10},
-      {"from": "silver", "to": "gold", "rate": 10}
-    ]
+
+
+  "check_profiles": {
+    "d20": {
+      "sides": 20,
+      "default": {
+        "dc": 10,
+        "crit_success": 20,
+        "crit_fail": [1,2]
+      },
+      "experienced": {
+        "dc": 9,
+        "crit_fail": 1
+      },
+      "master": {
+        "dc": 7,
+        "crit_success": [19,20],
+        "crit_fail": 1
+      }
+    },
+    "d20_hard": {
+      "sides": 20,
+      "default": {
+        "dc": 15,
+        "crit_success": 20,
+        "crit_fail": [1,2]
+      },
+      "experienced": {
+        "dc": 12,
+        "crit_fail": [1]
+      },
+      "master": {
+        "dc": 10,
+        "crit_success": [19,20],
+        "crit_fail": 1
+      }
+    },
+    "d12": {
+      "sides": 12,
+      "default": {
+        "dc": 6,
+        "crit_success": 99,
+        "crit_fail": 0
+      },
+      "master": {
+        "dc": 5
+      }
+    },
+    "d10": {
+      "sides": 10,
+      "default": {
+        "dc": 5,
+        "crit_success": 99,
+        "crit_fail": -1
+      },
+      "master": {
+        "dc": 4
+      }
+    },
+    "d6": {
+      "sides": 6,
+      "default": {
+        "dc": 4,
+        "crit_success": 99,
+        "crit_fail": -1
+      },
+      "master": {
+        "dc": 3
+      }
+    },
+    "d4": {
+      "sides": 4,
+      "default": {
+        "dc": 4,
+        "crit_success": 99,
+        "crit_fail": -1
+      }
+    },
+    "bool": {
+      "sides": 2,
+      "default": {
+        "dc": 2,
+        "crit_success": 99,
+        "crit_fail": -1
+      }
+    }
   },
-  
+
+
   "default_build_costs": {
     "new_facility": {
       "gold": 250,

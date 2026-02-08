@@ -38,7 +38,7 @@
           },
           {
             "name": "base_income",
-            "source": "fixed",
+            "source": "number",
             "default": 10,
             "label": "Base Income Multiplier"
           },

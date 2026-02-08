@@ -826,7 +826,7 @@ Mehr brauchst du für 90% aller Facilities nicht.
 
 Custom Mechanics sind nur nötig, wenn du:
 - Berechnungen brauchst
-- Märkte simulieren willst
+- Maerkte simulieren willst
 - komplexe Formeln nutzen willst
 - eigene Systeme bauen willst (Shop, Pub, Forschung, etc.)
 
@@ -1003,6 +1003,28 @@ Beispiele:
 → Ergebnisse pro Runde - wie bei normalen Orders
 
 
+#### Inputs (Quelle/Source)
+
+`source` ist Pflichtfeld.
+
+Erlaubte Quellen:
+- `number`: UI-Input fuer eine Zahl. `default` ist optional und dient als Vorschlag.
+- `check`: UI-Input fuer einen Wuerfelwurf. Pflichtfeld `check_profile` (z. B. "d20"). Gueltig: integer, Bereich 1..diceSides, Mindestwurf `d2`.
+- `stat`: Wert aus `bastion.stats`. `default` = Stat-Key (falls `name` nicht genutzt werden soll).
+- `item`: Menge aus `bastion.inventory`. `default` = Item-Key.
+- `currency`: Basiswaehrung aus Currency-Objekt, `default` z. B. { "gold": 5 }.
+
+Nicht erlaubt: `market`.
+
+Beispiel-Inputs:
+```json
+[
+  { "name": "base_income", "source": "number", "default": 5 },
+  { "name": "reputation", "source": "stat", "default": "reputation" },
+  { "name": "roll_result", "source": "check", "check_profile": "d20" }
+]
+```
+
 #### Beispiel
 ```json
 {
@@ -1011,7 +1033,7 @@ Beispiele:
   "config": {
 
     "inputs": [
-      { "name": "base_income", "source": "fixed", "default": 5 },
+      { "name": "base_income", "source": "number", "default": 5 },
       { "name": "reputation", "source": "stat", "default": "reputation" }
     ],
 
@@ -1032,23 +1054,23 @@ Beispiele:
   { "trigger": "pub_income" }
 ]
 ```
-der Effect ```trigger``` ruft die Mechanik mit dieser ID auf. Und der DM muss entsprechende Imputs eingeben und erhält das Ergebnis.
+der Effect ```trigger``` ruft die Mechanik mit dieser ID auf. UI-Inputs sind `number` und `check`. `stat`, `item`, `currency` kommen automatisch aus dem Session-State.
 
 ### market_tracker
 
 Simuliert Marktpreise oder Angebot/Nachfrage.
 
-Gut für:
+Gut fuer:
 - Shops
 - Handel
 - Wirtschaftssysteme
 
 Beispiel:
-- Preise schwanken zwischen −20% und +20%
-- Kategorien wie Waffen, Rüstung, Tränke
+- Preise schwanken zwischen -20% und +20%
+- Kategorien wie Waffen, Ruestung, Traenke
 
-Nur nötig, wenn du echte Marktmechanik willst.
-Für einfache „+10 Gold“-Belohnungen unnötig.
+Nur noetig, wenn du echte Marktmechanik willst.
+Fuer einfache "+10 Gold"-Belohnungen unnoetig.
 
 ```json
 {
@@ -1063,19 +1085,6 @@ Für einfache „+10 Gold“-Belohnungen unnötig.
     "price_range": [-0.3, 0.5]
   }
 }
-```
- #### Verwnendung in Formular-Engine
- market-Werte können als Input genutzt werden:
-```json
-{
-  "name": "weapons_market",
-  "source": "market",
-  "default": "weapons"
-}
-```
-oder direkt beim calculations:
-```json
-{ "name": "profit", "formula": "base_volume * weapons_market" }
 ```
 
 ## Wann sollte ich Mechanics benutzen?

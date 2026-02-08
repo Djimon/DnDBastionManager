@@ -43,87 +43,82 @@
         "inputs": [
           {
             "name": "weapons_market",
-            "source": "market",
-            "default": "weapons",
+            "source": "number",
             "label": "Weapons Market (%)"
           },
           {
             "name": "armor_market",
-            "source": "market",
-            "default": "armor",
+            "source": "number",
             "label": "Armor Market (%)"
           },
           {
             "name": "potions_market",
-            "source": "market",
-            "default": "potions",
+            "source": "number",
             "label": "Potions Market (%)"
           },
           {
             "name": "tools_market",
-            "source": "market",
-            "default": "tools",
+            "source": "number",
             "label": "Tools Market (%)"
           },
           {
             "name": "jewelry_market",
-            "source": "market",
-            "default": "jewelry",
+            "source": "number",
             "label": "jewelry Market (%)"
           },
           {
             "name": "weapons_sell",
-            "source": "prompt",
+            "source": "number",
             "label": "SELL Weapons at markup (%, 0=skip)"
           },
           {
             "name": "armor_sell",
-            "source": "prompt",
+            "source": "number",
             "label": "SELL Armor at markup (%, 0=skip)"
           },
           {
             "name": "potions_sell",
-            "source": "prompt",
+            "source": "number",
             "label": "SELL Potions at markup (%, 0=skip)"
           },
           {
             "name": "tools_sell",
-            "source": "prompt",
+            "source": "number",
             "label": "SELL Tools at markup (%, 0=skip)"
           },
           {
             "name": "jewelry_sell",
-            "source": "prompt",
+            "source": "number",
             "label": "SELL jewelry at markup (%, 0=skip)"
           },
           {
             "name": "weapons_buy",
-            "source": "prompt",
+            "source": "number",
             "label": "BUY Weapons at discount (%, 0=skip)"
           },
           {
             "name": "armor_buy",
-            "source": "prompt",
+            "source": "number",
             "label": "BUY Armor at discount (%, 0=skip)"
           },
           {
             "name": "potions_buy",
-            "source": "prompt",
+            "source": "number",
             "label": "BUY Potions at discount (%, 0=skip)"
           },
           {
             "name": "tools_buy",
-            "source": "prompt",
+            "source": "number",
             "label": "BUY Tools at discount (%, 0=skip)"
           },
           {
             "name": "jewelry_buy",
-            "source": "prompt",
+            "source": "number",
             "label": "BUY jewelry at discount (%, 0=skip)"
           },
           {
             "name": "base_volume",
-            "source": "fixed",
+            "source": "number",
             "default": 100,
             "label": "Base Trade Volume (GP)"
           }

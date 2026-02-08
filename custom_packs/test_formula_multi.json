@@ -11,13 +11,13 @@
         "inputs": [
           {
             "name": "base_gold",
-            "source": "fixed",
+            "source": "number",
             "default": 10,
             "label": "Base Gold"
           },
           {
             "name": "bonus",
-            "source": "prompt",
+            "source": "number",
             "label": "Bonus Gold"
           }
         ],
@@ -44,12 +44,12 @@
         "inputs": [
           {
             "name": "loss",
-            "source": "prompt",
+            "source": "number",
             "label": "Loss Amount"
           },
           {
             "name": "fee",
-            "source": "fixed",
+            "source": "number",
             "default": 2,
             "label": "Admin Fee"
           }
