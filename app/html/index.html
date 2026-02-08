@@ -282,8 +282,28 @@
                             </div>
                         </section>
                         <aside id="inventory-panel" class="inventory-panel hidden">
-                            <h4 data-i18n="inventory.title">Inventar</h4>
+                            <div class="inventory-header">
+                                <h4 data-i18n="inventory.title">Inventar</h4>
+                                <button class="btn btn-secondary btn-small" onclick="toggleTreasuryPanel()" data-i18n="inventory.manage">Verwalten</button>
+                            </div>
                             <div id="inventory-wallet" class="inventory-wallet"></div>
+                            <div id="treasury-panel" class="treasury-adjust hidden">
+                                <label class="treasury-label" data-i18n="treasury.title">Schatzkammer</label>
+                                <div class="treasury-row">
+                                    <input type="number" id="treasury-amount" class="treasury-input" min="0" step="1" placeholder="0" />
+                                    <select id="treasury-currency" class="treasury-select"></select>
+                                    <button class="btn btn-success btn-small" onclick="adjustTreasury('add')" data-i18n="treasury.mode_add">Add</button>
+                                    <button class="btn btn-danger btn-small" onclick="adjustTreasury('remove')" data-i18n="treasury.mode_remove">Remove</button>
+                                </div>
+                                <div class="inventory-manage-divider"></div>
+                                <label class="treasury-label" data-i18n="inventory.items_title">Items</label>
+                                <div class="treasury-row">
+                                    <input type="text" id="inventory-item-name" class="inventory-item-input" data-i18n-placeholder="inventory.item_placeholder" placeholder="item_id" />
+                                    <input type="number" id="inventory-item-qty" class="treasury-input" min="0" step="1" data-i18n-placeholder="inventory.qty_placeholder" placeholder="0" />
+                                    <button class="btn btn-success btn-small" onclick="adjustInventoryItem('add')" data-i18n="inventory.item_add">Hinzufügen</button>
+                                    <button class="btn btn-danger btn-small" onclick="adjustInventoryItem('remove')" data-i18n="inventory.item_remove">Entfernen</button>
+                                </div>
+                            </div>
                             <div id="inventory-groups" class="inventory-groups"></div>
                             <p id="inventory-empty" class="text-muted hidden" data-i18n="inventory.empty">Keine Items im Inventar.</p>
                         </aside>
@@ -296,18 +316,7 @@
                             <button class="btn btn-secondary" onclick="switchView(2)" data-i18n="turn.build_new">+ Build New Facility</button>
                             <button class="btn btn-secondary" onclick="openNPCModal()" data-i18n="turn.manage_npcs">👥 Manage NPCs</button>
                             <button id="orders-roll-eval-all" class="btn btn-secondary" onclick="rollAndEvaluateAllReady()" data-i18n="turn.roll_evaluate_all">🎲 Alles rollen & auswerten</button>
-                            <button class="btn btn-secondary" onclick="toggleTreasuryPanel()" data-i18n="treasury.manage">Schatzkammer verwalten</button>
                             <button class="btn btn-success" onclick="saveSession()" data-i18n="turn.save_session">💾 Save Session</button>
-                        </div>
-
-                        <div id="treasury-panel" class="treasury-adjust hidden">
-                            <label class="treasury-label" data-i18n="treasury.title">Treasury</label>
-                            <div class="treasury-row">
-                                <input type="number" id="treasury-amount" class="treasury-input" min="0" step="1" placeholder="0" />
-                                <select id="treasury-currency" class="treasury-select"></select>
-                                <button class="btn btn-success btn-small" onclick="adjustTreasury('add')" data-i18n="treasury.mode_add">Add</button>
-                                <button class="btn btn-danger btn-small" onclick="adjustTreasury('remove')" data-i18n="treasury.mode_remove">Remove</button>
-                            </div>
                         </div>
 
                         <div class="turn-log">

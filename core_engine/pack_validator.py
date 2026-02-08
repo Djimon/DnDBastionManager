@@ -179,12 +179,12 @@ class PackValidator:
                         result.add_error(f"check_profile '{profile_name}.{level_key}' must not include 'npc_level'.")
                     for key, value in entry.items():
                         if key not in {"dc", "crit_success", "crit_fail"}:
-                            result.add_error(f\"check_profile '{profile_name}.{level_key}' has unknown key '{key}'.\")
+                            result.add_error(f"check_profile '{profile_name}.{level_key}' has unknown key '{key}'.")
                             continue
                         if key == "dc" and not isinstance(value, int):
-                            result.add_error(f\"check_profile '{profile_name}.{level_key}.dc' must be int.\")
+                            result.add_error(f"check_profile '{profile_name}.{level_key}.dc' must be int.")
                         if key in {"crit_success", "crit_fail"} and not is_int_or_int_list(value):
-                            result.add_error(f\"check_profile '{profile_name}.{level_key}.{key}' must be int or list of int.\")
+                            result.add_error(f"check_profile '{profile_name}.{level_key}.{key}' must be int or list of int.")
 
 
         # npc_progression checks

@@ -374,6 +374,60 @@ async function adjustTreasury(mode = 'add') {
     amountEl.value = '';
 }
 
+async function adjustInventoryItem(mode = 'add') {
+    const nameEl = document.getElementById('inventory-item-name');
+    const qtyEl = document.getElementById('inventory-item-qty');
+    if (!nameEl || !qtyEl) {
+        return;
+    }
+    const item = String(nameEl.value || '').trim();
+    const qty = parseInt(qtyEl.value, 10);
+    if (!item || !Number.isInteger(qty) || qty < 0) {
+        alert(t('inventory.invalid'));
+        return;
+    }
+    let delta = qty;
+    if (mode === 'remove') {
+        delta = -qty;
+    } else if (mode !== 'add') {
+        alert(t('inventory.invalid'));
+        return;
+    }
+    if (delta === 0) {
+        showToast(t('inventory.no_change'), 'warn');
+        return;
+    }
+
+    if (!(window.pywebview && window.pywebview.api && window.pywebview.api.apply_effects)) {
+        alert(t('alerts.pywebview_unavailable'));
+        return;
+    }
+
+    const effect = { item, qty: delta };
+    const context = {
+        event_type: 'inventory_adjust',
+        source_type: 'dm',
+        source_id: 'manual',
+        action: mode === 'remove' ? 'remove' : 'add',
+        result: 'applied',
+        log_text: t('inventory.log_text', { item, qty: formatSigned(delta) })
+    };
+
+    const response = await window.pywebview.api.apply_effects([effect], context);
+    if (!response || !response.success) {
+        alert(t('inventory.failed'));
+        return;
+    }
+
+    await refreshSessionState();
+    renderInventoryPanel();
+    const effectText = formatEffectEntries(response.entries || []);
+    const summary = t('inventory.applied', { effects: effectText });
+    addLogEntry(summary, 'event');
+    showToast(summary, 'success');
+    qtyEl.value = '';
+}
+
 function showToast(message, type = 'info', duration = 4500) {
     const container = document.getElementById('toast-container');
     if (!container) {

@@ -65,7 +65,7 @@
       },
       "experienced": {
         "dc": 12,
-        "crit_fail": [1]
+        "crit_fail": 1
       },
       "master": {
         "dc": 10,

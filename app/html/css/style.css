@@ -683,6 +683,17 @@ legend {
     overflow: hidden;
 }
 
+.inventory-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+}
+
+.inventory-header h4 {
+    margin: 0;
+}
+
 .inventory-wallet {
     font-weight: 600;
     color: var(--primary);
@@ -730,6 +741,16 @@ legend {
     justify-content: space-between;
     padding: 0.25rem 0;
     font-size: 0.85rem;
+}
+
+.inventory-manage-divider {
+    height: 1px;
+    background: var(--border);
+    opacity: 0.7;
+}
+
+.inventory-item-input {
+    min-width: 160px;
 }
 
 .detail-info {
