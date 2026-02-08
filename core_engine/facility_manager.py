@@ -689,6 +689,8 @@ class FacilityManager:
         roll = None
         if check_profile:
             sides = self._dice_sides_from_profile(check_profile)
+            if sides is None:
+                return {"success": False, "message": "Invalid check profile"}
             if auto:
                 roll = random.randint(1, sides)
             else:
@@ -732,13 +734,17 @@ class FacilityManager:
 
         config = formula_def.get("config", {}) if isinstance(formula_def, dict) else {}
         input_defs = config.get("inputs", []) if isinstance(config.get("inputs"), list) else []
-        prompt_inputs = [i for i in input_defs if isinstance(i, dict) and i.get("source") == "prompt"]
+        user_inputs = [
+            i
+            for i in input_defs
+            if isinstance(i, dict) and self._is_formula_user_input_source(i.get("source"))
+        ]
 
         if not isinstance(inputs, dict):
             return {"success": False, "message": "Invalid formula inputs"}
 
         parsed_inputs: Dict[str, float] = {}
-        for input_def in prompt_inputs:
+        for input_def in user_inputs:
             name = input_def.get("name")
             if not isinstance(name, str) or not name:
                 continue
@@ -748,9 +754,22 @@ class FacilityManager:
                 return {"success": False, "message": "Formula inputs missing"}
             raw_val = inputs.get(name)
             try:
-                parsed_inputs[name] = float(raw_val)
+                parsed_value = float(raw_val)
             except (TypeError, ValueError):
                 return {"success": False, "message": "Formula inputs invalid"}
+            source = self._normalize_formula_source(input_def.get("source"))
+            if source == "check":
+                sides = self._get_check_profile_sides(input_def.get("check_profile"))
+                if sides is None:
+                    return {"success": False, "message": "Formula inputs invalid"}
+                if not parsed_value.is_integer():
+                    return {"success": False, "message": "Formula inputs invalid"}
+                parsed_int = int(parsed_value)
+                if parsed_int < 1 or parsed_int > sides:
+                    return {"success": False, "message": "Formula inputs invalid"}
+                parsed_inputs[name] = parsed_int
+            else:
+                parsed_inputs[name] = parsed_value
 
         order_entry.setdefault("formula_inputs", {})
         order_entry["formula_inputs"][trigger_id] = parsed_inputs
@@ -782,6 +801,9 @@ class FacilityManager:
         roll = order_entry.get("roll")
         if check_profile and not order_entry.get("roll_locked"):
             return {"success": False, "message": "Roll not locked"}
+        if check_profile:
+            if not self._resolve_check_profile(check_profile, order_entry.get("npc_level")):
+                return {"success": False, "message": "Invalid check profile"}
 
         npc_level = order_entry.get("npc_level")
         result_bucket = self._determine_outcome(check_profile, npc_level, roll)
@@ -916,7 +938,7 @@ class FacilityManager:
                     errors.append(f"Formula not found: {trigger_id}")
                 else:
                     stored_inputs = stored_inputs_all.get(trigger_id, {}) if isinstance(stored_inputs_all, dict) else {}
-                    missing = self._missing_prompt_inputs(formula_def, stored_inputs)
+                    missing = self._missing_formula_inputs(formula_def, stored_inputs)
                     if missing:
                         errors.append("Formula inputs missing")
                     else:
@@ -935,14 +957,46 @@ class FacilityManager:
 
         return resolved, errors
 
-    def _missing_prompt_inputs(self, formula_def: Dict[str, Any], stored_inputs: Any) -> List[str]:
+    def _normalize_formula_source(self, source: Any) -> Optional[str]:
+        if not isinstance(source, str):
+            return None
+        source = source.strip().lower()
+        return source or None
+
+    def _is_formula_user_input_source(self, source: Any) -> bool:
+        return self._normalize_formula_source(source) in {"number", "check"}
+
+    def _get_check_profile(self, check_profile: Any) -> Optional[Dict[str, Any]]:
+        if not isinstance(check_profile, str) or not check_profile:
+            return None
+        profiles = self.config.get("check_profiles", {})
+        if not isinstance(profiles, dict):
+            return None
+        profile = profiles.get(check_profile)
+        if not isinstance(profile, dict):
+            return None
+        return profile
+
+    def _get_check_profile_sides(self, check_profile: Any) -> Optional[int]:
+        profile = self._get_check_profile(check_profile)
+        if not profile:
+            return None
+        sides = profile.get("sides")
+        if not isinstance(sides, int):
+            return None
+        if sides < 2:
+            return None
+        return sides
+
+    def _missing_formula_inputs(self, formula_def: Dict[str, Any], stored_inputs: Any) -> List[str]:
         config = formula_def.get("config", {}) if isinstance(formula_def, dict) else {}
         inputs = config.get("inputs", []) if isinstance(config.get("inputs"), list) else []
         missing = []
         for input_def in inputs:
             if not isinstance(input_def, dict):
                 continue
-            if input_def.get("source") != "prompt":
+            source = self._normalize_formula_source(input_def.get("source"))
+            if source not in {"number", "check"}:
                 continue
             name = input_def.get("name")
             if not isinstance(name, str) or not name:
@@ -954,9 +1008,17 @@ class FacilityManager:
                 missing.append(name)
                 continue
             try:
-                float(value)
+                numeric = float(value)
             except (TypeError, ValueError):
                 missing.append(name)
+                continue
+            if source == "check":
+                sides = self._get_check_profile_sides(input_def.get("check_profile"))
+                if sides is None or not numeric.is_integer():
+                    missing.append(name)
+                    continue
+                if int(numeric) < 1 or int(numeric) > sides:
+                    missing.append(name)
         return missing
 
     def _execute_formula_engine(
@@ -1021,20 +1083,36 @@ class FacilityManager:
             name = input_def.get("name")
             if not isinstance(name, str) or not name:
                 continue
-            source = input_def.get("source") or "fixed"
+            source = self._normalize_formula_source(input_def.get("source"))
             default = input_def.get("default")
             value: Any = 0
 
-            if source == "prompt":
+            if source in {"number", "check"}:
                 if isinstance(stored_inputs, dict) and name in stored_inputs:
-                    value = stored_inputs.get(name)
+                    raw_value = stored_inputs.get(name)
                 elif default is not None:
-                    value = default
+                    raw_value = default
                 else:
                     errors.append(f"Missing formula input: {name}")
                     continue
-            elif source == "fixed":
-                value = default if default is not None else 0
+                try:
+                    numeric = float(raw_value)
+                except (TypeError, ValueError):
+                    errors.append(f"Invalid formula input: {name}")
+                    continue
+                if source == "check":
+                    sides = self._get_check_profile_sides(input_def.get("check_profile"))
+                    if sides is None:
+                        errors.append(f"Invalid check_profile for input: {name}")
+                        continue
+                    if not numeric.is_integer():
+                        errors.append(f"Invalid formula input: {name}")
+                        continue
+                    numeric = int(numeric)
+                    if numeric < 1 or numeric > sides:
+                        errors.append(f"Invalid formula input: {name}")
+                        continue
+                value = numeric
             elif source == "stat":
                 stat_key = default if isinstance(default, str) else name
                 value = stats.get(stat_key, 0)
@@ -1043,10 +1121,9 @@ class FacilityManager:
                 value = self._get_inventory_qty(inventory, item_key)
             elif source == "currency":
                 value = self._currency_to_base(default)
-            elif source == "market":
-                value = 0
             else:
-                value = default if default is not None else 0
+                errors.append(f"Invalid formula input source: {name}")
+                continue
 
             variables[name] = self._coerce_number(value)
 
@@ -1736,24 +1813,15 @@ class FacilityManager:
             remaining = rem if remaining is None else min(remaining, rem)
         return remaining
 
-    def _dice_sides_from_profile(self, check_profile: str) -> int:
-        if not isinstance(check_profile, str) or not check_profile.startswith("d"):
-            return 20
-        digits = ""
-        for ch in check_profile[1:]:
-            if ch.isdigit():
-                digits += ch
-            else:
-                break
-        try:
-            return int(digits) if digits else 20
-        except ValueError:
-            return 20
+    def _dice_sides_from_profile(self, check_profile: str) -> Optional[int]:
+        return self._get_check_profile_sides(check_profile)
 
     def _resolve_check_profile(self, check_profile: str, npc_level: Any) -> Optional[Dict[str, Any]]:
-        profiles = self.config.get("check_profiles", {})
-        profile = profiles.get(check_profile)
-        if not isinstance(profile, dict):
+        profile = self._get_check_profile(check_profile)
+        if not profile:
+            return None
+        default = profile.get("default")
+        if not isinstance(default, dict):
             return None
         level_names = self.config.get("npc_progression", {}).get("level_names", {})
         level_key = None
@@ -1762,7 +1830,11 @@ class FacilityManager:
         if not level_key:
             fallback = {1: "apprentice", 2: "experienced", 3: "master"}
             level_key = fallback.get(npc_level, "apprentice")
-        return profile.get(level_key)
+        override = profile.get(level_key)
+        if not isinstance(override, dict):
+            override = {}
+        merged = {**default, **override}
+        return merged
 
     def _value_set(self, value: Any) -> set:
         if isinstance(value, list):

@@ -3,6 +3,7 @@
   "name": "Whisper Office",
   "version": 4,
   "author": "Djih",
+  
   "custom_mechanics": [
     {
       "id": "heat",

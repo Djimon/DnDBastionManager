@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "game_name": "D&D Bastion Manager",
+  "config_type": "bastion_config",
   "turn_duration": "1 week",
 
   "currency": {

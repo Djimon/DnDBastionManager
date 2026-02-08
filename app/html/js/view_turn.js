@@ -523,20 +523,13 @@ function getDiceSides(checkProfile) {
     if (!checkProfile || typeof checkProfile !== 'string') {
         return null;
     }
-    if (!checkProfile.startsWith('d')) {
+    const profiles = appState.checkProfiles || {};
+    const profile = profiles[checkProfile];
+    if (!profile || typeof profile !== 'object') {
         return null;
     }
-    let digits = '';
-    for (let i = 1; i < checkProfile.length; i += 1) {
-        const ch = checkProfile[i];
-        if (ch >= '0' && ch <= '9') {
-            digits += ch;
-        } else {
-            break;
-        }
-    }
-    const sides = parseInt(digits, 10);
-    return Number.isInteger(sides) ? sides : null;
+    const sides = profile.sides;
+    return Number.isInteger(sides) && sides >= 2 ? sides : null;
 }
 
 function getOrderStatus(order) {
@@ -582,10 +575,12 @@ function determineOutcomeBucket(checkProfileId, npcLevel, roll) {
         return 'on_failure';
     }
     const levelKey = resolveNpcLevelKey(npcLevel);
-    const levelProfile = profile[levelKey];
-    if (!levelProfile) {
+    const baseProfile = profile.default;
+    if (!baseProfile || typeof baseProfile !== 'object') {
         return 'on_failure';
     }
+    const override = profile[levelKey] && typeof profile[levelKey] === 'object' ? profile[levelKey] : {};
+    const levelProfile = { ...baseProfile, ...override };
     const critSuccess = toNumberSet(levelProfile.crit_success);
     const critFail = toNumberSet(levelProfile.crit_fail);
     if (critSuccess.has(roll)) {
@@ -662,10 +657,21 @@ function getFormulaDefinition(triggerId) {
     return appState.formulaRegistry[triggerId] || null;
 }
 
+function getFormulaInputSource(input) {
+    if (!input || !input.source) {
+        return null;
+    }
+    return String(input.source).toLowerCase();
+}
+
+function isFormulaUserInputSource(source) {
+    return source === 'number' || source === 'check';
+}
+
 function getFormulaPromptInputs(formulaDef) {
     const config = formulaDef && formulaDef.config ? formulaDef.config : {};
     const inputs = Array.isArray(config.inputs) ? config.inputs : [];
-    return inputs.filter(input => input && input.source === 'prompt' && input.name);
+    return inputs.filter(input => input && isFormulaUserInputSource(getFormulaInputSource(input)) && input.name);
 }
 
 function getSavedFormulaInputs(orderEntry, triggerId) {
@@ -692,12 +698,48 @@ function isNumericValue(value) {
     return false;
 }
 
+function isIntegerValue(value) {
+    if (value === null || value === undefined) {
+        return false;
+    }
+    if (typeof value === 'number') {
+        return Number.isInteger(value);
+    }
+    if (typeof value === 'string') {
+        if (!value.trim()) {
+            return false;
+        }
+        const numeric = Number(value);
+        return Number.isInteger(numeric);
+    }
+    return false;
+}
+
+function isCheckValueValid(input, value) {
+    if (!isIntegerValue(value)) {
+        return false;
+    }
+    const profile = input && input.check_profile ? input.check_profile : null;
+    const sides = profile ? getDiceSides(profile) : null;
+    if (!sides) {
+        return false;
+    }
+    const numeric = Number(value);
+    return numeric >= 1 && numeric <= sides;
+}
+
 function areFormulaInputsSaved(orderEntry, triggerId, promptInputs) {
     if (!promptInputs || promptInputs.length === 0) {
         return true;
     }
     const saved = getSavedFormulaInputs(orderEntry, triggerId);
-    return promptInputs.every(input => isNumericValue(saved[input.name]));
+    return promptInputs.every(input => {
+        const source = getFormulaInputSource(input);
+        if (source === 'check') {
+            return isCheckValueValid(input, saved[input.name]);
+        }
+        return isNumericValue(saved[input.name]);
+    });
 }
 
 function getFormulaInfoForOrder(orderDef, orderEntry) {
@@ -1191,7 +1233,18 @@ function openFormulaInputModal(facilityId, orderId, triggerId, formulaDef, saved
 
             const field = document.createElement('input');
             field.type = 'number';
-            field.step = 'any';
+            const source = getFormulaInputSource(input);
+            if (source === 'check') {
+                field.step = '1';
+                field.min = '1';
+                const sides = input.check_profile ? getDiceSides(input.check_profile) : null;
+                if (sides) {
+                    field.max = String(sides);
+                    field.placeholder = String(Math.ceil(sides / 2));
+                }
+            } else {
+                field.step = 'any';
+            }
             field.id = `formula-input-${input.name}`;
             const existing = savedInputs && savedInputs[input.name] !== undefined ? savedInputs[input.name] : input.default;
             field.value = existing !== undefined && existing !== null ? existing : '';
@@ -1220,11 +1273,24 @@ async function saveFormulaInputs() {
     for (const input of promptInputs) {
         const field = document.getElementById(`formula-input-${input.name}`);
         const value = field ? field.value : '';
-        if (!isNumericValue(value)) {
+        const source = getFormulaInputSource(input);
+        if (!source) {
             alert(t('alerts.formula_inputs_missing'));
             return;
         }
-        inputs[input.name] = Number(value);
+        if (source === 'check') {
+            if (!isCheckValueValid(input, value)) {
+                alert(t('alerts.formula_inputs_missing'));
+                return;
+            }
+            inputs[input.name] = Number(value);
+        } else {
+            if (!isNumericValue(value)) {
+                alert(t('alerts.formula_inputs_missing'));
+                return;
+            }
+            inputs[input.name] = Number(value);
+        }
     }
 
     if (!(window.pywebview && window.pywebview.api && window.pywebview.api.save_formula_inputs)) {

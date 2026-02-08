@@ -136,22 +136,55 @@ class PackValidator:
         if "check_profiles" not in data or not isinstance(data["check_profiles"], dict):
             result.add_error("bastion_config.json missing 'check_profiles' object.")
         else:
+            def is_int_list(value: Any) -> bool:
+                return isinstance(value, list) and all(isinstance(v, int) for v in value)
+
+            def is_int_or_int_list(value: Any) -> bool:
+                return isinstance(value, int) or is_int_list(value)
+
             for profile_name, profile in data["check_profiles"].items():
                 if not isinstance(profile, dict):
                     result.add_error(f"check_profile '{profile_name}' must be an object.")
                     continue
+                sides = profile.get("sides")
+                if not isinstance(sides, int) or sides < 2:
+                    result.add_error(f"check_profile '{profile_name}' missing or invalid 'sides'.")
+                default = profile.get("default")
+                if not isinstance(default, dict):
+                    result.add_error(f"check_profile '{profile_name}' missing 'default' object.")
+                    continue
+                if "npc_level" in default:
+                    result.add_error(f"check_profile '{profile_name}.default' must not include 'npc_level'.")
+                if "dc" not in default:
+                    result.add_error(f"check_profile '{profile_name}.default' missing 'dc'.")
+                elif not isinstance(default.get("dc"), int):
+                    result.add_error(f"check_profile '{profile_name}.default.dc' must be int.")
+                if "crit_success" not in default:
+                    result.add_error(f"check_profile '{profile_name}.default' missing 'crit_success'.")
+                elif not is_int_or_int_list(default.get("crit_success")):
+                    result.add_error(f"check_profile '{profile_name}.default.crit_success' must be int or list of int.")
+                if "crit_fail" not in default:
+                    result.add_error(f"check_profile '{profile_name}.default' missing 'crit_fail'.")
+                elif not is_int_or_int_list(default.get("crit_fail")):
+                    result.add_error(f"check_profile '{profile_name}.default.crit_fail' must be int or list of int.")
+
                 for level_key in ["apprentice", "experienced", "master"]:
                     if level_key not in profile:
-                        result.add_warning(f"check_profile '{profile_name}' missing '{level_key}'.")
                         continue
-                    entry = profile[level_key]
+                    entry = profile.get(level_key)
                     if not isinstance(entry, dict):
                         result.add_error(f"check_profile '{profile_name}.{level_key}' must be an object.")
                         continue
-                    if "dc" not in entry:
-                        result.add_error(f"check_profile '{profile_name}.{level_key}' missing 'dc'.")
-                    if "npc_level" not in entry:
-                        result.add_warning(f"check_profile '{profile_name}.{level_key}' missing 'npc_level'.")
+                    if "npc_level" in entry:
+                        result.add_error(f"check_profile '{profile_name}.{level_key}' must not include 'npc_level'.")
+                    for key, value in entry.items():
+                        if key not in {"dc", "crit_success", "crit_fail"}:
+                            result.add_error(f\"check_profile '{profile_name}.{level_key}' has unknown key '{key}'.\")
+                            continue
+                        if key == "dc" and not isinstance(value, int):
+                            result.add_error(f\"check_profile '{profile_name}.{level_key}.dc' must be int.\")
+                        if key in {"crit_success", "crit_fail"} and not is_int_or_int_list(value):
+                            result.add_error(f\"check_profile '{profile_name}.{level_key}.{key}' must be int or list of int.\")
 
 
         # npc_progression checks
