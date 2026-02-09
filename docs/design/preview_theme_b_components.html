@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bastion Theme B Components</title>
+    <link rel="stylesheet" href="preview_theme_b_components.css">
+</head>
+<body>
+    <header class="page-top">
+        <div class="page-brand">
+            <div class="brand-mark">BM</div>
+            <div>
+                <div class="brand-title">Theme B Komponenten</div>
+                <div class="brand-sub">Light/Dark Vorschau</div>
+            </div>
+        </div>
+        <div class="page-actions">
+            <button class="btn ghost" id="theme-toggle" type="button">Dark mode</button>
+        </div>
+    </header>
+
+    <main class="page">
+        <section class="block">
+            <h2>Header-Bar</h2>
+            <div class="variant-grid">
+                <div class="variant">
+                    <div class="variant-title">Variante A</div>
+                    <header class="header-bar header-a">
+                        <div class="brand">
+                            <span class="brand-chip">B</span>
+                            <div>
+                                <div class="header-title">Bastion Manager</div>
+                                <div class="header-sub">Session: Ashen Vale</div>
+                            </div>
+                        </div>
+                        <div class="header-actions">
+                            <button class="btn ghost">Load</button>
+                            <button class="btn">Save</button>
+                        </div>
+                    </header>
+                </div>
+                <div class="variant">
+                    <div class="variant-title">Variante B</div>
+                    <header class="header-bar header-b">
+                        <div class="brand">
+                            <span class="brand-chip outlined">BM</span>
+                            <div>
+                                <div class="header-title">Bastion Manager</div>
+                                <div class="header-sub">Turn 12 · Red March</div>
+                            </div>
+                        </div>
+                        <div class="header-actions">
+                            <button class="btn ghost">Load</button>
+                            <button class="btn">Save</button>
+                        </div>
+                    </header>
+                </div>
+            </div>
+        </section>
+
+        <section class="block">
+            <h2>Facility-Listen-Karten</h2>
+            <div class="variant-grid">
+                <div class="variant">
+                    <div class="variant-title">Variante A</div>
+                    <div class="facility-list">
+                        <div class="facility-card facility-a">
+                            <div class="facility-name">Workshop</div>
+                            <div class="facility-meta">Tier 2 · Slots 3/4</div>
+                        </div>
+                        <div class="facility-card facility-a">
+                            <div class="facility-name">Arcane Study</div>
+                            <div class="facility-meta">Tier 1 · Slots 1/2</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="variant">
+                    <div class="variant-title">Variante B</div>
+                    <div class="facility-list">
+                        <div class="facility-card facility-b">
+                            <div class="facility-name">Workshop</div>
+                            <div class="facility-meta">Tier 2 · Slots 3/4</div>
+                        </div>
+                        <div class="facility-card facility-b">
+                            <div class="facility-name">Arcane Study</div>
+                            <div class="facility-meta">Tier 1 · Slots 1/2</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="block">
+            <h2>Order Cards + Badges</h2>
+            <div class="variant-grid">
+                <div class="variant">
+                    <div class="variant-title">Variante A</div>
+                    <article class="order-card order-a">
+                        <div class="order-header">
+                            <div class="order-title">Refit Armory</div>
+                            <span class="badge badge-good">On Track</span>
+                        </div>
+                        <div class="order-meta">Owner: Arwyn · Turns: 2</div>
+                        <div class="order-badges">
+                            <span class="badge ghost">Build</span>
+                            <span class="badge ghost">Gold</span>
+                        </div>
+                    </article>
+                    <article class="order-card order-a">
+                        <div class="order-header">
+                            <div class="order-title">Enchanting Run</div>
+                            <span class="badge badge-warn">Needs Input</span>
+                        </div>
+                        <div class="order-meta">Owner: Merric · Turns: 5</div>
+                        <div class="order-badges">
+                            <span class="badge ghost">Check</span>
+                            <span class="badge ghost">Arcana</span>
+                        </div>
+                    </article>
+                </div>
+                <div class="variant">
+                    <div class="variant-title">Variante B</div>
+                    <article class="order-card order-b">
+                        <div class="order-title">Refit Armory</div>
+                        <div class="order-meta">Owner: Arwyn · Turns: 2</div>
+                        <div class="order-badges">
+                            <span class="badge badge-good">On Track</span>
+                            <span class="badge ghost">Build</span>
+                            <span class="badge ghost">Gold</span>
+                        </div>
+                    </article>
+                    <article class="order-card order-b">
+                        <div class="order-title">Enchanting Run</div>
+                        <div class="order-meta">Owner: Merric · Turns: 5</div>
+                        <div class="order-badges">
+                            <span class="badge badge-warn">Needs Input</span>
+                            <span class="badge ghost">Check</span>
+                            <span class="badge ghost">Arcana</span>
+                        </div>
+                    </article>
+                </div>
+            </div>
+        </section>
+
+        <section class="block">
+            <h2>Tabs</h2>
+            <div class="variant-grid">
+                <div class="variant">
+                    <div class="variant-title">Variante A</div>
+                    <div class="tabs tabs-a">
+                        <button class="tab active">Overview</button>
+                        <button class="tab">Orders</button>
+                        <button class="tab">Inventory</button>
+                        <button class="tab">NPCs</button>
+                    </div>
+                </div>
+                <div class="variant">
+                    <div class="variant-title">Variante B</div>
+                    <div class="tabs tabs-b">
+                        <button class="tab active">Overview</button>
+                        <button class="tab">Orders</button>
+                        <button class="tab">Inventory</button>
+                        <button class="tab">NPCs</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="block">
+            <h2>Toasts</h2>
+            <div class="variant-grid">
+                <div class="variant">
+                    <div class="variant-title">Variante A</div>
+                    <div class="toast-stack">
+                        <div class="toast toast-a">
+                            <div class="toast-title">Gespeichert</div>
+                            <div class="toast-body">Session wurde gespeichert.</div>
+                            <button class="toast-close">×</button>
+                        </div>
+                        <div class="toast toast-a warn">
+                            <div class="toast-title">Input fehlt</div>
+                            <div class="toast-body">Bitte Check-Profil ergänzen.</div>
+                            <button class="toast-close">×</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="variant">
+                    <div class="variant-title">Variante B</div>
+                    <div class="toast-stack">
+                        <div class="toast toast-b">
+                            <div class="toast-title">Gespeichert</div>
+                            <div class="toast-body">Session wurde gespeichert.</div>
+                            <button class="toast-close">×</button>
+                        </div>
+                        <div class="toast toast-b warn">
+                            <div class="toast-title">Input fehlt</div>
+                            <div class="toast-body">Bitte Check-Profil ergänzen.</div>
+                            <button class="toast-close">×</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="block">
+            <h2>Modals</h2>
+            <div class="variant-grid">
+                <div class="variant">
+                    <div class="variant-title">Variante A</div>
+                    <div class="modal-card modal-a">
+                        <div class="modal-header">
+                            <div class="modal-title">Session laden</div>
+                            <button class="modal-close">×</button>
+                        </div>
+                        <div class="modal-body">
+                            Letzte Session: Ashen Vale · Turn 12
+                        </div>
+                        <div class="modal-footer">
+                            <button class="btn ghost">Abbrechen</button>
+                            <button class="btn">Laden</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="variant">
+                    <div class="variant-title">Variante B</div>
+                    <div class="modal-card modal-b">
+                        <div class="modal-header">
+                            <div class="modal-title">Session laden</div>
+                            <button class="modal-close">×</button>
+                        </div>
+                        <div class="modal-body">
+                            Letzte Session: Ashen Vale · Turn 12
+                        </div>
+                        <div class="modal-footer">
+                            <button class="btn ghost">Abbrechen</button>
+                            <button class="btn">Laden</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="block">
+            <h2>Tabellen-Header (Sortierung)</h2>
+            <div class="variant-grid">
+                <div class="variant">
+                    <div class="variant-title">Variante A</div>
+                    <div class="table">
+                        <div class="table-row header-a">
+                            <div class="table-cell sort active">
+                                Name <span class="sort-icon">▲</span>
+                            </div>
+                            <div class="table-cell">Tier</div>
+                            <div class="table-cell">Slots</div>
+                            <div class="table-cell">Status</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="variant">
+                    <div class="variant-title">Variante B</div>
+                    <div class="table">
+                        <div class="table-row header-b">
+                            <div class="table-cell sort active">
+                                Name <span class="sort-icon">▲</span>
+                            </div>
+                            <div class="table-cell">Tier</div>
+                            <div class="table-cell">Slots</div>
+                            <div class="table-cell">Status</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        const toggle = document.getElementById('theme-toggle');
+        const storageKey = 'bastion_preview_theme_b_components';
+
+        function applyTheme(theme) {
+            const isDark = theme === 'dark';
+            document.body.classList.toggle('theme-dark', isDark);
+            if (toggle) {
+                toggle.textContent = isDark ? 'Light mode' : 'Dark mode';
+            }
+        }
+
+        const stored = localStorage.getItem(storageKey);
+        applyTheme(stored || 'light');
+
+        if (toggle) {
+            toggle.addEventListener('click', () => {
+                const next = document.body.classList.contains('theme-dark') ? 'light' : 'dark';
+                applyTheme(next);
+                localStorage.setItem(storageKey, next);
+            });
+        }
+    </script>
+</body>
+</html>

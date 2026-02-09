@@ -206,6 +206,11 @@ class FacilityManager:
         if not facility_def:
             return {"success": False, "message": f"Unknown facility_id: {facility_id}"}
 
+        bastion = session_state.setdefault("bastion", {})
+        facilities = bastion.setdefault("facilities", [])
+        if any(isinstance(entry, dict) and entry.get("facility_id") == facility_id for entry in facilities):
+            return {"success": False, "message": "Facility already exists"}
+
         build = facility_def.get("build", {}) if isinstance(facility_def.get("build"), dict) else {}
         cost = build.get("cost") if isinstance(build.get("cost"), dict) else None
         duration_turns = build.get("duration_turns")
@@ -246,8 +251,6 @@ class FacilityManager:
         }
         self.ledger.apply_effects(session_state, effects, context)
 
-        bastion = session_state.setdefault("bastion", {})
-        facilities = bastion.setdefault("facilities", [])
         facility_entry = {
             "facility_id": facility_id,
             "built_turn": None,
@@ -352,6 +355,63 @@ class FacilityManager:
             "success": True,
             "message": "Upgrade started",
             "facility": facility_entry,
+        }
+
+    def demolish_facility(self, session_state: Dict[str, Any], facility_id: str) -> Dict[str, Any]:
+        if not session_state:
+            return {"success": False, "message": "No session loaded"}
+
+        bastion = session_state.setdefault("bastion", {})
+        facilities = bastion.setdefault("facilities", [])
+
+        facility_entry = next((f for f in facilities if isinstance(f, dict) and f.get("facility_id") == facility_id), None)
+        if not facility_entry:
+            return {"success": False, "message": f"Facility not found in bastion: {facility_id}"}
+
+        build_status = facility_entry.get("build_status", {})
+        status = build_status.get("status") if isinstance(build_status, dict) else None
+        target_id = build_status.get("target_id") if isinstance(build_status, dict) else None
+        chain_target = target_id if status == "upgrading" and target_id else None
+        total_cost = self._sum_facility_chain_costs(facility_id, chain_target)
+
+        refund: Dict[str, int] = {}
+        for currency, amount in total_cost.items():
+            if isinstance(amount, int) and amount > 0:
+                refund_amount = int(amount * 0.3)
+                if refund_amount:
+                    refund[currency] = refund_amount
+
+        orders = self._normalize_orders(facility_entry)
+        active_orders = [o for o in orders if self._infer_order_status(o) in ("in_progress", "ready")]
+
+        assigned = facility_entry.get("assigned_npcs") if isinstance(facility_entry.get("assigned_npcs"), list) else []
+        npcs_unassigned = bastion.setdefault("npcs_unassigned", [])
+        if assigned:
+            npcs_unassigned.extend(assigned)
+
+        facilities.remove(facility_entry)
+
+        log_text = f"Facility demolished: {facility_id}"
+        effects: List[Dict[str, Any]] = []
+        if refund:
+            effects.append(refund)
+        effects.append({"log": log_text})
+
+        context = {
+            "event_type": "facility_demolish",
+            "source_type": "facility",
+            "source_id": facility_id,
+            "action": "demolish",
+            "result": "success",
+            "log_text": log_text,
+        }
+        self.ledger.apply_effects(session_state, effects, context)
+
+        return {
+            "success": True,
+            "refund": refund,
+            "moved_npcs": len(assigned),
+            "active_orders": len(active_orders),
         }
 
     def advance_turn(self, session_state: Dict[str, Any]) -> Dict[str, Any]:
@@ -520,7 +580,11 @@ class FacilityManager:
         }
 
         if facility_id:
-            error = self._assign_npc_to_facility(session_state, npc_entry, facility_id)
+            facility_def = self.catalog.get(facility_id)
+            allowed = facility_def.get("npc_allowed_professions") if isinstance(facility_def, dict) else None
+            if isinstance(allowed, list) and allowed and profession not in allowed:
+                return {"success": False, "message": "NPC profession not allowed for this facility"}
+            error = self._assign_npc_to_facility(session_state, npc_entry, facility_id, allow_profession_mismatch=False)
             if error:
                 return {"success": False, "message": error}
         else:
@@ -1520,7 +1584,13 @@ class FacilityManager:
                 return candidate
         return f"{base}_{uuid.uuid4().hex}"
 
-    def _assign_npc_to_facility(self, session_state: Dict[str, Any], npc_entry: Dict[str, Any], facility_id: str) -> Optional[str]:
+    def _assign_npc_to_facility(
+        self,
+        session_state: Dict[str, Any],
+        npc_entry: Dict[str, Any],
+        facility_id: str,
+        allow_profession_mismatch: bool = True,
+    ) -> Optional[str]:
         if not isinstance(facility_id, str) or not facility_id:
             return "Facility id required"
         facility_entry = self._find_facility_entry(session_state, facility_id)
@@ -1543,7 +1613,12 @@ class FacilityManager:
 
         allowed = facility_def.get("npc_allowed_professions")
         profession = npc_entry.get("profession")
-        if isinstance(allowed, list) and allowed and profession not in allowed:
+        if (
+            not allow_profession_mismatch
+            and isinstance(allowed, list)
+            and allowed
+            and profession not in allowed
+        ):
             return "NPC profession not allowed for this facility"
 
         if any(isinstance(npc, dict) and npc.get("npc_id") == npc_entry.get("npc_id") for npc in assigned):
@@ -1898,3 +1973,54 @@ class FacilityManager:
             if isinstance(amount, int):
                 effect[currency] = -amount
         return [effect]
+
+    def _sum_facility_chain_costs(self, facility_id: str, extra_target: Optional[str] = None) -> Dict[str, int]:
+        chain = self._collect_facility_chain(facility_id)
+        if extra_target:
+            target_def = self.catalog.get(extra_target)
+            if isinstance(target_def, dict):
+                chain.append(target_def)
+        total: Dict[str, int] = {}
+        prev_tier: Optional[int] = None
+        for idx, facility in enumerate(chain):
+            if not isinstance(facility, dict):
+                continue
+            cost = self._get_facility_cost_for_chain(facility, idx == 0, prev_tier)
+            for currency, amount in cost.items():
+                if not isinstance(amount, int):
+                    continue
+                total[currency] = total.get(currency, 0) + amount
+            prev_tier = facility.get("tier") if isinstance(facility.get("tier"), int) else prev_tier
+        return total
+
+    def _collect_facility_chain(self, facility_id: str) -> List[Dict[str, Any]]:
+        chain: List[Dict[str, Any]] = []
+        seen = set()
+        current_id = facility_id
+        while current_id and current_id not in seen:
+            seen.add(current_id)
+            facility = self.catalog.get(current_id)
+            if not isinstance(facility, dict):
+                break
+            chain.append(facility)
+            current_id = facility.get("parent")
+        chain.reverse()
+        return chain
+
+    def _get_facility_cost_for_chain(self, facility: Dict[str, Any], is_base: bool, prev_tier: Optional[int]) -> Dict[str, int]:
+        build = facility.get("build", {}) if isinstance(facility.get("build"), dict) else {}
+        cost = build.get("cost") if isinstance(build.get("cost"), dict) else None
+        if isinstance(cost, dict):
+            return {k: v for k, v in cost.items() if isinstance(v, int)}
+
+        defaults = self.config.get("default_build_costs", {})
+        if is_base:
+            base_defaults = defaults.get("new_facility", {})
+            if isinstance(base_defaults, dict):
+                return {k: v for k, v in base_defaults.items() if k != "duration_turns" and isinstance(v, int)}
+            return {}
+        if isinstance(prev_tier, int):
+            upgrade_defaults = defaults.get(f"upgrade_tier_{prev_tier}", {})
+            if isinstance(upgrade_defaults, dict):
+                return {k: v for k, v in upgrade_defaults.items() if k != "duration_turns" and isinstance(v, int)}
+        return {}

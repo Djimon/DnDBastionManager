@@ -4,11 +4,150 @@ document.addEventListener('DOMContentLoaded', function() {
     console.log('DOMContentLoaded fired - App initializing...');
     console.log('window.pywebview available:', !!window.pywebview);
     logClient('info', 'App initialized');
+    initThemeToggle();
+    initEnterKeyActions();
     switchView(1); // Start with View 1 (Wizard)
     renderAuditLog();
     updateQueueDisplay();
     initCatalogFilters();
 });
+
+const THEME_STORAGE_KEY = 'bastion_theme';
+let currentTheme = 'light';
+const THEME_ICON_LIGHT = '\u25D0';
+const THEME_ICON_DARK = '\u2600';
+
+function applyTheme(mode) {
+    currentTheme = mode === 'dark' ? 'dark' : 'light';
+    document.body.classList.toggle('theme-dark', currentTheme === 'dark');
+    updateThemeToggleLabel();
+}
+
+function updateThemeToggleLabel() {
+    const button = document.getElementById('theme-toggle');
+    if (!button) {
+        return;
+    }
+    const key = currentTheme === 'dark' ? 'header.theme_light' : 'header.theme_dark';
+    const label = typeof t === 'function' ? t(key) : (currentTheme === 'dark' ? 'Light mode' : 'Dark mode');
+    button.textContent = currentTheme === 'dark' ? THEME_ICON_DARK : THEME_ICON_LIGHT;
+    button.setAttribute('title', label);
+    button.setAttribute('aria-label', label);
+}
+
+async function fetchStoredTheme() {
+    if (window.pywebview && window.pywebview.api && window.pywebview.api.get_ui_prefs) {
+        try {
+            const prefs = await window.pywebview.api.get_ui_prefs();
+            if (prefs && typeof prefs.theme === 'string') {
+                return prefs.theme;
+            }
+        } catch (err) {
+            logClient('warn', `Failed to load UI prefs: ${err}`);
+        }
+    }
+    return null;
+}
+
+async function persistThemePreference(mode) {
+    if (window.pywebview && window.pywebview.api && window.pywebview.api.save_ui_prefs) {
+        try {
+            await window.pywebview.api.save_ui_prefs({ theme: mode });
+        } catch (err) {
+            logClient('warn', `Failed to save UI prefs: ${err}`);
+        }
+    }
+}
+
+async function initThemeToggle() {
+    const button = document.getElementById('theme-toggle');
+    if (!button) {
+        return;
+    }
+    const localStored = localStorage.getItem(THEME_STORAGE_KEY);
+    applyTheme(localStored === 'dark' ? 'dark' : 'light');
+
+    const backendStored = await fetchStoredTheme();
+    if (backendStored) {
+        applyTheme(backendStored === 'dark' ? 'dark' : 'light');
+        localStorage.setItem(THEME_STORAGE_KEY, currentTheme);
+    }
+    button.addEventListener('click', () => {
+        const next = currentTheme === 'dark' ? 'light' : 'dark';
+        applyTheme(next);
+        localStorage.setItem(THEME_STORAGE_KEY, next);
+        persistThemePreference(next);
+    });
+}
+
+const ENTER_ACTION_SCOPES = [
+    '.treasury-row',
+    '.inventory-manage-card',
+    '.order-new',
+    'fieldset',
+    '.wizard-form',
+    '.modal-footer',
+    '.confirm-actions',
+    '.modal-content'
+];
+
+const ENTER_ACTION_BLOCKERS = [
+    '.filters',
+    '.header-right'
+];
+
+function findEnterActionButton(target) {
+    let el = target;
+    while (el && el !== document.body) {
+        if (ENTER_ACTION_BLOCKERS.some(selector => el.matches(selector))) {
+            return null;
+        }
+
+        if (ENTER_ACTION_SCOPES.some(selector => el.matches(selector))) {
+            const explicit = el.querySelector('button[data-enter-default="true"]');
+            if (explicit && !explicit.disabled) {
+                return explicit;
+            }
+            const primary = el.querySelector('button.btn-primary');
+            if (primary && !primary.disabled) {
+                return primary;
+            }
+            const success = el.querySelector('button.btn-success');
+            if (success && !success.disabled) {
+                return success;
+            }
+            const anyButton = el.querySelector('button');
+            if (anyButton && !anyButton.disabled) {
+                return anyButton;
+            }
+        }
+
+        el = el.parentElement;
+    }
+    return null;
+}
+
+function initEnterKeyActions() {
+    document.addEventListener('keydown', event => {
+        if (event.key !== 'Enter') {
+            return;
+        }
+        const target = event.target;
+        if (!target || target.tagName === 'TEXTAREA') {
+            return;
+        }
+        if (!(target.matches('input, select'))) {
+            return;
+        }
+
+        const button = findEnterActionButton(target);
+        if (!button) {
+            return;
+        }
+        event.preventDefault();
+        button.click();
+    });
+}
 
 // Zusätzlich: Warte auf pywebview wenn noch nicht ready
 if (window.addEventListener && typeof window.pywebviewready === 'undefined') {
@@ -17,6 +156,12 @@ if (window.addEventListener && typeof window.pywebviewready === 'undefined') {
         logClient('info', 'PyWebView connection established');
         validatePacks(false);
         loadCurrencyModel();
+        fetchStoredTheme().then(stored => {
+            if (stored) {
+                applyTheme(stored === 'dark' ? 'dark' : 'light');
+                localStorage.setItem(THEME_STORAGE_KEY, currentTheme);
+            }
+        });
         loadNpcProgression();
         loadCheckProfiles();
         loadFacilityCatalog();
@@ -50,19 +195,19 @@ function validatePacks(showAlert = true) {
 
             if (showAlert) {
                 if (errors.length === 0 && warnings.length === 0) {
-                    alert(t('pack_validation.ok'));
+                    notifyUser(t('pack_validation.ok'));
                 } else {
-                    alert(`${summary}\n${t('pack_validation.details_in_log')}`);
+                    notifyUser(`${summary}\n${t('pack_validation.details_in_log')}`);
                 }
             }
         }).catch(err => {
             logClient("error", `Pack validation failed: ${err}`);
             if (showAlert) {
-                alert(t('pack_validation.failed'));
+                notifyUser(t('pack_validation.failed'));
             }
         });
     } else if (showAlert) {
-        alert(t('alerts.pywebview_unavailable'));
+        notifyUser(t('alerts.pywebview_unavailable'));
     }
 }
 
@@ -237,6 +382,9 @@ async function refreshSessionState() {
         const state = await window.pywebview.api.get_current_session();
         if (state && Object.keys(state).length > 0) {
             appState.session = state;
+            if (typeof setHeaderSessionName === 'function') {
+                setHeaderSessionName(getSessionDisplayName(state));
+            }
             updateTurnCounter();
             updateQueueDisplay();
             if (typeof renderAuditLog === 'function') {
@@ -245,7 +393,7 @@ async function refreshSessionState() {
             if (typeof renderTreasuryControls === 'function') {
                 renderTreasuryControls();
             }
-            if (appState.selectedFacilityId && typeof renderInventoryPanel === 'function') {
+            if (typeof renderInventoryPanel === 'function') {
                 renderInventoryPanel();
             }
             if (typeof updateGlobalActionLocks === 'function') {

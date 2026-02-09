@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bastion Theme Preview B</title>
+    <link rel="stylesheet" href="preview_theme_b.css">
+</head>
+<body>
+    <div class="page">
+        <header class="topbar">
+            <div class="brand">
+                <div class="brand-mark">BM</div>
+                <div>
+                    <div class="brand-title">Bastion Manager</div>
+                    <div class="brand-sub">Campaign: Red March | Turn 12</div>
+                </div>
+            </div>
+            <div class="top-actions">
+                <button class="btn ghost" id="theme-toggle" type="button">Dark mode</button>
+                <button class="btn ghost">Load</button>
+                <button class="btn">Save</button>
+            </div>
+        </header>
+
+        <div class="columns">
+            <section class="panel">
+                <div class="panel-header">Facility Summary</div>
+                <div class="card-grid">
+                    <div class="card">
+                        <div class="card-title">Upgrades</div>
+                        <div class="card-value">3</div>
+                    </div>
+                    <div class="card">
+                        <div class="card-title">Orders</div>
+                        <div class="card-value">7</div>
+                    </div>
+                    <div class="card">
+                        <div class="card-title">Treasury</div>
+                        <div class="card-value">1,240 gp</div>
+                    </div>
+                </div>
+                <div class="banner">
+                    Awaiting roll input. Next check in 2 turns.
+                </div>
+            </section>
+
+            <section class="panel">
+                <div class="panel-header">Order Input</div>
+                <div class="form-row">
+                    <label>Order</label>
+                    <input type="text" placeholder="Refit Armory">
+                </div>
+                <div class="form-row">
+                    <label>Check Profile</label>
+                    <input type="text" placeholder="d20">
+                </div>
+                <div class="form-row">
+                    <label>Bonus</label>
+                    <input type="number" placeholder="+4">
+                </div>
+                <div class="form-actions">
+                    <button class="btn ghost">Cancel</button>
+                    <button class="btn">Queue</button>
+                </div>
+            </section>
+        </div>
+
+        <section class="panel wide">
+            <div class="panel-header">Active Orders</div>
+            <div class="table">
+                <div class="row header">
+                    <div>Order</div>
+                    <div>Owner</div>
+                    <div>Turns</div>
+                    <div>Status</div>
+                </div>
+                <div class="row">
+                    <div>Refit Armory</div>
+                    <div>Arwyn</div>
+                    <div>2</div>
+                    <div><span class="status good">On Track</span></div>
+                </div>
+                <div class="row">
+                    <div>Enchanting Run</div>
+                    <div>Merric</div>
+                    <div>5</div>
+                    <div><span class="status warn">Needs Input</span></div>
+                </div>
+                <div class="row">
+                    <div>Hire Scribe</div>
+                    <div>DM</div>
+                    <div>1</div>
+                    <div><span class="status muted">Queued</span></div>
+                </div>
+            </div>
+        </section>
+    </div>
+    <script>
+        const toggle = document.getElementById('theme-toggle');
+        const storageKey = 'bastion_preview_theme_b';
+
+        function applyTheme(theme) {
+            const isDark = theme === 'dark';
+            document.body.classList.toggle('theme-dark', isDark);
+            if (toggle) {
+                toggle.textContent = isDark ? 'Light mode' : 'Dark mode';
+            }
+        }
+
+        const stored = localStorage.getItem(storageKey);
+        applyTheme(stored || 'light');
+
+        if (toggle) {
+            toggle.addEventListener('click', () => {
+                const next = document.body.classList.contains('theme-dark') ? 'light' : 'dark';
+                applyTheme(next);
+                localStorage.setItem(storageKey, next);
+            });
+        }
+    </script>
+</body>
+</html>

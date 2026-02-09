@@ -123,6 +123,9 @@ async function setLanguage(lang) {
 
     const languageSelect = document.getElementById('language-select');
     renderLanguageOptions(languageSelect);
+    if (typeof updateThemeToggleLabel === 'function') {
+        updateThemeToggleLabel();
+    }
 
     if (typeof updateSessionNamePlaceholder === 'function') {
         updateSessionNamePlaceholder();
@@ -156,6 +159,9 @@ async function initI18n() {
     document.title = t('app.title');
     const languageSelect = document.getElementById('language-select');
     renderLanguageOptions(languageSelect);
+    if (typeof updateThemeToggleLabel === 'function') {
+        updateThemeToggleLabel();
+    }
     if (languageSelect) {
         languageSelect.addEventListener('change', event => {
             setLanguage(event.target.value);

@@ -1,0 +1,240 @@
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    font-family: "IBM Plex Sans", "Fira Sans", "Trebuchet MS", sans-serif;
+    background: #f4f1ea;
+    color: #2b2f33;
+}
+
+.page {
+    min-height: 100vh;
+    padding: 32px;
+    display: grid;
+    gap: 24px;
+}
+
+.topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: #fbfaf7;
+    border: 1px solid #d6d0c7;
+    border-radius: 14px;
+    padding: 16px 20px;
+    box-shadow: 0 6px 18px rgba(46, 40, 32, 0.08);
+}
+
+.brand {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+.brand-mark {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    display: grid;
+    place-items: center;
+    background: #2f343a;
+    color: #f8f6f2;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+}
+
+.brand-title {
+    font-family: "Spectral", "Merriweather", "Times New Roman", serif;
+    font-size: 1.2rem;
+    font-weight: 600;
+}
+
+.brand-sub {
+    font-size: 0.85rem;
+    color: #6f7780;
+}
+
+.top-actions {
+    display: flex;
+    gap: 10px;
+}
+
+.btn {
+    border: none;
+    border-radius: 10px;
+    padding: 10px 16px;
+    font-weight: 600;
+    background: #58697a;
+    color: #f8f6f2;
+    cursor: pointer;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 14px rgba(46, 40, 32, 0.12);
+}
+
+.btn.ghost {
+    background: transparent;
+    border: 1px solid #c7c0b6;
+    color: #2f343a;
+}
+
+.grid {
+    display: grid;
+    gap: 20px;
+    grid-template-columns: repeat(12, 1fr);
+}
+
+.panel {
+    grid-column: span 6;
+    background: #fbfaf7;
+    border: 1px solid #d6d0c7;
+    border-radius: 16px;
+    padding: 18px 20px;
+    display: grid;
+    gap: 14px;
+    box-shadow: 0 10px 20px rgba(46, 40, 32, 0.08);
+}
+
+.panel.wide {
+    grid-column: span 12;
+}
+
+.panel-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-family: "Spectral", "Merriweather", "Times New Roman", serif;
+    font-size: 1.05rem;
+    font-weight: 600;
+}
+
+.tag {
+    padding: 3px 10px;
+    border-radius: 999px;
+    background: #f0ede6;
+    color: #5d6670;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+}
+
+.pill {
+    padding: 4px 10px;
+    border-radius: 10px;
+    background: #2f343a;
+    color: #f8f6f2;
+    font-size: 0.75rem;
+}
+
+.stat-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+}
+
+.stat {
+    background: #f0ede6;
+    border-radius: 12px;
+    padding: 12px;
+}
+
+.stat-label {
+    font-size: 0.8rem;
+    color: #6f7780;
+}
+
+.stat-value {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: #2f343a;
+}
+
+.note {
+    background: #f7efe2;
+    border-left: 4px solid #b26b3a;
+    padding: 10px 12px;
+    border-radius: 10px;
+    font-size: 0.9rem;
+}
+
+.form-row {
+    display: grid;
+    gap: 6px;
+    font-size: 0.9rem;
+}
+
+.form-row input {
+    padding: 10px 12px;
+    border-radius: 10px;
+    border: 1px solid #d6d0c7;
+    background: #fdfcf8;
+    color: #2b2f33;
+}
+
+.form-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+}
+
+.table {
+    display: grid;
+    gap: 10px;
+}
+
+.row {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr 1fr;
+    gap: 10px;
+    padding: 10px 12px;
+    border-radius: 10px;
+    background: #fdfcf8;
+    border: 1px solid #e0dbd2;
+}
+
+.row.header {
+    background: transparent;
+    border: none;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #6f7780;
+}
+
+.status {
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-size: 0.75rem;
+    display: inline-block;
+    text-align: center;
+}
+
+.status.good {
+    background: #e0efe6;
+    color: #2f6f52;
+}
+
+.status.warn {
+    background: #f7efe2;
+    color: #b17a1d;
+}
+
+.status.muted {
+    background: #efede9;
+    color: #6f7780;
+}
+
+@media (max-width: 900px) {
+    .grid {
+        grid-template-columns: 1fr;
+    }
+
+    .panel {
+        grid-column: span 1;
+    }
+}

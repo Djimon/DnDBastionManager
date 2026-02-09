@@ -11,7 +11,13 @@
         <!-- HEADER (Global) -->
         <header class="app-header">
             <div class="header-left">
-                <h1 data-i18n="app.title">D&D Bastion Manager</h1>
+                <div class="turn-indicator">
+                    <div class="turn-badge">
+                        <div class="turn-number">0</div>
+                    </div>
+                    <div class="turn-label" data-i18n="header.turn_label">Runde</div>
+                </div>
+                <h1 id="session-title">[No Session]</h1>
             </div>
             <div class="header-center" id="session-info">
                 <span class="session-name">[No Session]</span> |
@@ -22,8 +28,10 @@
                     <label for="language-select" data-i18n="header.language">Sprache</label>
                     <select id="language-select" class="lang-select"></select>
                 </div>
-                <button class="btn btn-small" onclick="saveSession()" data-i18n="header.save">💾 Save</button>
-                <button class="btn btn-small" onclick="loadSession()" data-i18n="header.load">📂 Load</button>
+                <button class="theme-toggle" id="theme-toggle" type="button" aria-label="Dark mode"></button>
+                <button class="btn btn-small" onclick="saveSession()" data-i18n="header.save">Save</button>
+                <button class="btn btn-small btn-ghost" onclick="loadSession()" data-i18n="header.load">Load</button>
+                <button class="btn btn-small btn-ghost" onclick="closeInventoryManage(); switchView(1)" data-i18n="header.new_session">Neue Session</button>
             </div>
         </header>
 
@@ -134,6 +142,12 @@
                             </div>
                         </div>
 
+                        <!-- THIRD: Owned Facilities -->
+                        <div class="build-owned">
+                            <h3 data-i18n="build.stock_title">Bestand</h3>
+                            <div id="owned-list" class="facility-catalog-list"></div>
+                        </div>
+
                         <!-- RIGHT: Build Queue -->
                         <div class="build-queue">
                             <h3 data-i18n="build.queue_title">Build Queue</h3>
@@ -152,9 +166,10 @@
                                 <p><span data-i18n="build.total_cost">Total Cost:</span> <strong id="total-cost">250g</strong></p>
                                 <p><span data-i18n="build.remaining_budget">Remaining Budget:</span> <strong id="remaining-budget">-250g</strong></p>
                             </div>
-
-                            <button class="btn btn-primary" onclick="startBuilding()" data-i18n="build.start_building">Bauen starten</button>
-                            <button class="btn btn-secondary" onclick="clearQueue()" data-i18n="build.clear_queue">Queue löschen</button>
+                            <div class="queue-actions">
+                                <button class="btn btn-primary" onclick="startBuilding()" data-i18n="build.start_building">Bauen starten</button>
+                                <button class="btn btn-secondary" onclick="clearQueue()" data-i18n="build.clear_queue">Queue löschen</button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -186,7 +201,7 @@
 
                             <div class="sidebar-actions">
                                 <button class="btn btn-secondary" onclick="switchView(2)" data-i18n="turn.build_new">+ New Facility</button>
-                                <button class="btn btn-secondary" onclick="openNPCModal()" data-i18n="turn.manage_npcs">👥 Manage NPCs</button>
+                                <button class="btn btn-secondary" onclick="openNPCModal()" data-i18n="turn.manage_npcs">NSCs verwalten</button>
                             </div>
                         </aside>
 
@@ -197,13 +212,16 @@
                             <div id="facility-main" class="facility-main hidden">
                                 <div class="tabs">
                                     <button class="tab-btn active" onclick="switchTab('details')" data-i18n="tabs.details">Details</button>
-                                    <button class="tab-btn" onclick="switchTab('npcs')" data-i18n="tabs.npcs">NPCs</button>
-                                    <button class="tab-btn" onclick="switchTab('orders')" data-i18n="tabs.orders">Orders</button>
+                                    <button id="tab-btn-npcs" class="tab-btn" onclick="switchTab('npcs')" data-i18n="tabs.npcs">NPCs</button>
+                                    <button id="tab-btn-orders" class="tab-btn" onclick="switchTab('orders')" data-i18n="tabs.orders">Orders</button>
                                 </div>
 
                                 <!-- TAB: Details -->
                                 <div id="tab-details" class="tab-content active">
-                                    <h3 data-i18n="details.title">Facility Details</h3>
+                                    <div class="detail-header">
+                                        <h3 data-i18n="details.title">Facility Details</h3>
+                                        <div id="detail-order-progress" class="order-progress-list"></div>
+                                    </div>
                                     <div class="detail-info">
                                         <p><strong data-i18n="details.name">Name:</strong> <span id="detail-name">[Facility Name]</span></p>
                                         <p><strong data-i18n="details.description">Beschreibung:</strong> <span id="detail-desc">[Placeholder]</span></p>
@@ -227,11 +245,11 @@
                                         <thead>
                                             <tr>
                                                 <th class="npcs-icon-col"></th>
-                                                <th data-i18n="npcs.table_name">Name</th>
-                                                <th data-i18n="npcs.table_profession">Profession</th>
-                                                <th data-i18n="npcs.table_level">Level</th>
-                                                <th data-i18n="npcs.table_xp">XP</th>
-                                                <th data-i18n="npcs.table_upkeep">Upkeep</th>
+                                                <th data-sort-key="name" data-i18n="npcs.table_name">Name</th>
+                                                <th data-sort-key="profession" data-i18n="npcs.table_profession">Profession</th>
+                                                <th data-sort-key="level" data-i18n="npcs.table_level">Level</th>
+                                                <th data-sort-key="xp" data-i18n="npcs.table_xp">XP</th>
+                                                <th data-sort-key="upkeep" data-i18n="npcs.table_upkeep">Upkeep</th>
                                                 <th data-i18n="npcs.table_action">Action</th>
                                             </tr>
                                         </thead>
@@ -280,30 +298,42 @@
                                     </div>
                                 </div>
                             </div>
-                        </section>
+                        
+                            <div id="inventory-manage-view" class="inventory-manage hidden">
+                                <div class="inventory-manage-header">
+                                    <h3 data-i18n="inventory.manage_title">Inventar verwalten</h3>
+                                    <button class="btn btn-ghost btn-small" onclick="closeInventoryManage()" data-i18n="inventory.manage_back">Zurueck</button>
+                                </div>
+                                <div class="inventory-manage-body">
+                                    <section class="inventory-manage-card">
+                                        <h4 data-i18n="treasury.title">Schatzkammer</h4>
+                                        <div class="treasury-row">
+                                            <input type="number" id="treasury-amount" class="treasury-input" min="0" step="1" placeholder="0" />
+                                            <select id="treasury-currency" class="treasury-select"></select>
+                                            <button class="btn btn-success btn-small" onclick="adjustTreasury('add')" data-i18n="treasury.mode_add">Add</button>
+                                            <button class="btn btn-danger btn-small" onclick="adjustTreasury('remove')" data-i18n="treasury.mode_remove">Remove</button>
+                                        </div>
+                                    </section>
+                                    <section class="inventory-manage-card">
+                                        <h4 data-i18n="inventory.items_title">Items</h4>
+                                        <div class="treasury-row">
+                                            <input type="text" id="inventory-item-name" class="inventory-item-input" data-i18n-placeholder="inventory.item_placeholder" placeholder="item_id" list="inventory-item-suggestions" />
+                                            <input type="number" id="inventory-item-qty" class="treasury-input" min="0" step="1" data-i18n-placeholder="inventory.qty_placeholder" placeholder="0" />
+                                            <button class="btn btn-success btn-small" onclick="adjustInventoryItem('add')" data-i18n="inventory.item_add">Hinzufuegen</button>
+                                            <button class="btn btn-danger btn-small" onclick="adjustInventoryItem('remove')" data-i18n="inventory.item_remove">Entfernen</button>
+                                        </div>
+                                        <datalist id="inventory-item-suggestions"></datalist>
+                                    </section>
+                                </div>
+                            </div>
+</section>
                         <aside id="inventory-panel" class="inventory-panel hidden">
                             <div class="inventory-header">
                                 <h4 data-i18n="inventory.title">Inventar</h4>
-                                <button class="btn btn-secondary btn-small" onclick="toggleTreasuryPanel()" data-i18n="inventory.manage">Verwalten</button>
+                                <button class="btn btn-secondary btn-small" onclick="openInventoryManage()" data-i18n="inventory.manage">Verwalten</button>
                             </div>
                             <div id="inventory-wallet" class="inventory-wallet"></div>
-                            <div id="treasury-panel" class="treasury-adjust hidden">
-                                <label class="treasury-label" data-i18n="treasury.title">Schatzkammer</label>
-                                <div class="treasury-row">
-                                    <input type="number" id="treasury-amount" class="treasury-input" min="0" step="1" placeholder="0" />
-                                    <select id="treasury-currency" class="treasury-select"></select>
-                                    <button class="btn btn-success btn-small" onclick="adjustTreasury('add')" data-i18n="treasury.mode_add">Add</button>
-                                    <button class="btn btn-danger btn-small" onclick="adjustTreasury('remove')" data-i18n="treasury.mode_remove">Remove</button>
-                                </div>
-                                <div class="inventory-manage-divider"></div>
-                                <label class="treasury-label" data-i18n="inventory.items_title">Items</label>
-                                <div class="treasury-row">
-                                    <input type="text" id="inventory-item-name" class="inventory-item-input" data-i18n-placeholder="inventory.item_placeholder" placeholder="item_id" />
-                                    <input type="number" id="inventory-item-qty" class="treasury-input" min="0" step="1" data-i18n-placeholder="inventory.qty_placeholder" placeholder="0" />
-                                    <button class="btn btn-success btn-small" onclick="adjustInventoryItem('add')" data-i18n="inventory.item_add">Hinzufügen</button>
-                                    <button class="btn btn-danger btn-small" onclick="adjustInventoryItem('remove')" data-i18n="inventory.item_remove">Entfernen</button>
-                                </div>
-                            </div>
+
                             <div id="inventory-groups" class="inventory-groups"></div>
                             <p id="inventory-empty" class="text-muted hidden" data-i18n="inventory.empty">Keine Items im Inventar.</p>
                         </aside>
@@ -312,11 +342,11 @@
                     <!-- BOTTOM: Turn Controls & Log -->
                     <footer class="turn-controls">
                         <div class="controls-buttons">
-                            <button id="turn-advance-btn" class="btn btn-primary" onclick="advanceTurn()" data-i18n="turn.advance_turn">⏭️ Advance Turn</button>
+                            <button id="turn-advance-btn" class="btn btn-primary" onclick="advanceTurn()" data-i18n="turn.advance_turn">Runde vorruecken</button>
                             <button class="btn btn-secondary" onclick="switchView(2)" data-i18n="turn.build_new">+ Build New Facility</button>
-                            <button class="btn btn-secondary" onclick="openNPCModal()" data-i18n="turn.manage_npcs">👥 Manage NPCs</button>
-                            <button id="orders-roll-eval-all" class="btn btn-secondary" onclick="rollAndEvaluateAllReady()" data-i18n="turn.roll_evaluate_all">🎲 Alles rollen & auswerten</button>
-                            <button class="btn btn-success" onclick="saveSession()" data-i18n="turn.save_session">💾 Save Session</button>
+                            <button class="btn btn-secondary" onclick="openNPCModal()" data-i18n="turn.manage_npcs">NSCs verwalten</button>
+                            <button id="orders-roll-eval-all" class="btn btn-secondary" onclick="rollAndEvaluateAllReady()" data-i18n="turn.roll_evaluate_all">Alles rollen & auswerten</button>
+                            <button class="btn btn-success" onclick="saveSession()" data-i18n="turn.save_session">Session speichern</button>
                         </div>
 
                         <div class="turn-log">
@@ -343,8 +373,11 @@
                             <h2 data-i18n="npcs.management_title">NSCs verwalten</h2>
                         </div>
                         <div class="npc-management-actions">
-                            <button class="btn btn-secondary btn-small" onclick="switchView(3)" data-i18n="npcs.management_back">&lt;- Zurueck zur Hauptansicht</button>
-                            <button class="btn btn-primary btn-small" onclick="openHireModal()" data-i18n="npcs.hire_button">+ NSC einstellen</button>
+                            <div class="npc-management-buttons">
+                                <button class="btn btn-secondary btn-small" onclick="switchView(3)" data-i18n="npcs.management_back">&lt;- Zurueck zur Hauptansicht</button>
+                                <button class="btn btn-primary btn-small" onclick="openHireModal()" data-i18n="npcs.hire_button">+ NSC einstellen</button>
+                            </div>
+                            <div id="npc-management-total-upkeep" class="npc-total-upkeep" data-i18n="modal.total_upkeep">Total Upkeep: 0g</div>
                         </div>
                     </div>
 
@@ -359,12 +392,12 @@
                                     <th data-sort-key="xp" data-i18n="npcs.table_xp">XP</th>
                                     <th data-sort-key="upkeep" data-i18n="modal.hired_table_upkeep">Upkeep/Turn</th>
                                     <th data-i18n="npcs.table_action">Action</th>
+                                    <th data-i18n="npcs.table_status">Status</th>
                                 </tr>
                             </thead>
                             <tbody id="npc-management-body"></tbody>
                         </table>
                         <p id="npc-management-empty" class="text-muted hidden" data-i18n="npcs.management_empty">Keine NSCs vorhanden.</p>
-                        <p id="npc-management-total-upkeep" class="text-muted" data-i18n="modal.total_upkeep">Total Upkeep: 0g</p>
                     </div>
                 </div>
             </div>
@@ -372,6 +405,7 @@
         </main>
         <!-- GLOBAL DEV FOOTER -->
         <footer class="global-dev-footer">
+            <div id="dev-footer-log" class="dev-footer-log"></div>
             <button class="dev-validate-btn" onclick="validatePacks()" data-i18n="dev.validate_packs">Validate Packs</button>
         </footer>
     </div>
@@ -393,12 +427,16 @@
                 </div>
                 <div class="form-group">
                     <label for="hire-profession" data-i18n="modal.hire_profession">Profession:</label>
-                    <select id="hire-profession">
+                    <select id="hire-profession" class="native-select-hidden">
                         <option value="spy" data-i18n="modal.profession_spy">Spy</option>
                         <option value="gardener" data-i18n="modal.profession_gardener">Gardener</option>
                         <option value="craftsman" data-i18n="modal.profession_craftsman">Craftsman</option>
                         <option value="custom" data-i18n="modal.profession_custom">Custom</option>
                     </select>
+                    <div id="hire-profession-select" class="custom-select">
+                        <button type="button" id="hire-profession-trigger" class="custom-select-trigger"></button>
+                        <div id="hire-profession-menu" class="custom-select-menu"></div>
+                    </div>
                 </div>
                 <div class="form-group hidden" id="hire-profession-custom-wrap">
                     <label for="hire-profession-custom" data-i18n="modal.profession_custom_label">Custom Profession:</label>
@@ -555,3 +593,6 @@
     <div id="toast-container" class="toast-container"></div>
 </body>
 </html>
+
+
+

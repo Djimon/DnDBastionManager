@@ -9,6 +9,70 @@ function logClient(level, message) {
     }
 }
 
+const DEV_FOOTER_LIMIT = 1;
+
+function formatDevTimestamp(date = new Date()) {
+    const pad = value => String(value).padStart(2, '0');
+    const year = date.getFullYear();
+    const month = pad(date.getMonth() + 1);
+    const day = pad(date.getDate());
+    const hours = pad(date.getHours());
+    const minutes = pad(date.getMinutes());
+    const seconds = pad(date.getSeconds());
+    return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+}
+
+function inferDevSeverity(message) {
+    const text = String(message || '').toLowerCase();
+    if (text.includes('fehler') || text.includes('failed') || text.includes('error') || text.includes('fehlgeschlagen') || text.includes('unavailable') || text.includes('nicht verfügbar')) {
+        return 'Error';
+    }
+    if (text.includes('warn') || text.includes('achtung') || text.includes('warning')) {
+        return 'Warning';
+    }
+    return 'Info';
+}
+
+function appendDevFooterMessage(message, severity = 'Info') {
+    const container = document.getElementById('dev-footer-log');
+    const level = String(severity || 'Info').toLowerCase();
+    const text = `${formatDevTimestamp()}: [${severity}]: ${message}`;
+
+    if (!container) {
+        console.log(text);
+        return;
+    }
+
+    let entry = container.firstElementChild;
+    if (!entry) {
+        entry = document.createElement('div');
+        container.appendChild(entry);
+    }
+    entry.className = `dev-footer-entry ${level}`;
+    entry.textContent = text;
+
+    while (container.children.length > DEV_FOOTER_LIMIT) {
+        container.removeChild(container.firstChild);
+    }
+}
+
+function notifyUser(message, severity = null) {
+    const resolved = severity || inferDevSeverity(message);
+    appendDevFooterMessage(message, resolved);
+}
+
+function systemAlert(message) {
+    notifyUser(message);
+}
+
+if (typeof window !== 'undefined') {
+    window.notifyUser = notifyUser;
+    if (!window.__devAlertHooked) {
+        window.__devAlertHooked = true;
+        window.alert = systemAlert;
+    }
+}
+
 // ===== APP STATE =====
 
 let appState = {
@@ -35,6 +99,7 @@ let appState = {
     moveNpcContext: null,
     formulaInputContext: null,
     npcManagementSort: { key: null, dir: 'desc' },
+    npcTabSort: { key: null, dir: 'desc' },
 };
 
 const BUILDABLE_TIER = 1;
@@ -52,6 +117,10 @@ function switchView(viewNum) {
     const view = document.getElementById(viewId);
     if (view) {
         view.classList.add('active');
+    }
+
+    if (viewNum === 2 && typeof updateQueueDisplay === 'function') {
+        updateQueueDisplay();
     }
 }
 
@@ -72,6 +141,31 @@ function switchTab(tabName) {
     // Mark button as active
     event.target.classList.add('active');
 
+    const facilityId = appState.selectedFacilityId;
+    if (!facilityId) {
+        return;
+    }
+
+    if (tabName === 'npcs' && typeof renderNpcTab === 'function') {
+        renderNpcTab(facilityId);
+    }
+    if (tabName === 'orders' && typeof renderOrdersPanel === 'function') {
+        renderOrdersPanel(facilityId);
+    }
+    if (tabName === 'details') {
+        if (typeof updateUpgradeSection === 'function') {
+            updateUpgradeSection(facilityId);
+        }
+        if (typeof renderSlotBubbles === 'function' && typeof getFacilityEntry === 'function') {
+            renderSlotBubbles(appState.facilityById[facilityId], getFacilityEntry(facilityId));
+        }
+    }
+    if (typeof updateFacilityTabIndicators === 'function') {
+        updateFacilityTabIndicators(facilityId);
+    }
+    if (typeof renderOrderProgressIndicators === 'function') {
+        renderOrderProgressIndicators(facilityId);
+    }
 }
 
 function switchModalTab(tabName) {
@@ -386,17 +480,45 @@ function updateTurnCounter() {
     if (counter) {
         counter.textContent = t('header.turn', { turn });
     }
+    const badgeNumber = document.querySelector('.turn-number');
+    if (badgeNumber) {
+        badgeNumber.textContent = String(turn);
+    }
+    const badgeLabel = document.querySelector('.turn-label');
+    if (badgeLabel) {
+        badgeLabel.textContent = t('header.turn_label');
+    }
+}
+
+function getSessionDisplayName(session) {
+    if (!session || typeof session !== 'object') {
+        return t('header.no_session');
+    }
+    const bastionName = session.bastion && session.bastion.name ? session.bastion.name : '';
+    const sessionName = session.session_name || session.name || '';
+    if (sessionName && bastionName) {
+        return `${sessionName} (${bastionName})`;
+    }
+    return sessionName || bastionName || session.session_id || t('header.no_session');
+}
+
+function setHeaderSessionName(name) {
+    const display = name || t('header.no_session');
+    const nameEl = document.querySelector('.session-name');
+    if (nameEl) {
+        nameEl.textContent = display;
+    }
+    const titleEl = document.getElementById('session-title');
+    if (titleEl) {
+        titleEl.textContent = display;
+    }
 }
 
 function updateSessionNamePlaceholder() {
-    const nameEl = document.querySelector('.session-name');
-    if (!nameEl) {
-        return;
-    }
     const session = appState && appState.session ? appState.session : null;
     const hasSession = !!(session && (session.session_id || (session.bastion && session.bastion.name)));
     if (!hasSession) {
-        nameEl.textContent = t('header.no_session');
+        setHeaderSessionName(t('header.no_session'));
     }
 }
 
@@ -425,7 +547,12 @@ function translateFacilityState(state) {
 
 function getCurrencyOrder() {
     if (appState.currencyModel && Array.isArray(appState.currencyModel.types) && appState.currencyModel.types.length) {
-        return appState.currencyModel.types;
+        const factor = appState.currencyModel.factor_to_base || {};
+        return [...appState.currencyModel.types].sort((a, b) => {
+            const fa = typeof factor[a] === 'number' ? factor[a] : 0;
+            const fb = typeof factor[b] === 'number' ? factor[b] : 0;
+            return fb - fa;
+        });
     }
     const wallet = appState.session && appState.session.bastion && appState.session.bastion.treasury;
     if (wallet && typeof wallet === 'object') {

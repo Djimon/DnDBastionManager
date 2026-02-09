@@ -49,9 +49,81 @@ function renderFacilityStates() {
     });
 }
 
+function updateFacilityTabIndicators(facilityId) {
+    const npcTab = document.getElementById('tab-btn-npcs');
+    const ordersTab = document.getElementById('tab-btn-orders');
+    if (!npcTab || !ordersTab) {
+        return;
+    }
+    const facilityDef = appState.facilityById[facilityId];
+    const entry = getFacilityEntry(facilityId);
+    const assigned = entry && Array.isArray(entry.assigned_npcs) ? entry.assigned_npcs : [];
+    const available = assigned.filter(npc => {
+        if (!npc || !npc.npc_id) {
+            return false;
+        }
+        if (npcHasActiveOrder(entry, npc.npc_id)) {
+            return false;
+        }
+        return isProfessionAllowed(facilityDef, npc.profession);
+    }).length;
+    const totalAssigned = assigned.length;
+    npcTab.textContent = `${t('tabs.npcs')} (${available}/${totalAssigned})`;
+
+    const orders = facilityDef && Array.isArray(facilityDef.orders) ? facilityDef.orders : [];
+    const activeOrders = getFacilityOrders(entry).filter(order => isOrderActive(order)).length;
+    ordersTab.textContent = `${t('tabs.orders')} (${activeOrders}/${orders.length})`;
+}
+
+function resetFacilityTabIndicators() {
+    const npcTab = document.getElementById('tab-btn-npcs');
+    const ordersTab = document.getElementById('tab-btn-orders');
+    if (npcTab) {
+        npcTab.textContent = t('tabs.npcs');
+    }
+    if (ordersTab) {
+        ordersTab.textContent = t('tabs.orders');
+    }
+}
+
+function renderOrderProgressIndicators(facilityId) {
+    const container = document.getElementById('detail-order-progress');
+    if (!container) {
+        return;
+    }
+    container.innerHTML = '';
+    const entry = getFacilityEntry(facilityId);
+    const orders = getFacilityOrders(entry);
+    const active = orders.filter(order => isOrderActive(order));
+    if (!active.length) {
+        return;
+    }
+    active.forEach(order => {
+        if (!order || typeof order !== 'object') {
+            return;
+        }
+        const duration = Number.isInteger(order.duration_turns) ? order.duration_turns : 1;
+        const status = getOrderStatus(order);
+        const isReady = status === 'ready';
+        const progressRaw = Number.isInteger(order.progress) ? order.progress : 0;
+        const progress = isReady ? duration : Math.min(Math.max(progressRaw, 0), duration);
+        const remaining = Math.max(duration - progress, 0);
+
+        const badge = document.createElement('div');
+        badge.className = 'order-progress-circle';
+        badge.style.setProperty('--segments', Math.max(duration, 1));
+        badge.style.setProperty('--progress', Math.max(progress, 0));
+        badge.innerHTML = `<span>${remaining}</span>`;
+        container.appendChild(badge);
+    });
+}
+
 // ===== VIEW 3: TURN CONSOLE =====
 
 function selectFacility(facilityId, element = null) {
+    if (inventoryManageOpen) {
+        inventoryManageOpen = false;
+    }
     appState.selectedFacilityId = facilityId;
     setFacilityPanelState(true);
 
@@ -130,12 +202,15 @@ function selectFacility(facilityId, element = null) {
     renderSlotBubbles(facility, entry);
     renderNpcTab(facilityId);
     renderOrdersPanel(facilityId);
+    updateFacilityTabIndicators(facilityId);
+    renderOrderProgressIndicators(facilityId);
     renderInventoryPanel();
 }
 
 function setFacilityPanelState(hasSelection) {
     const empty = document.getElementById('facility-empty');
     const main = document.getElementById('facility-main');
+    const manage = document.getElementById('inventory-manage-view');
     const inventory = document.getElementById('inventory-panel');
     if (empty) {
         empty.classList.toggle('hidden', hasSelection);
@@ -143,8 +218,28 @@ function setFacilityPanelState(hasSelection) {
     if (main) {
         main.classList.toggle('hidden', !hasSelection);
     }
+    if (manage) {
+        manage.classList.toggle('hidden', !inventoryManageOpen);
+    }
     if (inventory) {
         inventory.classList.remove('hidden');
+    }
+
+    if (!hasSelection) {
+        resetFacilityTabIndicators();
+        const progress = document.getElementById('detail-order-progress');
+        if (progress) {
+            progress.innerHTML = '';
+        }
+    }
+
+    if (inventoryManageOpen) {
+        if (empty) {
+            empty.classList.add('hidden');
+        }
+        if (main) {
+            main.classList.add('hidden');
+        }
     }
 }
 
@@ -304,15 +399,17 @@ function renderTreasuryControls() {
     });
 }
 
-function toggleTreasuryPanel() {
-    const panel = document.getElementById('treasury-panel');
-    if (!panel) {
-        return;
-    }
-    panel.classList.toggle('hidden');
-    if (!panel.classList.contains('hidden')) {
-        renderTreasuryControls();
-    }
+let inventoryManageOpen = false;
+
+function openInventoryManage() {
+    inventoryManageOpen = true;
+    setFacilityPanelState(!!appState.selectedFacilityId);
+    renderTreasuryControls();
+}
+
+function closeInventoryManage() {
+    inventoryManageOpen = false;
+    setFacilityPanelState(!!appState.selectedFacilityId);
 }
 
 async function adjustTreasury(mode = 'add') {
@@ -324,7 +421,7 @@ async function adjustTreasury(mode = 'add') {
     const amount = parseInt(amountEl.value, 10);
     const currency = currencyEl.value;
     if (!Number.isInteger(amount) || amount < 0 || !currency) {
-        alert(t('treasury.invalid'));
+        notifyUser(t('treasury.invalid'));
         return;
     }
 
@@ -336,7 +433,7 @@ async function adjustTreasury(mode = 'add') {
     if (mode === 'remove') {
         delta = -amount;
     } else if (mode !== 'add') {
-        alert(t('treasury.invalid'));
+        notifyUser(t('treasury.invalid'));
         return;
     }
     if (delta === 0) {
@@ -345,7 +442,7 @@ async function adjustTreasury(mode = 'add') {
     }
 
     if (!(window.pywebview && window.pywebview.api && window.pywebview.api.apply_effects)) {
-        alert(t('alerts.pywebview_unavailable'));
+        notifyUser(t('alerts.pywebview_unavailable'));
         return;
     }
 
@@ -361,7 +458,7 @@ async function adjustTreasury(mode = 'add') {
 
     const response = await window.pywebview.api.apply_effects([effect], context);
     if (!response || !response.success) {
-        alert(t('treasury.failed'));
+        notifyUser(t('treasury.failed'));
         return;
     }
 
@@ -383,14 +480,14 @@ async function adjustInventoryItem(mode = 'add') {
     const item = String(nameEl.value || '').trim();
     const qty = parseInt(qtyEl.value, 10);
     if (!item || !Number.isInteger(qty) || qty < 0) {
-        alert(t('inventory.invalid'));
+        notifyUser(t('inventory.invalid'));
         return;
     }
     let delta = qty;
     if (mode === 'remove') {
         delta = -qty;
     } else if (mode !== 'add') {
-        alert(t('inventory.invalid'));
+        notifyUser(t('inventory.invalid'));
         return;
     }
     if (delta === 0) {
@@ -399,7 +496,7 @@ async function adjustInventoryItem(mode = 'add') {
     }
 
     if (!(window.pywebview && window.pywebview.api && window.pywebview.api.apply_effects)) {
-        alert(t('alerts.pywebview_unavailable'));
+        notifyUser(t('alerts.pywebview_unavailable'));
         return;
     }
 
@@ -415,7 +512,7 @@ async function adjustInventoryItem(mode = 'add') {
 
     const response = await window.pywebview.api.apply_effects([effect], context);
     if (!response || !response.success) {
-        alert(t('inventory.failed'));
+        notifyUser(t('inventory.failed'));
         return;
     }
 
@@ -912,8 +1009,8 @@ function renderSlotBubbles(facility, entry) {
     if (!total) {
         return;
     }
-    const activeOrders = getFacilityOrders(entry).filter(isOrderActive);
-    const used = activeOrders.length;
+    const assigned = entry && Array.isArray(entry.assigned_npcs) ? entry.assigned_npcs.length : 0;
+    const used = Math.min(total, assigned);
     for (let i = 0; i < total; i += 1) {
         const bubble = document.createElement('span');
         bubble.className = i < used ? 'slot-bubble filled' : 'slot-bubble';
@@ -1081,6 +1178,8 @@ function renderOrdersPanel(facilityId) {
         empty.textContent = t('orders.none_active');
         list.appendChild(empty);
         updateGlobalActionLocks();
+        updateFacilityTabIndicators(facilityId);
+        renderOrderProgressIndicators(facilityId);
         return;
     }
 
@@ -1329,18 +1428,18 @@ async function saveFormulaInputs() {
         const value = field ? field.value : '';
         const source = getFormulaInputSource(input);
         if (!source) {
-            alert(t('alerts.formula_inputs_missing'));
+            notifyUser(t('alerts.formula_inputs_missing'));
             return;
         }
         if (source === 'check') {
             if (!isCheckValueValid(input, value)) {
-                alert(t('alerts.formula_inputs_missing'));
+                notifyUser(t('alerts.formula_inputs_missing'));
                 return;
             }
             inputs[input.name] = Number(value);
         } else {
             if (!isNumericValue(value)) {
-                alert(t('alerts.formula_inputs_missing'));
+                notifyUser(t('alerts.formula_inputs_missing'));
                 return;
             }
             inputs[input.name] = Number(value);
@@ -1348,14 +1447,14 @@ async function saveFormulaInputs() {
     }
 
     if (!(window.pywebview && window.pywebview.api && window.pywebview.api.save_formula_inputs)) {
-        alert(t('alerts.pywebview_unavailable'));
+        notifyUser(t('alerts.pywebview_unavailable'));
         return;
     }
 
     const response = await window.pywebview.api.save_formula_inputs(facilityId, orderId, triggerId, inputs);
     if (!response || !response.success) {
         const message = response && response.message ? response.message : 'unknown error';
-        alert(t('alerts.formula_inputs_failed', { message }));
+        notifyUser(t('alerts.formula_inputs_failed', { message }));
         return;
     }
 
@@ -1376,13 +1475,17 @@ function renderNpcTab(facilityId) {
     tbody.innerHTML = '';
     const entry = getFacilityEntry(facilityId);
     const assigned = entry && Array.isArray(entry.assigned_npcs) ? entry.assigned_npcs : [];
+    const sortState = appState.npcTabSort || { key: null, dir: 'desc' };
+    const sortedAssigned = sortState.key
+        ? [...assigned].sort((a, b) => compareNpcSort({ npc: a, facility_id: null }, { npc: b, facility_id: null }, sortState.key, sortState.dir))
+        : assigned;
     let hasMismatch = false;
 
     if (empty) {
         empty.classList.toggle('hidden', assigned.length > 0);
     }
 
-    assigned.forEach(npc => {
+    sortedAssigned.forEach(npc => {
         if (!npc || typeof npc !== 'object') {
             return;
         }
@@ -1480,6 +1583,10 @@ function renderNpcTab(facilityId) {
     if (note) {
         note.classList.toggle('hidden', !hasMismatch);
     }
+
+    updateFacilityTabIndicators(facilityId);
+    initNpcTabSorting();
+    updateNpcTabSortHeaders();
 }
 
 function renderNpcModal() {
@@ -1537,6 +1644,52 @@ function isProfessionAllowed(facilityDef, profession) {
         return true;
     }
     return allowed.some(entry => normalizeProfession(entry) === needle);
+}
+
+function initNpcTabSorting() {
+    const table = document.querySelector('#tab-npcs .npcs-table');
+    if (!table) {
+        return;
+    }
+    const headers = table.querySelectorAll('th[data-sort-key]');
+    headers.forEach(th => {
+        if (th.dataset.npcTabBound === 'true') {
+            return;
+        }
+        th.classList.add('sortable');
+        th.addEventListener('click', () => {
+            const key = th.dataset.sortKey;
+            if (!key) {
+                return;
+            }
+            const state = appState.npcTabSort || { key: null, dir: 'desc' };
+            if (state.key === key) {
+                state.dir = state.dir === 'desc' ? 'asc' : 'desc';
+            } else {
+                state.key = key;
+                state.dir = 'desc';
+            }
+            appState.npcTabSort = state;
+            if (appState.selectedFacilityId) {
+                renderNpcTab(appState.selectedFacilityId);
+            } else {
+                updateNpcTabSortHeaders(headers);
+            }
+        });
+        th.dataset.npcTabBound = 'true';
+    });
+    updateNpcTabSortHeaders(headers);
+}
+
+function updateNpcTabSortHeaders(headers) {
+    const state = appState.npcTabSort || { key: null, dir: 'desc' };
+    const list = headers || document.querySelectorAll('#tab-npcs .npcs-table th[data-sort-key]');
+    list.forEach(th => {
+        th.classList.remove('sorted-asc', 'sorted-desc');
+        if (state.key && th.dataset.sortKey === state.key) {
+            th.classList.add(state.dir === 'asc' ? 'sorted-asc' : 'sorted-desc');
+        }
+    });
 }
 
 function initNpcManagementSorting() {
@@ -1803,14 +1956,14 @@ async function submitMoveNpc() {
         return;
     }
     if (!(window.pywebview && window.pywebview.api && window.pywebview.api.move_npc)) {
-        alert(t('alerts.pywebview_unavailable'));
+        notifyUser(t('alerts.pywebview_unavailable'));
         return;
     }
     const targetValue = select.value;
     const targetFacilityId = targetValue === '' ? null : targetValue;
     const response = await window.pywebview.api.move_npc(context.npcId, targetFacilityId);
     if (!response || !response.success) {
-        alert(t('alerts.npc_move_failed', { message: response && response.message ? response.message : 'unknown error' }));
+        notifyUser(t('alerts.npc_move_failed', { message: response && response.message ? response.message : 'unknown error' }));
         return;
     }
     await refreshSessionState();
@@ -1830,6 +1983,7 @@ function renderInventoryPanel() {
     const walletEl = document.getElementById('inventory-wallet');
     const groupsEl = document.getElementById('inventory-groups');
     const empty = document.getElementById('inventory-empty');
+    const suggestionsEl = document.getElementById('inventory-item-suggestions');
     if (!panel || !groupsEl) {
         return;
     }
@@ -1924,6 +2078,16 @@ function renderInventoryPanel() {
 
         groupsEl.appendChild(details);
     });
+
+    if (suggestionsEl) {
+        const items = [...new Set(inventory.map(entry => entry && entry.item).filter(Boolean))].sort((a, b) => a.localeCompare(b));
+        suggestionsEl.innerHTML = '';
+        items.forEach(itemName => {
+            const option = document.createElement('option');
+            option.value = itemName;
+            suggestionsEl.appendChild(option);
+        });
+    }
 }
 
 function renderNpcManagement() {
@@ -1988,6 +2152,7 @@ function renderNpcManagement() {
             facilityTd.textContent = getFacilityDisplayName(row.facility_id);
         } else {
             facilityTd.textContent = t('npcs.reserve');
+            facilityTd.classList.add('facility-unassigned');
         }
         tr.appendChild(facilityTd);
 
@@ -1997,6 +2162,9 @@ function renderNpcManagement() {
         professionTag.textContent = npc.profession || t('common.unknown');
         professionTd.appendChild(professionTag);
         tr.appendChild(professionTd);
+
+        const facilityEntry = row.facility_id ? getFacilityEntry(row.facility_id) : null;
+        const hasActive = facilityEntry ? npcHasActiveOrder(facilityEntry, npc.npc_id) : false;
 
         const levelTd = document.createElement('td');
         const levelWrap = document.createElement('div');
@@ -2052,8 +2220,6 @@ function renderNpcManagement() {
             fireNpc(npc.npc_id, npc.name || npc.npc_id || '');
         });
 
-        const facilityEntry = row.facility_id ? getFacilityEntry(row.facility_id) : null;
-        const hasActive = facilityEntry ? npcHasActiveOrder(facilityEntry, npc.npc_id) : false;
         if (hasActive) {
             fireBtn.disabled = true;
             fireBtn.title = t('npcs.blocked_active_order');
@@ -2063,6 +2229,16 @@ function renderNpcManagement() {
         actions.appendChild(fireBtn);
         actionTd.appendChild(actions);
         tr.appendChild(actionTd);
+
+        const statusTd = document.createElement('td');
+        if (!row.facility_id) {
+            statusTd.textContent = t('npcs.status_unassigned');
+        } else if (hasActive) {
+            statusTd.textContent = t('npcs.status_working');
+        } else {
+            statusTd.textContent = t('npcs.status_resting');
+        }
+        tr.appendChild(statusTd);
 
         body.appendChild(tr);
     });
@@ -2086,6 +2262,9 @@ function renderHireNpcForm() {
     const professionCustomInput = document.getElementById('hire-profession-custom');
     const upkeepCurrency = document.getElementById('hire-upkeep-currency');
     const assignSelect = document.getElementById('hire-assign-facility');
+    const customSelect = document.getElementById('hire-profession-select');
+    const customTrigger = document.getElementById('hire-profession-trigger');
+    const customMenu = document.getElementById('hire-profession-menu');
 
     if (!professionSelect || !upkeepCurrency || !assignSelect) {
         return;
@@ -2100,17 +2279,62 @@ function renderHireNpcForm() {
         }
     });
     const sorted = Array.from(professions).sort();
-    professionSelect.innerHTML = '';
-    sorted.forEach(p => {
-        const opt = document.createElement('option');
-        opt.value = p;
-        opt.textContent = p;
-        professionSelect.appendChild(opt);
+    const neededInfo = (() => {
+        const needed = new Set();
+        let anyNeeded = false;
+        const facilities = (appState.session && appState.session.bastion && appState.session.bastion.facilities) || [];
+        facilities.forEach(entry => {
+            if (!entry || !entry.facility_id) {
+                return;
+            }
+            const def = appState.facilityById[entry.facility_id];
+            if (!def) {
+                return;
+            }
+            const free = getFacilityFreeSlots(entry, def);
+            if (free <= 0) {
+                return;
+            }
+            const allowed = getAllowedProfessions(def);
+            if (!allowed) {
+                return;
+            }
+            if (allowed.length === 0) {
+                anyNeeded = true;
+                return;
+            }
+            allowed.forEach(value => {
+                const normalized = normalizeProfession(value);
+                if (normalized) {
+                    needed.add(normalized);
+                }
+            });
+        });
+        return { needed, anyNeeded };
+    })();
+    const options = sorted.map(p => {
+        const normalized = normalizeProfession(p);
+        const isNeeded = neededInfo.anyNeeded || (normalized && neededInfo.needed.has(normalized));
+        return { value: p, label: p, needed: isNeeded };
     });
-    const customOpt = document.createElement('option');
-    customOpt.value = 'custom';
-    customOpt.textContent = t('modal.profession_custom');
-    professionSelect.appendChild(customOpt);
+    options.push({ value: 'custom', label: t('modal.profession_custom'), needed: false, custom: true });
+
+    const currentValue = professionSelect.value;
+    professionSelect.innerHTML = '';
+    options.forEach(opt => {
+        const optionEl = document.createElement('option');
+        optionEl.value = opt.value;
+        optionEl.textContent = opt.label;
+        if (opt.needed) {
+            optionEl.dataset.needed = 'true';
+        }
+        professionSelect.appendChild(optionEl);
+    });
+    if (currentValue && options.some(opt => opt.value === currentValue)) {
+        professionSelect.value = currentValue;
+    } else if (options.length) {
+        professionSelect.value = options[0].value;
+    }
 
     let currencyOrder = getCurrencyOrder();
     if (!currencyOrder || currencyOrder.length === 0) {
@@ -2175,17 +2399,107 @@ function renderHireNpcForm() {
         }
     }
 
+    function updateCustomTrigger() {
+        if (!customTrigger) {
+            return;
+        }
+        const current = options.find(opt => opt.value === professionSelect.value) || options[0];
+        if (!current) {
+            customTrigger.textContent = '';
+            return;
+        }
+        customTrigger.innerHTML = '';
+        const label = document.createElement('span');
+        label.className = 'custom-select-label';
+        label.textContent = current.label;
+        customTrigger.appendChild(label);
+        if (current.needed) {
+            const tag = document.createElement('span');
+            tag.className = 'option-tag';
+            tag.textContent = t('modal.profession_needed');
+            customTrigger.appendChild(tag);
+        }
+    }
+
+    function closeCustomMenu() {
+        if (customSelect) {
+            customSelect.classList.remove('open');
+        }
+    }
+
+    function openCustomMenu() {
+        if (customSelect) {
+            customSelect.classList.add('open');
+        }
+    }
+
+    function buildCustomMenu() {
+        if (!customMenu) {
+            return;
+        }
+        customMenu.innerHTML = '';
+        options.forEach(opt => {
+            const optionBtn = document.createElement('button');
+            optionBtn.type = 'button';
+            optionBtn.className = 'custom-select-option';
+            optionBtn.dataset.value = opt.value;
+            optionBtn.innerHTML = '';
+
+            const label = document.createElement('span');
+            label.className = 'custom-select-label';
+            label.textContent = opt.label;
+            optionBtn.appendChild(label);
+
+            if (opt.needed) {
+                const tag = document.createElement('span');
+                tag.className = 'option-tag';
+                tag.textContent = t('modal.profession_needed');
+                optionBtn.appendChild(tag);
+            }
+
+            optionBtn.addEventListener('click', () => {
+                professionSelect.value = opt.value;
+                updateProfessionCustom();
+                updateCustomTrigger();
+                closeCustomMenu();
+            });
+            customMenu.appendChild(optionBtn);
+        });
+    }
+
     if (!professionSelect.dataset.bound) {
         professionSelect.addEventListener('change', updateProfessionCustom);
         if (professionCustomInput) {
             professionCustomInput.addEventListener('input', updateAssignOptions);
         }
         assignSelect.addEventListener('change', () => updateUpkeepHint(assignSelect.value));
+        if (customTrigger) {
+            customTrigger.addEventListener('click', () => {
+                if (customSelect && customSelect.classList.contains('open')) {
+                    closeCustomMenu();
+                } else {
+                    openCustomMenu();
+                }
+            });
+        }
+        if (!document.body.dataset.hireProfessionMenuBound) {
+            document.addEventListener('click', (event) => {
+                if (!customSelect) {
+                    return;
+                }
+                if (!customSelect.contains(event.target)) {
+                    closeCustomMenu();
+                }
+            });
+            document.body.dataset.hireProfessionMenuBound = 'true';
+        }
         professionSelect.dataset.bound = 'true';
     }
 
     updateProfessionCustom();
     updateAssignOptions();
+    buildCustomMenu();
+    updateCustomTrigger();
 }
 
 async function startOrder() {
@@ -2198,20 +2512,20 @@ async function startOrder() {
     const npcId = npcSelect.value;
     const orderId = orderSelect.value;
     if (!npcId || npcSelect.disabled) {
-        alert(t('alerts.order_start_failed', { message: t('orders.no_npc_assigned') }));
+        notifyUser(t('alerts.order_start_failed', { message: t('orders.no_npc_assigned') }));
         return;
     }
     if (!orderId || orderSelect.disabled) {
-        alert(t('alerts.order_start_failed', { message: t('orders.no_orders_available') }));
+        notifyUser(t('alerts.order_start_failed', { message: t('orders.no_orders_available') }));
         return;
     }
     if (!(window.pywebview && window.pywebview.api && window.pywebview.api.start_order)) {
-        alert(t('alerts.pywebview_unavailable'));
+        notifyUser(t('alerts.pywebview_unavailable'));
         return;
     }
     const response = await window.pywebview.api.start_order(facilityId, npcId, orderId);
     if (!response || !response.success) {
-        alert(t('alerts.order_start_failed', { message: response && response.message ? response.message : 'unknown error' }));
+        notifyUser(t('alerts.order_start_failed', { message: response && response.message ? response.message : 'unknown error' }));
         return;
     }
     await refreshSessionState();
@@ -2224,13 +2538,13 @@ async function startOrder() {
 async function lockOrderRoll(orderId, rollValue, auto = false) {
     const facilityId = appState.selectedFacilityId;
     if (!(window.pywebview && window.pywebview.api && window.pywebview.api.lock_order_roll)) {
-        alert(t('alerts.pywebview_unavailable'));
+        notifyUser(t('alerts.pywebview_unavailable'));
         return;
     }
     const rollNumber = rollValue !== null && rollValue !== undefined && rollValue !== '' ? parseInt(rollValue, 10) : null;
     const response = await window.pywebview.api.lock_order_roll(facilityId, orderId, rollNumber, auto);
     if (!response || !response.success) {
-        alert(t('alerts.roll_lock_failed', { message: response && response.message ? response.message : 'unknown error' }));
+        notifyUser(t('alerts.roll_lock_failed', { message: response && response.message ? response.message : 'unknown error' }));
         return;
     }
     await refreshSessionState();
@@ -2241,14 +2555,14 @@ async function lockOrderRoll(orderId, rollValue, auto = false) {
 async function evaluateOrder(orderId) {
     const facilityId = appState.selectedFacilityId;
     if (!(window.pywebview && window.pywebview.api && window.pywebview.api.evaluate_order)) {
-        alert(t('alerts.pywebview_unavailable'));
+        notifyUser(t('alerts.pywebview_unavailable'));
         return;
     }
     const response = await window.pywebview.api.evaluate_order(facilityId, orderId);
     if (!response || !response.success) {
         const rawMessage = response && response.message ? response.message : 'unknown error';
         const message = formatFormulaErrorMessage(rawMessage);
-        alert(t('alerts.evaluate_failed', { message }));
+        notifyUser(t('alerts.evaluate_failed', { message }));
         return;
     }
     await refreshSessionState();
@@ -2266,25 +2580,25 @@ async function evaluateOrder(orderId) {
 
 async function evaluateAllReady() {
     if (!(window.pywebview && window.pywebview.api && window.pywebview.api.evaluate_ready_orders)) {
-        alert(t('alerts.pywebview_unavailable'));
+        notifyUser(t('alerts.pywebview_unavailable'));
         return;
     }
     const response = await window.pywebview.api.evaluate_ready_orders();
     if (!response || !response.success) {
-        alert(t('alerts.evaluate_failed', { message: response && response.message ? response.message : 'unknown error' }));
+        notifyUser(t('alerts.evaluate_failed', { message: response && response.message ? response.message : 'unknown error' }));
         return;
     }
     const evaluated = response.evaluated || [];
     const skipped = response.skipped || [];
     if (evaluated.length === 0 && skipped.length === 0) {
-        alert(t('alerts.no_ready_orders'));
+        notifyUser(t('alerts.no_ready_orders'));
         return;
     }
     const results = response.results || [];
     if (skipped.length) {
-        alert(t('alerts.evaluate_all_skipped'));
+        notifyUser(t('alerts.evaluate_all_skipped'));
     } else {
-        alert(t('alerts.evaluate_all_done'));
+        notifyUser(t('alerts.evaluate_all_done'));
     }
     await refreshSessionState();
     await refreshFacilityStates();
@@ -2309,12 +2623,12 @@ async function evaluateAllReady() {
 
 async function rollAndEvaluateAllReady() {
     if (!(window.pywebview && window.pywebview.api && window.pywebview.api.roll_and_evaluate_ready_orders)) {
-        alert(t('alerts.pywebview_unavailable'));
+        notifyUser(t('alerts.pywebview_unavailable'));
         return;
     }
     const response = await window.pywebview.api.roll_and_evaluate_ready_orders();
     if (!response || !response.success) {
-        alert(t('alerts.evaluate_failed', { message: response && response.message ? response.message : 'unknown error' }));
+        notifyUser(t('alerts.evaluate_failed', { message: response && response.message ? response.message : 'unknown error' }));
         return;
     }
     const evaluated = response.evaluated || [];
@@ -2353,18 +2667,18 @@ async function rollAndEvaluateAllReady() {
 async function startUpgrade() {
     const facilityId = appState.selectedFacilityId;
     if (!facilityId) {
-        alert(t('alerts.upgrade_select_first'));
+        notifyUser(t('alerts.upgrade_select_first'));
         return;
     }
     const stateEntry = (appState.facilityStates || []).find(entry => entry.facility_id === facilityId);
     const currentStateRaw = stateEntry && stateEntry.state ? stateEntry.state : 'unknown';
     const currentStateLabel = translateFacilityState(currentStateRaw);
     if (currentStateRaw !== 'free') {
-        alert(t('alerts.upgrade_not_free', { state: currentStateLabel }));
+        notifyUser(t('alerts.upgrade_not_free', { state: currentStateLabel }));
         return;
     }
     if (!(window.pywebview && window.pywebview.api)) {
-        alert(t('alerts.pywebview_unavailable'));
+        notifyUser(t('alerts.pywebview_unavailable'));
         return;
     }
 
@@ -2386,7 +2700,7 @@ async function startUpgrade() {
 
     if (!response || !response.success) {
         const message = response && response.message ? response.message : 'unknown error';
-        alert(t('alerts.upgrade_failed', { message }));
+        notifyUser(t('alerts.upgrade_failed', { message }));
         return;
     }
 
@@ -2398,7 +2712,7 @@ async function startUpgrade() {
 
 async function advanceTurn() {
     if (hasBlockingReadyOrders()) {
-        alert(t('alerts.advance_blocked_ready_orders'));
+        notifyUser(t('alerts.advance_blocked_ready_orders'));
         return;
     }
     if (window.pywebview && window.pywebview.api && window.pywebview.api.advance_turn) {
@@ -2408,7 +2722,7 @@ async function advanceTurn() {
             const message = rawMessage.includes('Pending orders ready')
                 ? t('alerts.advance_blocked_ready_orders')
                 : rawMessage;
-            alert(t('alerts.advance_failed', { message }));
+            notifyUser(t('alerts.advance_failed', { message }));
             return;
         }
         appState.session.current_turn = response.current_turn;
@@ -2466,12 +2780,12 @@ function addLogEntry(message, type = 'success') {
 function saveSession() {
     if (window.pywebview && window.pywebview.api) {
         window.pywebview.api.save_session(appState.session).then(response => {
-            alert(response.message);
+            notifyUser(response.message);
         });
     } else {
         const sessionJson = JSON.stringify(appState.session, null, 2);
         console.log('Session saved:', sessionJson);
-        alert(t('alerts.session_saved_console'));
+        notifyUser(t('alerts.session_saved_console'));
     }
 }
 
@@ -2482,7 +2796,7 @@ function loadSession() {
         // Lade Liste der verfügbaren Sessions
         window.pywebview.api.list_sessions().then(response => {
             if (!response.success || response.sessions.length === 0) {
-                alert(t('alerts.no_sessions_available'));
+                notifyUser(t('alerts.no_sessions_available'));
                 return;
             }
             
@@ -2507,10 +2821,10 @@ function loadSession() {
             modal.classList.remove('hidden');
         }).catch(err => {
             logClient('error', `Failed to load session list: ${err}`);
-            alert(t('alerts.load_session_error'));
+            notifyUser(t('alerts.load_session_error'));
         });
     } else {
-        alert(t('alerts.pywebview_unavailable'));
+        notifyUser(t('alerts.pywebview_unavailable'));
     }
 }
 
@@ -2528,18 +2842,14 @@ async function applyLoadedSession(filename, sessionState, options = {}) {
     if (typeof updateGlobalActionLocks === 'function') {
         updateGlobalActionLocks();
     }
-    if (appState.selectedFacilityId) {
-        renderInventoryPanel();
-    }
+    renderInventoryPanel();
 
-    const nameEl = document.querySelector('.session-name');
-    if (nameEl) {
-        const display = filename ? filename.replace('session_', '').replace('.json', '') : (sessionState && sessionState.bastion && sessionState.bastion.name) || t('header.no_session');
-        nameEl.textContent = display;
+    if (typeof setHeaderSessionName === 'function') {
+        setHeaderSessionName(getSessionDisplayName(sessionState));
     }
 
     if (showAlert) {
-        alert(t('alerts.session_loaded', { filename: filename || '' }));
+        notifyUser(t('alerts.session_loaded', { filename: filename || '' }));
     }
     if (closeDialog) {
         closeModal('load-session-modal');
@@ -2558,14 +2868,14 @@ async function loadSessionFile(filename) {
                 await applyLoadedSession(filename, response.session_state, { showAlert: true, closeDialog: true });
             } else {
                 logClient('error', `Failed to load session: ${response.message}`);
-                alert(t('alerts.error_prefix', { message: response.message }));
+                notifyUser(t('alerts.error_prefix', { message: response.message }));
             }
         } catch (err) {
             logClient('error', `Failed to load session file: ${err}`);
-            alert(t('alerts.error_prefix', { message: err }));
+            notifyUser(t('alerts.error_prefix', { message: err }));
         }
     } else {
-        alert(t('alerts.pywebview_unavailable'));
+        notifyUser(t('alerts.pywebview_unavailable'));
     }
 }
 
@@ -2612,16 +2922,16 @@ async function hireNPC() {
     const upkeepValue = parseInt(upkeepAmount, 10);
 
     if (!name || !profession || !Number.isInteger(level)) {
-        alert(t('alerts.npc_fill_required'));
+        notifyUser(t('alerts.npc_fill_required'));
         return;
     }
     if (!Number.isInteger(upkeepValue) || upkeepValue <= 0 || !upkeepCurrency) {
-        alert(t('alerts.fill_name_upkeep'));
+        notifyUser(t('alerts.fill_name_upkeep'));
         return;
     }
 
     if (!(window.pywebview && window.pywebview.api && window.pywebview.api.hire_npc)) {
-        alert(t('alerts.pywebview_unavailable'));
+        notifyUser(t('alerts.pywebview_unavailable'));
         return;
     }
 
@@ -2629,7 +2939,7 @@ async function hireNPC() {
     const facilityId = assignFacility || null;
     const response = await window.pywebview.api.hire_npc(name, profession, level, upkeep, facilityId);
     if (!response || !response.success) {
-        alert(t('alerts.npc_hire_failed', { message: response && response.message ? response.message : 'unknown error' }));
+        notifyUser(t('alerts.npc_hire_failed', { message: response && response.message ? response.message : 'unknown error' }));
         return;
     }
 
@@ -2657,12 +2967,12 @@ async function fireNpc(npcId, npcName = '') {
         return;
     }
     if (!(window.pywebview && window.pywebview.api && window.pywebview.api.fire_npc)) {
-        alert(t('alerts.pywebview_unavailable'));
+        notifyUser(t('alerts.pywebview_unavailable'));
         return;
     }
     const response = await window.pywebview.api.fire_npc(npcId);
     if (!response || !response.success) {
-        alert(t('alerts.npc_fire_failed', { message: response && response.message ? response.message : 'unknown error' }));
+        notifyUser(t('alerts.npc_fire_failed', { message: response && response.message ? response.message : 'unknown error' }));
         return;
     }
     await refreshSessionState();

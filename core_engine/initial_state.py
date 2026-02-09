@@ -46,6 +46,7 @@ class InitialStateGenerator:
         state = {
             # ===== METADATA =====
             "session_id": f"session_{session_name.lower().replace(' ', '_')}_{datetime.now().strftime('%Y%m%d_%H%M%S')}",
+            "session_name": session_name,
             "dm_name": dm_name,
             "created": today,
             "last_modified": today,

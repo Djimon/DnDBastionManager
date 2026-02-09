@@ -1,0 +1,501 @@
+{
+  "pack_id": "core.shrine",
+  "name": "Shrine",
+  "version": 1,
+  "author": "Djih",
+
+  "custom_mechanics": [
+    {
+      "name": "Church of Light Favor",
+      "type": "stat_counter",
+      "config": {
+        "custom_stat_name": "favor_church_light",
+        "min_value": -100,
+        "max_value": 100
+      }
+    },
+    {
+      "name": "Church of the Dark Sun Favor",
+      "type": "stat_counter",
+      "config": {
+        "custom_stat_name": "favor_church_dark_sun",
+        "min_value": -100,
+        "max_value": 100
+      }
+    },
+    {
+      "name": "Temple of Nature Favor",
+      "type": "stat_counter",
+      "config": {
+        "custom_stat_name": "favor_temple_nature",
+        "min_value": -100,
+        "max_value": 100
+      }
+    },
+    {
+      "name": "Cult of Knowledge Favor",
+      "type": "stat_counter",
+      "config": {
+        "custom_stat_name": "favor_cult_knowledge",
+        "min_value": -100,
+        "max_value": 100
+      }
+    }
+  ],
+
+  "facilities": [
+    {
+      "id": "core.shrine:shrine:t1",
+      "name": "Shrine",
+      "description": "A modest shrine for worship, offerings, and seeking divine favor.",
+      "tier": 1,
+      "parent": null,
+      "build": {
+        "cost": {"gold": 250},
+        "duration_turns": 1
+      },
+      "npc_slots": 1,
+      "npc_allowed_professions": ["priest", "cleric", "acolyte"],
+      "npc_base_upkeep": {"silver": 5},
+
+      "orders": [
+        {
+          "id": "make_offering_light",
+          "name": "Make Offering to Church of Light",
+          "description": "Present offerings and prayers to gain favor with the Church of Light.",
+          "min_npc_level": 1,
+          "duration_turns": 1,
+          "outcome": {
+            "check_profile": "d20",
+            "on_success": {
+              "effects": [
+                {"item": "incense", "qty": -1},
+                {"gold": -5},
+                {"stat": "favor_church_light", "delta": 2},
+                {"log": "The Church of Light accepts your offering."}
+              ]
+            },
+            "on_critical_success": {
+              "effects": [
+                {"item": "incense", "qty": -1},
+                {"gold": -5},
+                {"stat": "favor_church_light", "delta": 5},
+                {"item": "blessing_token", "qty": 1},
+                {"log": "A divine presence is felt! The Church is greatly pleased."}
+              ]
+            },
+            "on_failure": {
+              "effects": [
+                {"item": "incense", "qty": -1},
+                {"gold": -5},
+                {"log": "The offering is accepted but unremarkable."}
+              ]
+            },
+            "on_critical_failure": {
+              "effects": [
+                {"item": "incense", "qty": -1},
+                {"gold": -5},
+                {"stat": "favor_church_light", "delta": -3},
+                {"log": "The ritual was performed incorrectly! The Church takes offense."}
+              ]
+            }
+          }
+        },
+        {
+          "id": "make_offering_dark_sun",
+          "name": "Make Offering to Church of the Dark Sun",
+          "description": "Present offerings and prayers to gain favor with the Church of the Dark Sun.",
+          "min_npc_level": 1,
+          "duration_turns": 1,
+          "outcome": {
+            "check_profile": "d20",
+            "on_success": {
+              "effects": [
+                {"item": "blood_offering", "qty": -1},
+                {"gold": -5},
+                {"stat": "favor_church_dark_sun", "delta": 2},
+                {"stat": "favor_church_light", "delta": -1},
+                {"log": "The Dark Sun's followers acknowledge your devotion."}
+              ]
+            },
+            "on_critical_success": {
+              "effects": [
+                {"item": "blood_offering", "qty": -1},
+                {"gold": -5},
+                {"stat": "favor_church_dark_sun", "delta": 5},
+                {"stat": "favor_church_light", "delta": -2},
+                {"item": "dark_blessing", "qty": 1},
+                {"log": "The Dark Sun's power flows through you!"}
+              ]
+            },
+            "on_failure": {
+              "effects": [
+                {"item": "blood_offering", "qty": -1},
+                {"gold": -5},
+                {"log": "The offering is consumed but brings no favor."}
+              ]
+            },
+            "on_critical_failure": {
+              "effects": [
+                {"item": "blood_offering", "qty": -1},
+                {"gold": -5},
+                {"stat": "favor_church_dark_sun", "delta": -3},
+                {"log": "The ritual backfired! Dark powers recoil."}
+              ]
+            }
+          }
+        },
+        {
+          "id": "make_offering_nature",
+          "name": "Make Offering to Temple of Nature",
+          "description": "Present natural offerings to gain favor with the Temple of Nature.",
+          "min_npc_level": 1,
+          "duration_turns": 1,
+          "outcome": {
+            "check_profile": "d20",
+            "on_success": {
+              "effects": [
+                {"item": "flowers", "qty": -3},
+                {"item": "fruit", "qty": -2},
+                {"stat": "favor_temple_nature", "delta": 2},
+                {"log": "The spirits of nature are pleased."}
+              ]
+            },
+            "on_critical_success": {
+              "effects": [
+                {"item": "flowers", "qty": -3},
+                {"item": "fruit", "qty": -2},
+                {"stat": "favor_temple_nature", "delta": 5},
+                {"item": "nature_blessing", "qty": 1},
+                {"log": "A rare bloom appears as a sign of favor!"}
+              ]
+            },
+            "on_failure": {
+              "effects": [
+                {"item": "flowers", "qty": -3},
+                {"item": "fruit", "qty": -2},
+                {"log": "The offerings are accepted quietly."}
+              ]
+            }
+          }
+        },
+        {
+          "id": "make_offering_knowledge",
+          "name": "Make Offering to Cult of Knowledge",
+          "description": "Share knowledge and texts to gain favor with the Cult of Knowledge.",
+          "min_npc_level": 1,
+          "duration_turns": 1,
+          "outcome": {
+            "check_profile": "d20",
+            "on_success": {
+              "effects": [
+                {"item": "book", "qty": -1},
+                {"stat": "favor_cult_knowledge", "delta": 2},
+                {"log": "Your contribution to the archives is noted."}
+              ]
+            },
+            "on_critical_success": {
+              "effects": [
+                {"item": "book", "qty": -1},
+                {"stat": "favor_cult_knowledge", "delta": 5},
+                {"item": "forbidden_scroll", "qty": 1},
+                {"log": "The knowledge you shared is exceptional! They grant access to secret texts."}
+              ]
+            },
+            "on_failure": {
+              "effects": [
+                {"item": "book", "qty": -1},
+                {"log": "The knowledge is deemed common and unremarkable."}
+              ]
+            },
+            "on_critical_failure": {
+              "effects": [
+                {"item": "book", "qty": -1},
+                {"stat": "favor_cult_knowledge", "delta": -2},
+                {"log": "The information was incorrect! Your credibility suffers."}
+              ]
+            }
+          }
+        },
+        {
+          "id": "pray_for_guidance",
+          "name": "Pray for Guidance",
+          "description": "Seek divine wisdom through prayer and meditation.",
+          "min_npc_level": 1,
+          "duration_turns": 1,
+          "outcome": {
+            "check_profile": "d20",
+            "on_success": {
+              "effects": [
+                {"item": "divine_insight", "qty": 1},
+                {"log": "Your prayers are answered with subtle guidance."}
+              ]
+            },
+            "on_critical_success": {
+              "effects": [
+                {"item": "divine_vision", "qty": 1},
+                {"log": "A powerful vision is granted! The gods speak directly."}
+              ]
+            },
+            "on_failure": {
+              "effects": [
+                {"log": "The gods remain silent."}
+              ]
+            }
+          }
+        },
+        {
+          "id": "perform_ritual",
+          "name": "Perform Sacred Ritual",
+          "description": "Conduct a ritual to channel divine power.",
+          "min_npc_level": 2,
+          "duration_turns": 1,
+          "outcome": {
+            "check_profile": "d20",
+            "on_success": {
+              "effects": [
+                {"item": "ritual_components", "qty": -1},
+                {"item": "holy_water", "qty": 2},
+                {"gold": 10},
+                {"log": "Ritual successful. Holy water blessed and sold."}
+              ]
+            },
+            "on_critical_success": {
+              "effects": [
+                {"item": "ritual_components", "qty": -1},
+                {"item": "holy_water", "qty": 4},
+                {"item": "divine_relic", "qty": 1},
+                {"gold": 30},
+                {"log": "Divine power surges! A relic manifests!"}
+              ]
+            },
+            "on_failure": {
+              "effects": [
+                {"item": "ritual_components", "qty": -1},
+                {"log": "The ritual yields no results."}
+              ]
+            },
+            "on_critical_failure": {
+              "effects": [
+                {"item": "ritual_components", "qty": -1},
+                {"gold": -10},
+                {"log": "The ritual backfired! Minor divine backlash."}
+              ]
+            }
+          }
+        }
+      ]
+    },
+
+    {
+      "id": "core.shrine:shrine:t2",
+      "name": "Temple",
+      "description": "An expanded temple with greater divine presence and influence.",
+      "tier": 2,
+      "parent": "core.shrine:shrine:t1",
+      "build": {
+        "cost": {"gold": 500},
+        "duration_turns": 2
+      },
+      "npc_slots": 2,
+      "npc_allowed_professions": ["priest", "cleric", "acolyte", "high_priest"],
+      "npc_base_upkeep": {"silver": 10},
+
+      "orders": [
+        {
+          "id": "grand_ceremony",
+          "name": "Host Grand Ceremony",
+          "description": "Organize a major religious ceremony to greatly increase favor with a chosen church.",
+          "min_npc_level": 2,
+          "duration_turns": 2,
+          "outcome": {
+            "check_profile": "d20",
+            "on_success": {
+              "effects": [
+                {"gold": -20},
+                {"item": "ceremonial_incense", "qty": -3},
+                {"stat": "favor_church_light", "delta": 10},
+                {"log": "The grand ceremony attracts many faithful. Church favor increases significantly."}
+              ]
+            },
+            "on_critical_success": {
+              "effects": [
+                {"gold": -20},
+                {"item": "ceremonial_incense", "qty": -3},
+                {"stat": "favor_church_light", "delta": 20},
+                {"item": "holy_artifact", "qty": 1},
+                {"gold": 50},
+                {"log": "A miracle occurs during the ceremony! A holy artifact appears and donations pour in."}
+              ]
+            },
+            "on_failure": {
+              "effects": [
+                {"gold": -20},
+                {"item": "ceremonial_incense", "qty": -3},
+                {"stat": "favor_church_light", "delta": 3},
+                {"log": "The ceremony proceeds without issue but lacks grandeur."}
+              ]
+            },
+            "on_critical_failure": {
+              "effects": [
+                {"gold": -20},
+                {"item": "ceremonial_incense", "qty": -3},
+                {"stat": "favor_church_light", "delta": -5},
+                {"log": "The ceremony was disrupted! Church officials are displeased."}
+              ]
+            }
+          }
+        },
+        {
+          "id": "mediate_conflict",
+          "name": "Mediate Religious Conflict",
+          "description": "Attempt to balance favor between conflicting churches.",
+          "min_npc_level": 2,
+          "duration_turns": 1,
+          "outcome": {
+            "check_profile": "d20_hard",
+            "on_success": {
+              "effects": [
+                {"stat": "favor_church_light", "delta": -2},
+                {"stat": "favor_church_dark_sun", "delta": 3},
+                {"log": "Carefully navigated the theological divide."}
+              ]
+            },
+            "on_critical_success": {
+              "effects": [
+                {"stat": "favor_church_light", "delta": 2},
+                {"stat": "favor_church_dark_sun", "delta": 2},
+                {"gold": 30},
+                {"log": "Miraculous diplomacy! Both churches acknowledge your wisdom."}
+              ]
+            },
+            "on_failure": {
+              "effects": [
+                {"stat": "favor_church_light", "delta": -1},
+                {"stat": "favor_church_dark_sun", "delta": -1},
+                {"log": "Both sides remain unsatisfied."}
+              ]
+            },
+            "on_critical_failure": {
+              "effects": [
+                {"stat": "favor_church_light", "delta": -5},
+                {"stat": "favor_church_dark_sun", "delta": -5},
+                {"log": "Catastrophic failure! Both churches now view you with suspicion."}
+              ]
+            }
+          }
+        },
+        {
+          "id": "seek_divine_intervention",
+          "name": "Seek Divine Intervention",
+          "description": "Call upon the gods for direct aid in a matter.",
+          "min_npc_level": 3,
+          "duration_turns": 3,
+          "outcome": {
+            "check_profile": "d20_hard",
+            "on_success": {
+              "effects": [
+                {"gold": -30},
+                {"item": "rare_offering", "qty": -1},
+                {"stat": "favor_church_light", "delta": -10},
+                {"item": "divine_boon", "qty": 1},
+                {"log": "The gods answer! A boon is granted, though favor is spent."}
+              ]
+            },
+            "on_critical_success": {
+              "effects": [
+                {"gold": -30},
+                {"item": "rare_offering", "qty": -1},
+                {"stat": "favor_church_light", "delta": -5},
+                {"item": "divine_boon", "qty": 1},
+                {"item": "permanent_blessing", "qty": 1},
+                {"log": "The gods are generous! A blessing with lasting power."}
+              ]
+            },
+            "on_failure": {
+              "effects": [
+                {"gold": -30},
+                {"item": "rare_offering", "qty": -1},
+                {"stat": "favor_church_light", "delta": -5},
+                {"log": "The gods do not answer. Favor and resources spent in vain."}
+              ]
+            },
+            "on_critical_failure": {
+              "effects": [
+                {"gold": -30},
+                {"item": "rare_offering", "qty": -1},
+                {"stat": "favor_church_light", "delta": -15},
+                {"gold": -20},
+                {"log": "Divine wrath! You have overstepped. Severe loss of favor and a curse."}
+              ]
+            }
+          }
+        }
+      ]
+    },
+
+    {
+      "id": "core.shrine:shrine:t3",
+      "name": "Cathedral",
+      "description": "A grand cathedral, a beacon of faith and divine power.",
+      "tier": 3,
+      "parent": "core.shrine:shrine:t2",
+      "build": {
+        "cost": {"gold": 1000},
+        "duration_turns": 3
+      },
+      "npc_slots": 3,
+      "npc_allowed_professions": ["priest", "cleric", "high_priest", "archbishop"],
+      "npc_base_upkeep": {"gold": 1},
+
+      "orders": [
+        {
+          "id": "consecrate_holy_ground",
+          "name": "Consecrate Holy Ground",
+          "description": "Perform the ultimate ritual to permanently sanctify the cathedral grounds.",
+          "min_npc_level": 3,
+          "duration_turns": 8,
+          "outcome": {
+            "check_profile": "d20_hard",
+            "on_success": {
+              "effects": [
+                {"gold": -100},
+                {"item": "divine_essence", "qty": -5},
+                {"stat": "favor_church_light", "delta": 30},
+                {"item": "consecrated_ground", "qty": 1},
+                {"log": "The cathedral is now holy ground! Divine protection radiates from this place."}
+              ]
+            },
+            "on_critical_success": {
+              "effects": [
+                {"gold": -100},
+                {"item": "divine_essence", "qty": -5},
+                {"stat": "favor_church_light", "delta": 50},
+                {"item": "consecrated_ground", "qty": 1},
+                {"item": "divine_avatar_blessing", "qty": 1},
+                {"log": "A divine avatar manifests! The gods themselves bless this sacred place."}
+              ]
+            },
+            "on_failure": {
+              "effects": [
+                {"gold": -100},
+                {"item": "divine_essence", "qty": -5},
+                {"stat": "favor_church_light", "delta": 10},
+                {"log": "The ritual succeeded but lacked the power for full consecration."}
+              ]
+            },
+            "on_critical_failure": {
+              "effects": [
+                {"gold": -100},
+                {"item": "divine_essence", "qty": -5},
+                {"stat": "favor_church_light", "delta": -20},
+                {"gold": -50},
+                {"log": "The ritual was corrupted! The ground is now cursed instead of blessed."}
+              ]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

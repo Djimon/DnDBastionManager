@@ -32,10 +32,29 @@ class Api:
         self._facility_manager = FacilityManager(Path(__file__).parent, self._ledger)
         self._pack_validator = PackValidator(Path(__file__).parent)
         self._audit_log = AuditLog()
+        self._ui_prefs_path = Path(__file__).parent / "core" / "config" / "ui_prefs.json"
+        self._ui_prefs = self._load_ui_prefs()
         
         # Current loaded session (in-memory)
         self.current_session = None
         logger.info("Api initialized successfully")
+
+    def _load_ui_prefs(self) -> dict:
+        try:
+            if self._ui_prefs_path.exists():
+                data = json.loads(self._ui_prefs_path.read_text(encoding="utf-8"))
+                if isinstance(data, dict):
+                    return data
+        except Exception as e:
+            logger.warning(f"Failed to load ui_prefs.json: {e}")
+        return {}
+
+    def _save_ui_prefs(self, prefs: dict) -> None:
+        try:
+            self._ui_prefs_path.parent.mkdir(parents=True, exist_ok=True)
+            self._ui_prefs_path.write_text(json.dumps(prefs, indent=2, ensure_ascii=False), encoding="utf-8")
+        except Exception as e:
+            logger.warning(f"Failed to save ui_prefs.json: {e}")
     
     # ===== SLICE 1: SESSION LIFECYCLE =====
     
@@ -239,6 +258,15 @@ class Api:
         except Exception as e:
             return {"success": False, "message": str(e)}
 
+    def demolish_facility(self, facility_id: str) -> dict:
+        """Demolish a facility and refund a portion of build costs."""
+        try:
+            if not self.current_session:
+                return {"success": False, "message": "No session loaded"}
+            return self._facility_manager.demolish_facility(self.current_session, facility_id)
+        except Exception as e:
+            return {"success": False, "message": str(e)}
+
     def get_facility_states(self) -> dict:
         """Return resolved facility states."""
         try:
@@ -360,6 +388,25 @@ class Api:
         Gebe die aktuell geladene Session zurueck.
         """
         return self.current_session or {}
+
+    def get_ui_prefs(self) -> dict:
+        """
+        Return persisted UI preferences.
+        """
+        return self._ui_prefs or {}
+
+    def save_ui_prefs(self, prefs: dict) -> dict:
+        """
+        Persist UI preferences (merge with existing).
+        """
+        try:
+            if not isinstance(prefs, dict):
+                return {"success": False, "message": "prefs must be an object"}
+            self._ui_prefs.update(prefs)
+            self._save_ui_prefs(self._ui_prefs)
+            return {"success": True, "prefs": self._ui_prefs}
+        except Exception as e:
+            return {"success": False, "message": str(e)}
 
     def get_currency_model(self) -> dict:
         """
