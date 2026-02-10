@@ -88,6 +88,7 @@ function resetFacilityTabIndicators() {
 }
 
 function renderOrderProgressIndicators(facilityId) {
+    const wrap = document.getElementById('detail-order-progress-wrap');
     const container = document.getElementById('detail-order-progress');
     if (!container) {
         return;
@@ -97,7 +98,13 @@ function renderOrderProgressIndicators(facilityId) {
     const orders = getFacilityOrders(entry);
     const active = orders.filter(order => isOrderActive(order));
     if (!active.length) {
+        if (wrap) {
+            wrap.classList.add('hidden');
+        }
         return;
+    }
+    if (wrap) {
+        wrap.classList.remove('hidden');
     }
     active.forEach(order => {
         if (!order || typeof order !== 'object') {
@@ -229,7 +236,11 @@ function setFacilityPanelState(hasSelection) {
 
     if (!hasSelection) {
         resetFacilityTabIndicators();
+        const progressWrap = document.getElementById('detail-order-progress-wrap');
         const progress = document.getElementById('detail-order-progress');
+        if (progressWrap) {
+            progressWrap.classList.add('hidden');
+        }
         if (progress) {
             progress.innerHTML = '';
         }
@@ -1109,7 +1120,9 @@ function renderOrdersPanel(facilityId) {
             filtered.forEach(order => {
                 const opt = document.createElement('option');
                 opt.value = order.id;
-                opt.textContent = order.name || order.id;
+                const duration = Number.isInteger(order.duration_turns) ? order.duration_turns : null;
+                const durationLabel = duration ? ` (${formatTurnsLong(duration)})` : '';
+                opt.textContent = `${order.name || order.id}${durationLabel}`;
                 orderSelect.appendChild(opt);
             });
         }
@@ -1343,6 +1356,8 @@ function renderOrdersPanel(facilityId) {
         evalAllBtn.disabled = !hasEvaluatable;
     }
     updateGlobalActionLocks();
+    updateFacilityTabIndicators(facilityId);
+    renderOrderProgressIndicators(facilityId);
 }
 
 function openFormulaInputModal(facilityId, orderId, triggerId, formulaDef, savedInputs = {}) {

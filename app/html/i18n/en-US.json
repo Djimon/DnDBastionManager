@@ -97,6 +97,7 @@
   },
   "details": {
     "title": "Facility Details",
+    "active_orders_label": "Active Orders",
     "name": "Name:",
     "description": "Description:",
     "tier": "Tier:",

@@ -97,6 +97,7 @@
   },
   "details": {
     "title": "Facility-Details",
+    "active_orders_label": "Laufende Aufträge",
     "name": "Name:",
     "description": "Beschreibung:",
     "tier": "Tier:",

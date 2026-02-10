@@ -1202,6 +1202,22 @@ body:not(.theme-dark) .placeholder-item.facility-disabled .tag {
     margin: 0;
 }
 
+.detail-progress {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+}
+
+.detail-progress-label {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--text-light);
+    text-transform: none;
+    letter-spacing: 0.02em;
+}
+
 .order-progress-list {
     display: flex;
     align-items: center;
@@ -1232,8 +1248,9 @@ body:not(.theme-dark) .placeholder-item.facility-disabled .tag {
 
 body.theme-dark .order-progress-circle {
     background:
-        conic-gradient(var(--accent) 0 var(--progress-angle), var(--surface-alt) var(--progress-angle) 360deg),
-        repeating-conic-gradient(transparent 0 calc(var(--segment-angle) - 2deg), rgba(255, 255, 255, 0.1) calc(var(--segment-angle) - 2deg) var(--segment-angle));
+        conic-gradient(var(--accent) 0 var(--progress-angle), var(--badge) var(--progress-angle) 360deg),
+        repeating-conic-gradient(transparent 0 calc(var(--segment-angle) - 2deg), rgba(255, 255, 255, 0.35) calc(var(--segment-angle) - 2deg) var(--segment-angle));
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.2);
 }
 
 .order-progress-circle::after {
@@ -1243,6 +1260,10 @@ body.theme-dark .order-progress-circle {
     border-radius: 50%;
     background: var(--surface);
     box-shadow: inset 0 0 0 1px var(--border);
+}
+
+body.theme-dark .order-progress-circle::after {
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.18);
 }
 
 .order-progress-circle span {

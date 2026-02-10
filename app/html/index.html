@@ -220,7 +220,10 @@
                                 <div id="tab-details" class="tab-content active">
                                     <div class="detail-header">
                                         <h3 data-i18n="details.title">Facility Details</h3>
-                                        <div id="detail-order-progress" class="order-progress-list"></div>
+                                        <div id="detail-order-progress-wrap" class="detail-progress hidden">
+                                            <span class="detail-progress-label" data-i18n="details.active_orders_label">Laufende Aufträge</span>
+                                            <div id="detail-order-progress" class="order-progress-list"></div>
+                                        </div>
                                     </div>
                                     <div class="detail-info">
                                         <p><strong data-i18n="details.name">Name:</strong> <span id="detail-name">[Facility Name]</span></p>
