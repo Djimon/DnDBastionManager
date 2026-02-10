@@ -265,7 +265,7 @@
                                         <span data-i18n="npcs.profession_mismatch_note">Beruf passt nicht zur Facility.</span>
                                     </p>
                                     <p id="npc-assigned-empty" class="text-muted hidden" data-i18n="npcs.none_assigned">No NPCs assigned.</p>
-                                    <button class="btn btn-secondary" onclick="openHireModal()" data-i18n="npcs.hire_button">+ Hire NPC</button>
+                                    <button id="npc-hire-from-tab" class="btn btn-secondary" onclick="openHireModalFromTab()" data-i18n="npcs.hire_button">+ Hire NPC</button>
                                 </div>
 
                                 <!-- TAB: Orders -->
@@ -330,17 +330,36 @@
                                 </div>
                             </div>
 </section>
-                        <aside id="inventory-panel" class="inventory-panel hidden">
-                            <div class="inventory-header">
-                                <h4 data-i18n="inventory.title">Inventar</h4>
-                                <button class="btn btn-secondary btn-small" onclick="openInventoryManage()" data-i18n="inventory.manage">Verwalten</button>
-                            </div>
-                            <div id="inventory-wallet" class="inventory-wallet"></div>
-
-                            <div id="inventory-groups" class="inventory-groups"></div>
-                            <p id="inventory-empty" class="text-muted hidden" data-i18n="inventory.empty">Keine Items im Inventar.</p>
-                        </aside>
                     </div>
+
+                    <aside id="inventory-panel" class="inventory-panel hidden">
+                        <div class="inventory-header">
+                            <h4 data-i18n="inventory.title">Inventar</h4>
+                            <button class="btn btn-secondary btn-small" onclick="openInventoryManage()" data-i18n="inventory.manage">Verwalten</button>
+                        </div>
+                        <div id="inventory-wallet" class="inventory-wallet"></div>
+                        <div class="inventory-items-header">
+                            <div class="inventory-items-title" data-i18n="inventory.items_heading">Items:</div>
+                        </div>
+                        <div id="inventory-groups" class="inventory-groups"></div>
+                        <p id="inventory-empty" class="text-muted hidden" data-i18n="inventory.empty">Keine Items im Inventar.</p>
+                        <button id="inventory-filter-toggle" class="inventory-filter-toggle" type="button" title="Filter" data-i18n-title="inventory.filter_title" aria-label="Filter">
+                            <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                                <path d="M3 5h18l-7 8v5l-4 2v-7L3 5z"></path>
+                            </svg>
+                        </button>
+                        <div id="inventory-filter-panel" class="inventory-filter-panel hidden">
+                            <label for="inventory-sort" data-i18n="inventory.sort_label">Sortierung</label>
+                            <select id="inventory-sort" class="inventory-filter-select">
+                                <option value="name_asc" data-i18n="inventory.sort_name_asc">Alphabetisch (A-Z)</option>
+                                <option value="name_desc" data-i18n="inventory.sort_name_desc">Alphabetisch (Z-A)</option>
+                                <option value="count_desc" data-i18n="inventory.sort_count_desc">Menge (absteigend)</option>
+                                <option value="count_asc" data-i18n="inventory.sort_count_asc">Menge (aufsteigend)</option>
+                            </select>
+                            <label for="inventory-search" data-i18n="inventory.search_label">Suche</label>
+                            <input id="inventory-search" class="inventory-filter-input" type="text" placeholder="Suche..." data-i18n-placeholder="inventory.search_placeholder" />
+                        </div>
+                    </aside>
 
                     <!-- BOTTOM: Turn Controls & Log -->
                     <footer class="turn-controls">

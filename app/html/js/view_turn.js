@@ -661,9 +661,6 @@ function getFacilityOptionsForProfession(profession, excludeFacilityId = null) {
         if (!def) {
             return;
         }
-        if (!facilityAllowsProfession(def, profession)) {
-            return;
-        }
         const free = getFacilityFreeSlots(entry, def);
         if (free <= 0) {
             return;
@@ -1486,12 +1483,14 @@ function renderNpcTab(facilityId) {
     const tbody = document.getElementById('npc-assigned-body');
     const empty = document.getElementById('npc-assigned-empty');
     const note = document.getElementById('npc-profession-note');
+    const hireBtn = document.getElementById('npc-hire-from-tab');
     if (!tbody) {
         return;
     }
     tbody.innerHTML = '';
     const entry = getFacilityEntry(facilityId);
     const assigned = entry && Array.isArray(entry.assigned_npcs) ? entry.assigned_npcs : [];
+    const facilityDef = appState.facilityById[facilityId];
     const sortState = appState.npcTabSort || { key: null, dir: 'desc' };
     const sortedAssigned = sortState.key
         ? [...assigned].sort((a, b) => compareNpcSort({ npc: a, facility_id: null }, { npc: b, facility_id: null }, sortState.key, sortState.dir))
@@ -1500,6 +1499,10 @@ function renderNpcTab(facilityId) {
 
     if (empty) {
         empty.classList.toggle('hidden', assigned.length > 0);
+    }
+    if (hireBtn) {
+        const freeSlots = facilityDef ? getFacilityFreeSlots(entry, facilityDef) : 0;
+        hireBtn.classList.toggle('hidden', freeSlots <= 0);
     }
 
     sortedAssigned.forEach(npc => {
@@ -1510,7 +1513,6 @@ function renderNpcTab(facilityId) {
 
         const iconTd = document.createElement('td');
         iconTd.className = 'npcs-icon-cell';
-        const facilityDef = appState.facilityById[facilityId];
         const mismatch = facilityDef && npc.profession && !isProfessionAllowed(facilityDef, npc.profession);
         if (mismatch) {
             iconTd.appendChild(createWarningIcon(t('npcs.profession_mismatch_title')));
@@ -1604,6 +1606,11 @@ function renderNpcTab(facilityId) {
     updateFacilityTabIndicators(facilityId);
     initNpcTabSorting();
     updateNpcTabSortHeaders();
+}
+
+function openHireModalFromTab() {
+    const facilityId = appState.selectedFacilityId;
+    openHireModal(facilityId || null);
 }
 
 function renderNpcModal() {
@@ -2000,6 +2007,10 @@ function renderInventoryPanel() {
     const walletEl = document.getElementById('inventory-wallet');
     const groupsEl = document.getElementById('inventory-groups');
     const empty = document.getElementById('inventory-empty');
+    const filterToggle = document.getElementById('inventory-filter-toggle');
+    const filterPanel = document.getElementById('inventory-filter-panel');
+    const sortSelect = document.getElementById('inventory-sort');
+    const searchInput = document.getElementById('inventory-search');
     const suggestionsEl = document.getElementById('inventory-item-suggestions');
     if (!panel || !groupsEl) {
         return;
@@ -2052,48 +2063,81 @@ function renderInventoryPanel() {
         walletEl.appendChild(list);
     }
 
-    if (empty) {
-        empty.classList.toggle('hidden', inventory.length > 0);
+    const filterState = appState.inventoryFilter || { sort: 'name_asc', query: '' };
+    appState.inventoryFilter = filterState;
+
+    if (filterToggle && !filterToggle.dataset.bound) {
+        filterToggle.addEventListener('click', () => {
+            if (filterPanel) {
+                filterPanel.classList.toggle('hidden');
+            }
+        });
+        filterToggle.dataset.bound = 'true';
     }
 
-    const groups = {};
-    inventory.forEach(entry => {
-        if (!entry || typeof entry !== 'object') {
-            return;
+    if (sortSelect) {
+        if (sortSelect.value !== filterState.sort) {
+            sortSelect.value = filterState.sort;
         }
-        const itemName = entry.item || '';
-        const base = itemName.includes('_') ? itemName.split('_')[0] : t('inventory.group_misc');
-        if (!groups[base]) {
-            groups[base] = [];
+        if (!sortSelect.dataset.bound) {
+            sortSelect.addEventListener('change', () => {
+                filterState.sort = sortSelect.value;
+                renderInventoryPanel();
+            });
+            sortSelect.dataset.bound = 'true';
         }
-        groups[base].push(entry);
+    }
+
+    if (searchInput) {
+        if (searchInput.value !== filterState.query) {
+            searchInput.value = filterState.query;
+        }
+        if (!searchInput.dataset.bound) {
+            searchInput.addEventListener('input', () => {
+                filterState.query = searchInput.value;
+                renderInventoryPanel();
+            });
+            searchInput.dataset.bound = 'true';
+        }
+    }
+
+    const query = (filterState.query || '').trim().toLowerCase();
+    const items = inventory
+        .filter(entry => entry && typeof entry === 'object')
+        .map(entry => ({
+            item: entry.item || '-',
+            qty: Number.isInteger(entry.qty) ? entry.qty : 0
+        }))
+        .filter(entry => !query || String(entry.item).toLowerCase().includes(query));
+
+    items.sort((a, b) => {
+        switch (filterState.sort) {
+            case 'name_desc':
+                return b.item.localeCompare(a.item);
+            case 'count_asc':
+                return a.qty - b.qty || a.item.localeCompare(b.item);
+            case 'count_desc':
+                return b.qty - a.qty || a.item.localeCompare(b.item);
+            case 'name_asc':
+            default:
+                return a.item.localeCompare(b.item);
+        }
     });
 
-    const groupNames = Object.keys(groups).sort((a, b) => a.localeCompare(b));
-    groupNames.forEach(groupName => {
-        const details = document.createElement('details');
-        details.className = 'inventory-group';
-        details.open = true;
+    if (empty) {
+        empty.classList.toggle('hidden', items.length > 0);
+    }
 
-        const summary = document.createElement('summary');
-        summary.textContent = `${groupName} (${groups[groupName].length})`;
-        details.appendChild(summary);
-
-        groups[groupName]
-            .sort((a, b) => (a.item || '').localeCompare(b.item || ''))
-            .forEach(entry => {
-                const row = document.createElement('div');
-                row.className = 'inventory-item';
-                const name = document.createElement('span');
-                name.textContent = entry.item || '-';
-                const qty = document.createElement('span');
-                qty.textContent = Number.isInteger(entry.qty) ? entry.qty : '-';
-                row.appendChild(name);
-                row.appendChild(qty);
-                details.appendChild(row);
-            });
-
-        groupsEl.appendChild(details);
+    items.forEach(entry => {
+        const row = document.createElement('div');
+        row.className = 'inventory-item';
+        const name = document.createElement('span');
+        name.textContent = entry.item || '-';
+        const qty = document.createElement('span');
+        qty.textContent = Number.isInteger(entry.qty) ? entry.qty : '-';
+        row.appendChild(name);
+        row.appendChild(qty);
+        groupsEl.appendChild(row);
     });
 
     if (suggestionsEl) {
@@ -2387,14 +2431,19 @@ function renderHireNpcForm() {
         reserveOpt.textContent = t('npcs.reserve');
         assignSelect.appendChild(reserveOpt);
 
-        if (profession) {
-            const options = getFacilityOptionsForProfession(profession, null);
-            options.forEach(opt => {
-                const optionEl = document.createElement('option');
-                optionEl.value = opt.id;
-                optionEl.textContent = opt.label;
-                assignSelect.appendChild(optionEl);
-            });
+        const options = getFacilityOptionsForProfession(profession, null);
+        options.forEach(opt => {
+            const optionEl = document.createElement('option');
+            optionEl.value = opt.id;
+            optionEl.textContent = opt.label;
+            assignSelect.appendChild(optionEl);
+        });
+        if (!appState.hireFacilityUserTouched && appState.hireFacilityPref) {
+            const prefId = String(appState.hireFacilityPref);
+            const hasOption = Array.from(assignSelect.options).some(opt => String(opt.value) === prefId);
+            if (hasOption) {
+                assignSelect.value = prefId;
+            }
         }
         updateUpkeepHint(assignSelect.value);
     }
@@ -2489,7 +2538,10 @@ function renderHireNpcForm() {
         if (professionCustomInput) {
             professionCustomInput.addEventListener('input', updateAssignOptions);
         }
-        assignSelect.addEventListener('change', () => updateUpkeepHint(assignSelect.value));
+        assignSelect.addEventListener('change', () => {
+            appState.hireFacilityUserTouched = true;
+            updateUpkeepHint(assignSelect.value);
+        });
         if (customTrigger) {
             customTrigger.addEventListener('click', () => {
                 if (customSelect && customSelect.classList.contains('open')) {

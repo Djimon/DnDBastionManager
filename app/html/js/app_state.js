@@ -100,6 +100,9 @@ let appState = {
     formulaInputContext: null,
     npcManagementSort: { key: null, dir: 'desc' },
     npcTabSort: { key: null, dir: 'desc' },
+    inventoryFilter: { sort: 'name_asc', query: '' },
+    hireFacilityPref: null,
+    hireFacilityUserTouched: false,
 };
 
 const BUILDABLE_TIER = 1;
@@ -204,11 +207,13 @@ function openNPCModal() {
     }
 }
 
-function openHireModal() {
+function openHireModal(preferredFacilityId = null) {
     const modal = document.getElementById('npc-modal');
     if (modal) {
         modal.classList.remove('hidden');
     }
+    appState.hireFacilityPref = preferredFacilityId || null;
+    appState.hireFacilityUserTouched = false;
     if (typeof refreshSessionState === 'function') {
         refreshSessionState().then(() => {
             if (typeof renderNpcModal === 'function') {

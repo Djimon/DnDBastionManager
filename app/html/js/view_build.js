@@ -307,9 +307,6 @@ function renderOwnedFacilitiesList() {
         const item = document.createElement('div');
         item.className = 'placeholder-item owned-item';
 
-        const title = document.createElement('strong');
-        title.textContent = formatFacilityUiName(facility, entry.facility_id);
-
         const professionsWrap = document.createElement('div');
         professionsWrap.className = 'facility-professions';
         const professionsLabel = document.createElement('span');
@@ -339,20 +336,96 @@ function renderOwnedFacilitiesList() {
         metrics.appendChild(slotsMetric);
         metrics.appendChild(ordersMetric);
 
+        const upgradeTarget = getUpgradeTarget(entry.facility_id);
+        const upgradeQueued = isUpgradeQueued(entry.facility_id);
+        const buildStatus = entry.build_status && typeof entry.build_status === 'object' ? entry.build_status : {};
+        const isUpgrading = buildStatus.status === 'upgrading';
+        let statusText = '';
+        if (upgradeQueued) {
+            statusText = t('build.stock_upgrade_planned');
+        } else if (isUpgrading) {
+            const targetId = buildStatus.target_id;
+            const targetDef = targetId ? appState.facilityById[targetId] : upgradeTarget;
+            const targetName = targetDef ? formatFacilityUiName(targetDef, targetId || targetDef.id) : t('common.unknown');
+            const remaining = Number.isInteger(buildStatus.remaining_turns) ? buildStatus.remaining_turns : null;
+            if (Number.isInteger(remaining)) {
+                statusText = t('build.stock_upgrade_running', { name: targetName, turns: formatTurnsLong(remaining) });
+            } else {
+                statusText = t('build.stock_upgrade_running_simple', { name: targetName });
+            }
+        }
+
+        const title = document.createElement('strong');
+        title.textContent = formatFacilityUiName(facility, entry.facility_id);
+        const header = document.createElement('div');
+        header.className = 'owned-item-header';
+        header.appendChild(title);
+        if (statusText) {
+            const status = document.createElement('span');
+            status.className = 'stock-status';
+            status.textContent = statusText;
+            header.appendChild(status);
+        }
+
         const actions = document.createElement('div');
         actions.className = 'stock-actions';
+        if (upgradeTarget && !upgradeQueued && !isUpgrading) {
+            const upgradeInfo = getFacilityBuildInfo(upgradeTarget);
+            const upgradeCost = formatCost(upgradeInfo.cost, getCurrencyOrder());
+            const upgradeBtn = document.createElement('button');
+            upgradeBtn.className = 'btn btn-secondary btn-small';
+            upgradeBtn.textContent = `${t('upgrade.button')} (${upgradeCost})`;
+            upgradeBtn.addEventListener('click', () => queueUpgrade(entry.facility_id));
+            actions.appendChild(upgradeBtn);
+        }
         const demolishBtn = document.createElement('button');
         demolishBtn.className = 'btn btn-danger btn-small';
         demolishBtn.textContent = t('build.demolish_button');
         demolishBtn.addEventListener('click', () => demolishFacility(entry.facility_id));
         actions.appendChild(demolishBtn);
 
-        item.appendChild(title);
+        item.appendChild(header);
         item.appendChild(professionsWrap);
         item.appendChild(metrics);
         item.appendChild(actions);
         list.appendChild(item);
     });
+}
+
+function getUpgradeTarget(facilityId) {
+    return appState.facilityCatalog.find(candidate => candidate && candidate.parent === facilityId) || null;
+}
+
+function isUpgradeQueued(facilityId) {
+    if (!facilityId) {
+        return false;
+    }
+    return appState.buildQueue.some(entry => {
+        if (!entry || typeof entry !== 'object') {
+            return false;
+        }
+        const type = entry.type || 'build';
+        return type === 'upgrade' && entry.id === facilityId;
+    });
+}
+
+function queueUpgrade(facilityId) {
+    if (!facilityId) {
+        return;
+    }
+    const target = getUpgradeTarget(facilityId);
+    if (!target) {
+        return;
+    }
+    if (isUpgradeQueued(facilityId)) {
+        return;
+    }
+    appState.buildQueue.push({
+        type: 'upgrade',
+        id: facilityId,
+        target_id: target.id,
+    });
+    updateQueueDisplay();
 }
 
 function getFacilityLoreText(facility) {
@@ -521,6 +594,7 @@ function addToQueue(facilityId) {
         return;
     }
     appState.buildQueue.push({
+        type: 'build',
         id: facilityId
     });
     updateQueueDisplay();
@@ -542,8 +616,7 @@ function clearQueue() {
 function sumQueueCosts() {
     const total = {};
     appState.buildQueue.forEach(entry => {
-        const facility = appState.facilityById[entry.id];
-        const buildInfo = getFacilityBuildInfo(facility);
+        const buildInfo = getQueueEntryBuildInfo(entry);
         const cost = buildInfo.cost;
         if (!cost || typeof cost !== 'object') {
             return;
@@ -565,8 +638,7 @@ function sumQueueCostsBase(factorToBase) {
     }
     let total = 0;
     for (const entry of appState.buildQueue) {
-        const facility = appState.facilityById[entry.id];
-        const buildInfo = getFacilityBuildInfo(facility);
+        const buildInfo = getQueueEntryBuildInfo(entry);
         const cost = buildInfo.cost;
         if (!cost || typeof cost !== 'object') {
             continue;
@@ -617,9 +689,8 @@ function updateQueueDisplay() {
 
     const currencyOrder = getCurrencyOrder();
     appState.buildQueue.forEach((entry, index) => {
-        const facility = appState.facilityById[entry.id];
-        const name = formatFacilityUiName(facility, entry.id);
-        const buildInfo = getFacilityBuildInfo(facility);
+        const name = getQueueEntryLabel(entry);
+        const buildInfo = getQueueEntryBuildInfo(entry);
         const costText = formatCost(buildInfo.cost, currencyOrder);
         const durationText = formatDuration(buildInfo.duration);
         const item = document.createElement('div');
@@ -674,6 +745,35 @@ function updateQueueDisplay() {
 
     renderOwnedFacilitiesList();
     applyCatalogFilters();
+}
+
+function getQueueEntryBuildInfo(entry) {
+    if (!entry || typeof entry !== 'object') {
+        return { cost: null, duration: null };
+    }
+    const type = entry.type || 'build';
+    if (type === 'upgrade') {
+        const target = entry.target_id ? appState.facilityById[entry.target_id] : getUpgradeTarget(entry.id);
+        return getFacilityBuildInfo(target);
+    }
+    const facility = appState.facilityById[entry.id];
+    return getFacilityBuildInfo(facility);
+}
+
+function getQueueEntryLabel(entry) {
+    if (!entry || typeof entry !== 'object') {
+        return '[Facility]';
+    }
+    const type = entry.type || 'build';
+    if (type === 'upgrade') {
+        const baseDef = appState.facilityById[entry.id];
+        const targetDef = entry.target_id ? appState.facilityById[entry.target_id] : getUpgradeTarget(entry.id);
+        const fromName = formatFacilityUiName(baseDef, entry.id);
+        const toName = targetDef ? formatFacilityUiName(targetDef, targetDef.id) : t('common.unknown');
+        return t('build.queue_upgrade_label', { from: fromName, to: toName });
+    }
+    const facility = appState.facilityById[entry.id];
+    return formatFacilityUiName(facility, entry.id);
 }
 
 async function demolishFacility(facilityId) {
@@ -767,8 +867,11 @@ async function startBuilding() {
 
     for (const entry of appState.buildQueue) {
         const facilityId = entry.id;
-        const facilityName = getFacilityDisplayName(facilityId);
-        let response = await window.pywebview.api.add_build_facility(facilityId, allowOverride);
+        const entryType = entry.type || 'build';
+        const label = getQueueEntryLabel(entry);
+        let response = entryType === 'upgrade'
+            ? await window.pywebview.api.add_upgrade_facility(facilityId, allowOverride)
+            : await window.pywebview.api.add_build_facility(facilityId, allowOverride);
 
         if (response && response.requires_confirmation) {
             if (!allowOverride) {
@@ -786,12 +889,14 @@ async function startBuilding() {
                 }
                 allowOverride = true;
             }
-            response = await window.pywebview.api.add_build_facility(facilityId, true);
+            response = entryType === 'upgrade'
+                ? await window.pywebview.api.add_upgrade_facility(facilityId, true)
+                : await window.pywebview.api.add_build_facility(facilityId, true);
         }
 
         if (!response || !response.success) {
             const message = response && response.message ? response.message : 'unknown error';
-            errors.push(`${facilityName}: ${message}`);
+            errors.push(`${label}: ${message}`);
             remainingQueue.push(entry);
             continue;
         }
