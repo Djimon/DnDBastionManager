@@ -185,15 +185,15 @@
                         <aside class="facilities-sidebar">
                             <h3 data-i18n="facility.list_title">Facilities</h3>
                             <div id="facilities-left-panel" class="facilities-list">
-                                <div class="facility-list-item" onclick="selectFacility(1)">
+                                <div class="facility-list-item" data-facility-id="1" onclick="selectFacility(1)">
                                     <span class="facility-name">Garden ★</span>
                                     <span class="facility-status">[idle]</span>
                                 </div>
-                                <div class="facility-list-item" onclick="selectFacility(2)">
+                                <div class="facility-list-item" data-facility-id="2" onclick="selectFacility(2)">
                                     <span class="facility-name">Workshop ★★★</span>
                                     <span class="facility-status">[upgrading]</span>
                                 </div>
-                                <div class="facility-list-item" onclick="selectFacility(3)">
+                                <div class="facility-list-item" data-facility-id="3" onclick="selectFacility(3)">
                                     <span class="facility-name">Whisper Office ★★</span>
                                     <span class="facility-status">[busy]</span>
                                 </div>
@@ -211,9 +211,9 @@
 
                             <div id="facility-main" class="facility-main hidden">
                                 <div class="tabs">
-                                    <button class="tab-btn active" onclick="switchTab('details')" data-i18n="tabs.details">Details</button>
-                                    <button id="tab-btn-npcs" class="tab-btn" onclick="switchTab('npcs')" data-i18n="tabs.npcs">NPCs</button>
-                                    <button id="tab-btn-orders" class="tab-btn" onclick="switchTab('orders')" data-i18n="tabs.orders">Orders</button>
+                                    <button class="tab-btn active" data-tab="details" onclick="switchTab('details')" data-i18n="tabs.details">Details</button>
+                                    <button id="tab-btn-npcs" class="tab-btn" data-tab="npcs" onclick="switchTab('npcs')" data-i18n="tabs.npcs">NPCs</button>
+                                    <button id="tab-btn-orders" class="tab-btn" data-tab="orders" onclick="switchTab('orders')" data-i18n="tabs.orders">Orders</button>
                                 </div>
 
                                 <!-- TAB: Details -->

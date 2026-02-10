@@ -124,7 +124,7 @@ function switchView(viewNum) {
     }
 }
 
-function switchTab(tabName) {
+function switchTab(tabName, triggerEl = null) {
     appState.currentTab = tabName;
     
     // Hide all tabs
@@ -139,7 +139,10 @@ function switchTab(tabName) {
     }
     
     // Mark button as active
-    event.target.classList.add('active');
+    const trigger = triggerEl || document.querySelector(`.tab-btn[data-tab="${tabName}"]`);
+    if (trigger) {
+        trigger.classList.add('active');
+    }
 
     const facilityId = appState.selectedFacilityId;
     if (!facilityId) {
@@ -168,7 +171,7 @@ function switchTab(tabName) {
     }
 }
 
-function switchModalTab(tabName) {
+function switchModalTab(tabName, triggerEl = null) {
     document.querySelectorAll('.modal-tab-content').forEach(t => t.classList.remove('active'));
     document.querySelectorAll('.modal-tab-btn').forEach(b => b.classList.remove('active'));
     
@@ -177,9 +180,7 @@ function switchModalTab(tabName) {
     if (tab) {
         tab.classList.add('active');
     }
-    const trigger = (typeof event !== 'undefined' && event && event.target)
-        ? event.target
-        : document.querySelector(`.modal-tab-btn[data-modal-tab="${tabName}"]`);
+    const trigger = triggerEl || document.querySelector(`.modal-tab-btn[data-modal-tab="${tabName}"]`);
     if (trigger) {
         trigger.classList.add('active');
     }

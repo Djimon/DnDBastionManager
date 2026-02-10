@@ -28,6 +28,7 @@ function renderFacilityStates() {
     appState.facilityStates.forEach(state => {
         const item = document.createElement('div');
         item.className = 'facility-list-item';
+        item.dataset.facilityId = String(state.facility_id);
 
         const nameSpan = document.createElement('span');
         nameSpan.className = 'facility-name';
@@ -128,7 +129,8 @@ function selectFacility(facilityId, element = null) {
     setFacilityPanelState(true);
 
     document.querySelectorAll('.facility-list-item').forEach(item => item.classList.remove('active'));
-    const targetEl = element || (typeof event !== 'undefined' ? event.target.closest('.facility-list-item') : null);
+    const selectorId = facilityId !== null && facilityId !== undefined ? String(facilityId) : null;
+    const targetEl = element || (selectorId ? document.querySelector(`.facility-list-item[data-facility-id="${selectorId}"]`) : null);
     if (targetEl) {
         targetEl.classList.add('active');
     }
