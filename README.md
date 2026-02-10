@@ -53,7 +53,7 @@ Status: Prototype in active development.
 
 ```mermaid
 flowchart LR
-  A[2026-02-06 - Prototype - Core systems (Slices 1-4) in progress] --> B[Slice 5 - Orders + Rolls]
+  A[Prototype - Core systems (Slices 1-4) in progress] --> B[Slice 5 - Orders + Rolls]
   B --> C[Slice 6 - Events + Auto-Log]
   C --> D[Slice 7 - Formula Engine Lite (Pub)]
   D --> E[Slice 8 - Polishing/UX]
