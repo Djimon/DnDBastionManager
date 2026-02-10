@@ -469,12 +469,11 @@ function normalizePlayerClassOptions(rawList) {
     return rawList.map(entry => {
         if (typeof entry === 'string') {
             const value = entry.trim();
-            return value ? { value, label: value } : null;
+            return value ? { value } : null;
         }
         if (entry && typeof entry === 'object') {
             const value = (entry.id || entry.value || entry.label || entry.name || '').trim();
-            const label = (entry.label || entry.name || entry.id || entry.value || '').trim();
-            return value ? { value, label: label || value } : null;
+            return value ? { value } : null;
         }
         return null;
     }).filter(Boolean);
@@ -498,7 +497,7 @@ function populatePlayerClassSelect(selectEl, selectedValues = []) {
     options.forEach(option => {
         const opt = document.createElement('option');
         opt.value = option.value;
-        opt.textContent = option.label;
+        opt.textContent = getPlayerClassLabel(option.value);
         if (selectedValues.includes(option.value)) {
             opt.selected = true;
         }
@@ -526,7 +525,7 @@ function resolvePlayerClassValue(rawValue) {
             return false;
         }
         const optionValue = option.value.toLowerCase();
-        const optionLabel = String(option.label || '').toLowerCase();
+        const optionLabel = getPlayerClassLabel(option.value).toLowerCase();
         const rawLower = value.toLowerCase();
         return optionValue === rawLower || optionLabel === rawLower;
     });
@@ -534,9 +533,13 @@ function resolvePlayerClassValue(rawValue) {
 }
 
 function formatPlayerClassLabel(value) {
-    const options = Array.isArray(appState.playerClassOptions) ? appState.playerClassOptions : [];
-    const match = options.find(option => option && option.value === value);
-    return match ? match.label : value;
+    return getPlayerClassLabel(value);
+}
+
+function getPlayerClassLabel(value) {
+    const key = `wizard.player_class_${value}`;
+    const label = typeof t === 'function' ? t(key) : value;
+    return label === key ? value : label;
 }
 
 function normalizePlayerClasses(player) {
