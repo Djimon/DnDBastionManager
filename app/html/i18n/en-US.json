@@ -63,7 +63,7 @@
   },
   "players": {
     "manage_title": "Manage players",
-    "manage_back": "Back to main view",
+    "manage_back": "Back",
     "manage_add_title": "Add new character:"
   },
   "build": {
@@ -163,7 +163,7 @@
     "status_resting": "resting",
     "status_working": "working",
     "management_title": "Manage NPCs",
-    "management_back": "<- Back to Main View",
+    "management_back": "Back",
     "management_empty": "No NPCs available.",
     "fire_confirm": "Really fire NPC: {name}?",
     "move_title": "Move NPC",

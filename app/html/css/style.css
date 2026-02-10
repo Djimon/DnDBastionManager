@@ -2052,6 +2052,15 @@ body.theme-dark .order-progress-circle::after {
     flex-direction: column;
     align-items: flex-start;
     gap: 0.75rem;
+    width: 100%;
+}
+
+.management-titlebar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    width: 100%;
 }
 
 .npc-management-header h2,
@@ -2113,6 +2122,12 @@ body.theme-dark .order-progress-circle::after {
     flex-wrap: wrap;
     gap: 1rem;
     align-items: flex-end;
+}
+
+.player-management-add h4 {
+    flex: 0 0 100%;
+    margin: 0;
+    color: var(--text-light);
 }
 
 .player-management-add .form-group {

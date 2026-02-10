@@ -63,7 +63,7 @@
   },
   "players": {
     "manage_title": "Spieler verwalten",
-    "manage_back": "Zurück zur Hauptansicht",
+    "manage_back": "Zurück",
     "manage_add_title": "Neuen Charakter hinzufügen:"
   },
   "build": {
@@ -163,7 +163,7 @@
     "status_resting": "ruht sich aus",
     "status_working": "führt Auftrag aus",
     "management_title": "NSCs verwalten",
-    "management_back": "<- Zurück zur Hauptansicht",
+    "management_back": "Zurück",
     "management_empty": "Keine NSCs vorhanden.",
     "fire_confirm": "NSC wirklich entlassen: {name}?",
     "move_title": "NSC verlegen",

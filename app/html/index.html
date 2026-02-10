@@ -105,7 +105,7 @@
                 <div class="build-container">
                     <div class="build-header">
                         <h2 data-i18n="build.title">Bastion bauen</h2>
-                        <button class="btn btn-small" onclick="switchView(3)" data-i18n="build.back_to_view3">← Zurück zu View 3</button>
+                        <button class="btn btn-ghost btn-small" onclick="switchView(3)" data-i18n="build.back_to_view3">Zurück</button>
                     </div>
 
                     <div class="build-grid">
@@ -391,15 +391,15 @@
             <div id="view-4" class="view">
                 <div class="npc-management-container">
                     <div class="npc-management-header">
-                        <div>
+                        <div class="management-titlebar">
                             <h2 data-i18n="npcs.management_title">NSCs verwalten</h2>
+                            <button class="btn btn-ghost btn-small npc-management-back" onclick="switchView(3)" data-i18n="npcs.management_back">Zurück</button>
                         </div>
                         <div class="npc-management-actions">
                             <div class="npc-management-buttons">
                                 <button class="btn btn-primary btn-small" onclick="openHireModal()" data-i18n="npcs.hire_button">+ NSC einstellen</button>
                             </div>
                             <div id="npc-management-total-upkeep" class="npc-total-upkeep" data-i18n="modal.total_upkeep">Total Upkeep: 0g</div>
-                            <button class="btn btn-secondary btn-small npc-management-back" onclick="switchView(3)" data-i18n="npcs.management_back">&lt;- Zurueck zur Hauptansicht</button>
                         </div>
                     </div>
 
@@ -428,11 +428,12 @@
             <div id="view-5" class="view">
                 <div class="player-management-container">
                     <div class="player-management-header">
-                        <h2 data-i18n="players.manage_title">Spieler verwalten</h2>
+                        <div class="management-titlebar">
+                            <h2 data-i18n="players.manage_title">Spieler verwalten</h2>
+                            <button class="btn btn-ghost btn-small" onclick="switchView(3)" data-i18n="players.manage_back">Zurück</button>
+                        </div>
                         <div class="player-management-actions">
-                            <div class="player-management-buttons">
-                                <button class="btn btn-secondary btn-small" onclick="switchView(3)" data-i18n="players.manage_back">&lt;- Zurueck zur Hauptansicht</button>
-                            </div>
+                            <div class="player-management-buttons"></div>
                         </div>
                     </div>
 
