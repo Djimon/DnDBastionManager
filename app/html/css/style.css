@@ -33,8 +33,8 @@
     --status-muted-text: #6a6f75;
     --status-fail-bg: #f2dedc;
     --status-fail-text: #9f3a2e;
-    --turn-sidebar-width: 240px;
-    --turn-inventory-width: clamp(110px, 32vw, 560px);
+    --turn-sidebar-width: clamp(16%, 18%, 22%);
+    --turn-inventory-width: clamp(16%, 20%, 30%);
 }
 
 body {
@@ -113,7 +113,7 @@ textarea::placeholder {
     align-items: center;
     border-bottom: 2px solid var(--accent);
     box-shadow: 0 6px 18px var(--shadow);
-    min-height: 120px;
+    min-height: 12vh;
 }
 
 .app-header h1 {
@@ -245,7 +245,7 @@ body.theme-dark .theme-toggle {
     display: flex;
     flex-direction: column;
     gap: 0.2rem;
-    max-height: 64px;
+    max-height: 8vh;
     overflow-y: auto;
     font-size: 0.75rem;
     color: var(--text-light);
@@ -497,7 +497,7 @@ body.theme-dark .option-tag {
     border-radius: 12px;
     border-left: 3px solid var(--accent);
     box-shadow: 0 12px 22px var(--panel-shadow);
-    max-width: 600px;
+    max-width: 70vw;
     width: 90%;
     max-height: 80vh;
     display: flex;
@@ -632,7 +632,7 @@ body.theme-dark .option-tag {
 
 
 .sessions-list {
-    max-height: 400px;
+    max-height: 45vh;
     overflow-y: auto;
     padding: 1rem;
 }
@@ -679,8 +679,8 @@ body.theme-dark .option-tag {
     box-shadow: 0 8px 16px var(--shadow);
     padding: 0.75rem 1rem;
     border-radius: 10px;
-    min-width: 260px;
-    max-width: 420px;
+    min-width: 20vw;
+    max-width: 34vw;
     font-size: 0.85rem;
     color: var(--text-dark);
     display: flex;
@@ -844,10 +844,72 @@ legend {
     padding: 0.85rem;
     background: var(--surface-alt);
     border-radius: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.player-summary {
     display: grid;
-    grid-template-columns: minmax(140px, 1.1fr) minmax(180px, 1.2fr) minmax(100px, 0.5fr) auto;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.player-summary-row {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    flex-wrap: nowrap;
+    min-width: 0;
+}
+
+.player-summary-block {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    min-width: 0;
+}
+
+.player-summary-label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--text-light);
+    white-space: nowrap;
+}
+
+.player-summary-value {
+    font-weight: 600;
+    color: var(--text-dark);
+    white-space: nowrap;
+}
+
+.player-tags {
+    display: inline-flex;
+    gap: 0.35rem;
+    flex-wrap: wrap;
+}
+
+.player-actions {
+    display: flex;
+    gap: 0.5rem;
+    align-items: flex-start;
+}
+
+.player-edit {
+    display: grid;
+    grid-template-columns: minmax(160px, 1fr) minmax(200px, 1.2fr) minmax(120px, 0.5fr) auto;
     gap: 0.75rem;
     align-items: end;
+    border-top: 1px dashed var(--border);
+    padding-top: 0.75rem;
+}
+
+.player-edit-actions {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+    justify-content: flex-end;
 }
 
 .player-field {
@@ -874,19 +936,12 @@ legend {
 }
 
 .player-class-select {
-    min-height: 88px;
-}
-
-.player-remove {
-    align-self: end;
+    min-height: 36px;
+    width: 100%;
 }
 
 .players-empty {
     margin: 0;
-}
-
-.player-class-hint {
-    margin-top: 0.35rem;
 }
 
 /* ===== VIEW 2: BUILD ===== */
@@ -1162,22 +1217,28 @@ body:not(.theme-dark) .placeholder-item.facility-disabled .tag {
 /* ===== VIEW 3: TURN CONSOLE ===== */
 
 
-.turn-console {
+.main-grid {
     display: grid;
-    grid-template-columns: var(--turn-sidebar-width) minmax(0, 1fr) var(--turn-inventory-width);
-    grid-template-rows: auto auto;
+    grid-template-columns: minmax(70vw, 85vw) minmax(15vw, 30vw);
+    grid-template-rows: minmax(50vh, 70vh) minmax(15vh, 30vh);
     gap: 1.5rem;
     height: 100%;
+    min-height: 0;
 }
 
 .console-grid {
     display: grid;
-    grid-template-columns: var(--turn-sidebar-width) minmax(0, 1fr);
+    grid-template-columns: minmax(0, min(25vw, 25%)) minmax(70%, 1fr);
     gap: 1.5rem;
-    grid-column: 1 / 3;
+    grid-column: 1 / 2;
     grid-row: 1;
     min-width: 0;
-    overflow: hidden;
+    height: 100%;
+    min-height: 0;
+    min-width: 70vw;
+    max-width: 85vw;
+    min-height: 50vh;
+    max-height: 70vh;
 }
 
 .facilities-sidebar {
@@ -1189,8 +1250,8 @@ body:not(.theme-dark) .placeholder-item.facility-disabled .tag {
     flex-direction: column;
     gap: 1rem;
     overflow-y: auto;
-    height: auto;
-    max-height: 800px;
+    height: 100%;
+    max-height: 100%;
 }
 
 .facilities-sidebar h3 {
@@ -1409,9 +1470,9 @@ body:not(.theme-dark) .placeholder-item.facility-disabled .tag {
     display: flex;
     flex-direction: column;
     overflow: hidden;
-    min-width: 0;
-    height: auto;
-    max-height: 800px;
+    min-width: 70%;
+    height: 100%;
+    max-height: 100%;
 }
 
 .facility-main {
@@ -1485,7 +1546,7 @@ body:not(.theme-dark) .placeholder-item.facility-disabled .tag {
     gap: 0.75rem;
     overflow: hidden;
     position: relative;
-    grid-column: 3 / 4;
+    grid-column: 2 / 3;
     grid-row: 1 / 3;
     align-self: stretch;
 }
@@ -1590,7 +1651,7 @@ body:not(.theme-dark) .placeholder-item.facility-disabled .tag {
     position: absolute;
     right: 12px;
     bottom: 52px;
-    width: min(180px, 100%);
+    width: min(60%, 100%);
     background: var(--surface);
     border: 1px solid var(--border);
     border-radius: 10px;
@@ -2065,7 +2126,7 @@ body.theme-dark .order-progress-circle::after {
 }
 
 .confirm-modal-content {
-    max-width: 520px;
+    max-width: 60vw;
 }
 
 .confirm-message {
@@ -2143,20 +2204,22 @@ body.theme-dark .order-progress-circle::after {
 /* ===== TURN CONTROLS & LOG ===== */
 
 
-.turn-controls {
+.dm-panel {
     background: var(--surface-alt);
     border: 1px solid var(--border);
     border-radius: 10px;
     padding: 1rem;
     display: grid;
-    grid-template-columns: minmax(240px, 320px) minmax(0, 1fr);
+    grid-template-columns: minmax(0, 40%) minmax(0, 1fr);
     align-items: stretch;
     gap: 1rem;
-    grid-column: 1 / 3;
+    grid-column: 1 / 2;
     grid-row: 2;
-    align-self: start;
+    align-self: stretch;
     min-width: 0;
-    max-height: clamp(180px, 30vh, 420px);
+    min-height: 15vh;
+    height: 100%;
+    max-height: 30vh;
 }
 
 .treasury-adjust {
@@ -2205,8 +2268,9 @@ body.theme-dark .order-progress-circle::after {
     padding-left: 0.75rem;
     min-width: 0;
     min-height: 0;
-    display: flex;
-    flex-direction: column;
+    display: grid;
+    grid-template-rows: auto 1fr;
+    flex: 1;
 }
 
 .turn-log-header {
@@ -2235,7 +2299,8 @@ body.theme-dark .order-progress-circle::after {
     display: flex;
     flex-direction: column;
     gap: 0.4rem;
-    max-height: 150px;
+    flex: 1;
+    min-height: 0;
 }
 
 .log-entry {
@@ -2313,12 +2378,22 @@ body.theme-dark .order-progress-circle::after {
         flex-direction: column;
     }
 
-    .player-item {
+    .player-summary {
+        grid-template-columns: 1fr;
+        align-items: flex-start;
+    }
+
+    .player-summary-row {
+        flex-wrap: wrap;
+    }
+
+    .player-edit {
         grid-template-columns: 1fr;
     }
 
-    .player-remove {
-        justify-self: start;
+    .player-actions {
+        width: 100%;
+        justify-content: flex-start;
     }
 }
 
@@ -2328,10 +2403,10 @@ body.theme-dark .order-progress-circle::after {
     }
 
     :root {
-        --turn-inventory-width: clamp(110px, 22vw, 360px);
+        --turn-inventory-width: clamp(12%, 15%, 24%);
     }
 
-    .turn-console {
+    .main-grid {
         grid-template-columns: 1fr;
         grid-template-rows: auto auto auto;
     }
@@ -2346,12 +2421,12 @@ body.theme-dark .order-progress-circle::after {
         grid-column: 1 / -1;
         grid-row: 2;
     }
-    .turn-controls {
+    .dm-panel {
         grid-column: 1 / -1;
         grid-row: 3;
         grid-template-columns: 1fr;
-        max-height: 35vh;
         overflow: hidden;
+        max-height: 30vh;
     }
     .turn-log {
         border-left: none;
@@ -2366,22 +2441,20 @@ body.theme-dark .order-progress-circle::after {
 
 @media (max-width: 1600px) {
     :root {
-        --turn-inventory-width: clamp(140px, 24vw, 420px);
+        --turn-inventory-width: clamp(18%, 22%, 28%);
     }
 }
 
 @media (max-width: 1200px) {
     :root {
-        --turn-inventory-width: clamp(120px, 20vw, 320px);
+        --turn-inventory-width: clamp(15%, 18%, 26%);
     }
 }
 
 @media (max-height: 820px) {
-    .turn-controls {
+    .dm-panel {
+        overflow: hidden;
         max-height: 30vh;
-    }
-    .log-messages {
-        max-height: 120px;
     }
 }
 
@@ -2406,7 +2479,7 @@ body.theme-dark .order-progress-circle::after {
     }
 
     .facilities-sidebar {
-        max-height: 200px;
+        max-height: 30vh;
     }
 
     .view {

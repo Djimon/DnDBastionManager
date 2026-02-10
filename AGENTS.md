@@ -56,6 +56,7 @@ Zentrale Dokumentation aller vereinbarten Projekt-Regeln und Commitments zwische
 - Kurze, praegnante Zusammenfassungen.
 - Deutsche Sprache (wie User schreibt).
 - Bei Pausen: Kurze Status-Updates statt ausfuehrliche Erklaerungen.
+- Bei Unsicherheit oder moeglichem Missverstaendnis (auch klein): erst rueckfragen und bestaetigen, dann umsetzen. Keine Annahmen, kein schnelles Drauflos-Coden.
 
 ## Freigaben & Push-Flow
 - Nach einem Commit erst Test/Abnahme durch den User, dann Push.
