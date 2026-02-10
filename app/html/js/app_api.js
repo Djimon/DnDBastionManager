@@ -15,6 +15,25 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 
+if (window.addEventListener) {
+    window.addEventListener('pywebviewready', () => {
+        if (typeof loadPlayerClassOptions === 'function') {
+            loadPlayerClassOptions().then(() => {
+                const classSelect = document.getElementById('player-class');
+                if (typeof populatePlayerClassSelect === 'function' && classSelect) {
+                    const selected = typeof getSelectedPlayerClasses === 'function'
+                        ? getSelectedPlayerClasses(classSelect)
+                        : [];
+                    populatePlayerClassSelect(classSelect, selected);
+                }
+                if (typeof renderPlayersList === 'function') {
+                    renderPlayersList();
+                }
+            });
+        }
+    });
+}
+
 const THEME_STORAGE_KEY = 'bastion_theme';
 let currentTheme = 'light';
 const THEME_ICON_LIGHT = '\u25D0';

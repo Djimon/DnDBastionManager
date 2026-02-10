@@ -103,6 +103,7 @@ let appState = {
     inventoryFilter: { sort: 'name_asc', query: '' },
     hireFacilityPref: null,
     hireFacilityUserTouched: false,
+    playerClassOptions: [],
 };
 
 const BUILDABLE_TIER = 1;

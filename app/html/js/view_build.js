@@ -462,21 +462,23 @@ function buildPackBadgeElement(source) {
 
 // ===== VIEW 1: SESSION WIZARD =====
 
-const PLAYER_CLASS_OPTIONS = [
-    { value: 'artificer', label: 'Artificer' },
-    { value: 'barbarian', label: 'Barbarian' },
-    { value: 'bard', label: 'Bard' },
-    { value: 'cleric', label: 'Cleric' },
-    { value: 'druid', label: 'Druid' },
-    { value: 'fighter', label: 'Fighter' },
-    { value: 'monk', label: 'Monk' },
-    { value: 'paladin', label: 'Paladin' },
-    { value: 'ranger', label: 'Ranger' },
-    { value: 'rogue', label: 'Rogue' },
-    { value: 'sorcerer', label: 'Sorcerer' },
-    { value: 'warlock', label: 'Warlock' },
-    { value: 'wizard', label: 'Wizard' }
-];
+function normalizePlayerClassOptions(rawList) {
+    if (!Array.isArray(rawList)) {
+        return [];
+    }
+    return rawList.map(entry => {
+        if (typeof entry === 'string') {
+            const value = entry.trim();
+            return value ? { value, label: value } : null;
+        }
+        if (entry && typeof entry === 'object') {
+            const value = (entry.id || entry.value || entry.label || entry.name || '').trim();
+            const label = (entry.label || entry.name || entry.id || entry.value || '').trim();
+            return value ? { value, label: label || value } : null;
+        }
+        return null;
+    }).filter(Boolean);
+}
 
 function ensurePlayerState() {
     if (!appState.session || typeof appState.session !== 'object') {
@@ -492,7 +494,8 @@ function populatePlayerClassSelect(selectEl, selectedValues = []) {
         return;
     }
     selectEl.innerHTML = '';
-    PLAYER_CLASS_OPTIONS.forEach(option => {
+    const options = Array.isArray(appState.playerClassOptions) ? appState.playerClassOptions : [];
+    options.forEach(option => {
         const opt = document.createElement('option');
         opt.value = option.value;
         opt.textContent = option.label;
@@ -512,12 +515,40 @@ function getSelectedPlayerClasses(selectEl) {
         .filter(Boolean);
 }
 
+function resolvePlayerClassValue(rawValue) {
+    const value = String(rawValue || '').trim();
+    if (!value) {
+        return null;
+    }
+    const options = Array.isArray(appState.playerClassOptions) ? appState.playerClassOptions : [];
+    const match = options.find(option => {
+        if (!option || !option.value) {
+            return false;
+        }
+        const optionValue = option.value.toLowerCase();
+        const optionLabel = String(option.label || '').toLowerCase();
+        const rawLower = value.toLowerCase();
+        return optionValue === rawLower || optionLabel === rawLower;
+    });
+    return match ? match.value : value;
+}
+
+function formatPlayerClassLabel(value) {
+    const options = Array.isArray(appState.playerClassOptions) ? appState.playerClassOptions : [];
+    const match = options.find(option => option && option.value === value);
+    return match ? match.label : value;
+}
+
 function normalizePlayerClasses(player) {
     if (player && Array.isArray(player.classes) && player.classes.length) {
-        return player.classes.filter(Boolean);
+        return player.classes.map(resolvePlayerClassValue).filter(Boolean);
     }
     if (player && typeof player.class === 'string' && player.class.trim()) {
-        return [player.class.trim()];
+        const parts = player.class
+            .split(/[\\/|,]+/)
+            .map(value => resolvePlayerClassValue(value))
+            .filter(Boolean);
+        return parts.length ? parts : [resolvePlayerClassValue(player.class.trim())].filter(Boolean);
     }
     return [];
 }
@@ -525,7 +556,7 @@ function normalizePlayerClasses(player) {
 function setPlayerClasses(player, classes) {
     const filtered = Array.isArray(classes) ? classes.filter(Boolean) : [];
     player.classes = filtered;
-    player.class = filtered.join(' / ');
+    player.class = filtered.map(formatPlayerClassLabel).join(' / ');
 }
 
 function sanitizePlayerLevel(raw) {
@@ -618,9 +649,28 @@ function renderPlayersList() {
 
 function initPlayerWizard() {
     ensurePlayerState();
-    const classSelect = document.getElementById('player-class');
-    populatePlayerClassSelect(classSelect, []);
-    renderPlayersList();
+    loadPlayerClassOptions().then(() => {
+        const classSelect = document.getElementById('player-class');
+        populatePlayerClassSelect(classSelect, []);
+        renderPlayersList();
+    });
+}
+
+async function loadPlayerClassOptions() {
+    let classes = [];
+    if (window.pywebview && window.pywebview.api && window.pywebview.api.get_player_classes) {
+        try {
+            const response = await window.pywebview.api.get_player_classes();
+            if (response && Array.isArray(response.classes)) {
+                classes = response.classes;
+            } else if (Array.isArray(response)) {
+                classes = response;
+            }
+        } catch (err) {
+            logClient('warn', `Failed to load player classes: ${err}`);
+        }
+    }
+    appState.playerClassOptions = normalizePlayerClassOptions(classes);
 }
 
 function addPlayer() {

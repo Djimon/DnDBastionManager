@@ -457,6 +457,18 @@ class Api:
         except Exception as e:
             return {"error": str(e)}
 
+    def get_player_classes(self) -> dict:
+        """
+        Return configured player class options for the session wizard.
+        """
+        try:
+            classes = self._facility_manager.config.get("player_classes", [])
+            if not isinstance(classes, list):
+                classes = []
+            return {"classes": classes}
+        except Exception as e:
+            return {"classes": [], "error": str(e)}
+
     def save_formula_inputs(self, facility_id: str, order_id: str, trigger_id: str, inputs: dict) -> dict:
         """
         Save formula inputs for a ready order.
