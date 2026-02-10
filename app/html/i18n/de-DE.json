@@ -54,6 +54,10 @@
     "player_level_placeholder": "5",
     "add_player": "+ Spieler hinzufügen",
     "remove_player": "Entfernen",
+    "edit_player": "Bearbeiten",
+    "save_edit": "Speichern",
+    "cancel_edit": "Abbrechen",
+    "player_class_empty": "Keine Klasse",
     "players_empty": "Noch keine Spieler hinzugefügt.",
     "create_session": "Neue Session erstellen"
   },

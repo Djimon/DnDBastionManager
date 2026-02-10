@@ -104,6 +104,7 @@ let appState = {
     hireFacilityPref: null,
     hireFacilityUserTouched: false,
     playerClassOptions: [],
+    playerEditingIndex: null,
 };
 
 const BUILDABLE_TIER = 1;

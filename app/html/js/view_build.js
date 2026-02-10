@@ -494,11 +494,13 @@ function populatePlayerClassSelect(selectEl, selectedValues = []) {
     }
     selectEl.innerHTML = '';
     const options = Array.isArray(appState.playerClassOptions) ? appState.playerClassOptions : [];
+    const selectedList = Array.isArray(selectedValues) ? selectedValues.filter(Boolean) : [];
+    const primarySelected = selectedList.length ? selectedList[0] : null;
     options.forEach(option => {
         const opt = document.createElement('option');
         opt.value = option.value;
         opt.textContent = getPlayerClassLabel(option.value);
-        if (selectedValues.includes(option.value)) {
+        if (primarySelected && primarySelected === option.value) {
             opt.selected = true;
         }
         selectEl.appendChild(opt);
@@ -570,6 +572,19 @@ function sanitizePlayerLevel(raw) {
     return 1;
 }
 
+function beginEditPlayer(index) {
+    if (!Number.isInteger(index)) {
+        return;
+    }
+    appState.playerEditingIndex = index;
+    renderPlayersList();
+}
+
+function cancelEditPlayer() {
+    appState.playerEditingIndex = null;
+    renderPlayersList();
+}
+
 function renderPlayersList() {
     ensurePlayerState();
     const list = document.getElementById('players-list');
@@ -592,60 +607,159 @@ function renderPlayersList() {
         const classes = normalizePlayerClasses(player);
         setPlayerClasses(player, classes);
         const levelValue = sanitizePlayerLevel(player.level);
-        player.level = levelValue;
 
-        const nameField = document.createElement('div');
-        nameField.className = 'player-field';
-        const nameLabel = document.createElement('label');
+        const summary = document.createElement('div');
+        summary.className = 'player-summary';
+
+        const summaryRow = document.createElement('div');
+        summaryRow.className = 'player-summary-row';
+
+        const nameBlock = document.createElement('div');
+        nameBlock.className = 'player-summary-block';
+        const nameLabel = document.createElement('span');
+        nameLabel.className = 'player-summary-label';
         nameLabel.textContent = t('wizard.player_name');
-        const nameInput = document.createElement('input');
-        nameInput.type = 'text';
-        nameInput.value = player.name || '';
-        nameInput.addEventListener('input', () => {
-            player.name = nameInput.value;
-        });
-        nameField.appendChild(nameLabel);
-        nameField.appendChild(nameInput);
+        const nameValue = document.createElement('span');
+        nameValue.className = 'player-summary-value';
+        nameValue.textContent = player.name || t('common.unknown');
+        nameBlock.appendChild(nameLabel);
+        nameBlock.appendChild(nameValue);
 
-        const classField = document.createElement('div');
-        classField.className = 'player-field';
-        const classLabel = document.createElement('label');
+        const classBlock = document.createElement('div');
+        classBlock.className = 'player-summary-block';
+        const classLabel = document.createElement('span');
+        classLabel.className = 'player-summary-label';
         classLabel.textContent = t('wizard.player_class');
-        const classSelect = document.createElement('select');
-        classSelect.className = 'player-class-select';
-        classSelect.multiple = true;
-        populatePlayerClassSelect(classSelect, classes);
-        classSelect.addEventListener('change', () => {
-            setPlayerClasses(player, getSelectedPlayerClasses(classSelect));
-        });
-        classField.appendChild(classLabel);
-        classField.appendChild(classSelect);
+        const classTags = document.createElement('div');
+        classTags.className = 'player-tags';
+        if (!classes.length) {
+            const tag = document.createElement('span');
+            tag.className = 'tag tag-muted';
+            tag.textContent = t('wizard.player_class_empty');
+            classTags.appendChild(tag);
+        } else {
+            classes.forEach(cls => {
+                const tag = document.createElement('span');
+                tag.className = 'tag';
+                tag.textContent = getPlayerClassLabel(cls);
+                classTags.appendChild(tag);
+            });
+        }
+        classBlock.appendChild(classLabel);
+        classBlock.appendChild(classTags);
 
-        const levelField = document.createElement('div');
-        levelField.className = 'player-field player-level-field';
-        const levelLabel = document.createElement('label');
+        const levelBlock = document.createElement('div');
+        levelBlock.className = 'player-summary-block';
+        const levelLabel = document.createElement('span');
+        levelLabel.className = 'player-summary-label';
         levelLabel.textContent = t('wizard.player_level');
-        const levelInput = document.createElement('input');
-        levelInput.type = 'number';
-        levelInput.min = '1';
-        levelInput.max = '20';
-        levelInput.value = levelValue;
-        levelInput.addEventListener('input', () => {
-            player.level = sanitizePlayerLevel(levelInput.value);
-        });
-        levelField.appendChild(levelLabel);
-        levelField.appendChild(levelInput);
+        const levelValueEl = document.createElement('span');
+        levelValueEl.className = 'player-summary-value';
+        levelValueEl.textContent = String(levelValue);
+        levelBlock.appendChild(levelLabel);
+        levelBlock.appendChild(levelValueEl);
+
+        summaryRow.appendChild(nameBlock);
+        summaryRow.appendChild(classBlock);
+        summaryRow.appendChild(levelBlock);
+
+        const actions = document.createElement('div');
+        actions.className = 'player-actions';
+
+        const editBtn = document.createElement('button');
+        editBtn.type = 'button';
+        editBtn.className = 'btn btn-secondary btn-small';
+        editBtn.textContent = t('wizard.edit_player');
+        editBtn.addEventListener('click', () => beginEditPlayer(index));
 
         const removeBtn = document.createElement('button');
         removeBtn.type = 'button';
-        removeBtn.className = 'btn btn-danger btn-small player-remove';
+        removeBtn.className = 'btn btn-danger btn-small';
         removeBtn.textContent = t('wizard.remove_player');
         removeBtn.addEventListener('click', () => removePlayer(index));
 
-        row.appendChild(nameField);
-        row.appendChild(classField);
-        row.appendChild(levelField);
-        row.appendChild(removeBtn);
+        actions.appendChild(editBtn);
+        actions.appendChild(removeBtn);
+
+        summary.appendChild(summaryRow);
+        summary.appendChild(actions);
+
+        row.appendChild(summary);
+
+        if (appState.playerEditingIndex === index) {
+            const edit = document.createElement('div');
+            edit.className = 'player-edit';
+
+            const nameField = document.createElement('div');
+            nameField.className = 'player-field';
+            const nameLabelEdit = document.createElement('label');
+            nameLabelEdit.textContent = t('wizard.player_name');
+            const nameInput = document.createElement('input');
+            nameInput.type = 'text';
+            nameInput.value = player.name || '';
+            nameField.appendChild(nameLabelEdit);
+            nameField.appendChild(nameInput);
+
+            const classField = document.createElement('div');
+            classField.className = 'player-field';
+            const classLabelEdit = document.createElement('label');
+            classLabelEdit.textContent = t('wizard.player_class');
+            const classSelect = document.createElement('select');
+            classSelect.className = 'player-class-select';
+            populatePlayerClassSelect(classSelect, classes);
+            classField.appendChild(classLabelEdit);
+            classField.appendChild(classSelect);
+
+            const levelField = document.createElement('div');
+            levelField.className = 'player-field';
+            const levelLabelEdit = document.createElement('label');
+            levelLabelEdit.textContent = t('wizard.player_level');
+            const levelInput = document.createElement('input');
+            levelInput.type = 'number';
+            levelInput.min = '1';
+            levelInput.max = '20';
+            levelInput.value = levelValue;
+            levelField.appendChild(levelLabelEdit);
+            levelField.appendChild(levelInput);
+
+            const editActions = document.createElement('div');
+            editActions.className = 'player-edit-actions';
+
+            const cancelBtn = document.createElement('button');
+            cancelBtn.type = 'button';
+            cancelBtn.className = 'btn btn-secondary btn-small';
+            cancelBtn.textContent = t('wizard.cancel_edit');
+            cancelBtn.addEventListener('click', () => cancelEditPlayer());
+
+            const saveBtn = document.createElement('button');
+            saveBtn.type = 'button';
+            saveBtn.className = 'btn btn-primary btn-small';
+            saveBtn.textContent = t('wizard.save_edit');
+            saveBtn.addEventListener('click', () => {
+                const nextName = nameInput.value.trim();
+                const nextClasses = getSelectedPlayerClasses(classSelect);
+                const nextLevel = sanitizePlayerLevel(levelInput.value);
+                if (!nextName || nextClasses.length === 0) {
+                    notifyUser(t('alerts.fill_name_class'));
+                    return;
+                }
+                player.name = nextName;
+                player.level = nextLevel;
+                setPlayerClasses(player, nextClasses);
+                appState.playerEditingIndex = null;
+                renderPlayersList();
+            });
+
+            editActions.appendChild(cancelBtn);
+            editActions.appendChild(saveBtn);
+
+            edit.appendChild(nameField);
+            edit.appendChild(classField);
+            edit.appendChild(levelField);
+            edit.appendChild(editActions);
+            row.appendChild(edit);
+        }
+
         list.appendChild(row);
     });
 }
@@ -714,6 +828,13 @@ function removePlayer(index) {
         return;
     }
     appState.session.players.splice(index, 1);
+    if (Number.isInteger(appState.playerEditingIndex)) {
+        if (appState.playerEditingIndex === index) {
+            appState.playerEditingIndex = null;
+        } else if (appState.playerEditingIndex > index) {
+            appState.playerEditingIndex -= 1;
+        }
+    }
     renderPlayersList();
 }
 
