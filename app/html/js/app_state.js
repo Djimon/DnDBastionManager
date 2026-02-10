@@ -403,24 +403,6 @@ function buildRollSourceId() {
     return orderName ? `${facilityName}: ${orderName}` : facilityName;
 }
 
-function logAuditEvent(event) {
-    const entry = event || {};
-    if (entry.turn === undefined || entry.turn === null) {
-        entry.turn = appState.session.current_turn || appState.session.turn || 0;
-    }
-
-    const log = appState.session.audit_log || [];
-    log.push(entry);
-    appState.session.audit_log = log;
-    renderAuditLog();
-
-    if (window.pywebview && window.pywebview.api && window.pywebview.api.add_audit_entry) {
-        window.pywebview.api.add_audit_entry(entry).catch(err => {
-            console.error('Failed to add audit entry:', err);
-        });
-    }
-}
-
 function formatAuditFallback(entry) {
     const parts = [];
     if (entry.event_type) parts.push(entry.event_type);
