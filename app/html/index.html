@@ -77,7 +77,7 @@
                         <!-- Player Registry -->
                         <fieldset>
                             <legend data-i18n="wizard.players_register">Spieler registrieren</legend>
-                            <div id="players-list" class="players-list">
+                            <div id="players-list" class="players-list" data-player-list="wizard">
                                 <!-- Dynamic: filled by JS -->
                             </div>
                             <div class="form-group">
@@ -270,25 +270,25 @@
 
                                 <!-- TAB: Orders -->
                                 <div id="tab-orders" class="tab-content">
-                                    <h3 data-i18n="orders.title">Orders</h3>
-
-                                    <div class="order-new">
-                                        <h4 data-i18n="orders.new_title">Neue Order</h4>
-                                        <div class="form-group">
-                                            <label for="order-npc-select" data-i18n="orders.npc_label">NPC:</label>
-                                            <select id="order-npc-select"></select>
+                                    <div class="orders-top">
+                                        <div class="order-new">
+                                            <h4 data-i18n="orders.new_title">Neue Order</h4>
+                                            <div class="form-group">
+                                                <label for="order-npc-select" data-i18n="orders.npc_label">NPC:</label>
+                                                <select id="order-npc-select"></select>
+                                            </div>
+                                            <div class="form-group">
+                                                <label for="order-select" data-i18n="orders.order_label">Order:</label>
+                                                <select id="order-select"></select>
+                                            </div>
+                                            <button class="btn btn-primary" onclick="startOrder()" data-i18n="orders.start">Order starten</button>
+                                            <p id="order-new-hint" class="text-muted"></p>
                                         </div>
-                                        <div class="form-group">
-                                            <label for="order-select" data-i18n="orders.order_label">Order:</label>
-                                            <select id="order-select"></select>
-                                        </div>
-                                        <button class="btn btn-primary" onclick="startOrder()" data-i18n="orders.start">Order starten</button>
-                                        <p id="order-new-hint" class="text-muted"></p>
-                                    </div>
-                                    <div id="order-preview" class="order-preview">
-                                        <h5 data-i18n="orders.outcome_preview">Ergebnis-Vorschau:</h5>
-                                        <div id="order-preview-body">
-                                            <p class="placeholder" data-i18n="orders.outcome_placeholder">[Effekte: +20 Gold, +1 Heat, Event: ...]</p>
+                                        <div id="order-preview" class="order-preview">
+                                            <h5 data-i18n="orders.outcome_preview">Ergebnis-Vorschau:</h5>
+                                            <div id="order-preview-body">
+                                                <p class="placeholder" data-i18n="orders.outcome_placeholder">[Effekte: +20 Gold, +1 Heat, Event: ...]</p>
+                                            </div>
                                         </div>
                                     </div>
 
@@ -364,18 +364,18 @@
                     <!-- BOTTOM: Turn Controls & Log -->
                     <footer class="dm-panel">
                         <div class="controls-buttons">
-                            <button id="turn-advance-btn" class="btn btn-primary" onclick="advanceTurn()" data-i18n="turn.advance_turn">Runde vorruecken</button>
-                            <button class="btn btn-secondary" onclick="switchView(2)" data-i18n="turn.build_new">+ Build New Facility</button>
-                            <button class="btn btn-secondary" onclick="openNPCModal()" data-i18n="turn.manage_npcs">NSCs verwalten</button>
-                            <button id="orders-roll-eval-all" class="btn btn-secondary" onclick="rollAndEvaluateAllReady()" data-i18n="turn.roll_evaluate_all">Alles rollen & auswerten</button>
-                            <button class="btn btn-success" onclick="saveSession()" data-i18n="turn.save_session">Session speichern</button>
+                            <div class="controls-header">
+                                <div class="turn-log-label" data-i18n="turn.log_title">Runden-Log</div>
+                            </div>
+                            <div class="controls-actions">
+                                <button id="turn-advance-btn" class="btn btn-primary" onclick="advanceTurn()" data-i18n="turn.advance_turn">Runde vorruecken</button>
+                                <button id="orders-roll-eval-all" class="btn btn-secondary" onclick="rollAndEvaluateAllReady()" data-i18n="turn.roll_evaluate_all">Alles rollen & auswerten</button>
+                                <button class="btn btn-secondary" onclick="switchView(5)" data-i18n="players.manage_title">Spieler verwalten</button>
+                                <button class="btn btn-secondary btn-small" onclick="openEventHistoryModal()" data-i18n="events.history_button">Event-Historie</button>
+                            </div>
                         </div>
 
                         <div class="turn-log">
-                            <div class="turn-log-header">
-                                <h4 data-i18n="turn.log_title">Turn Log</h4>
-                                <button class="btn btn-secondary btn-small" onclick="openEventHistoryModal()" data-i18n="events.history_button">Event-Historie</button>
-                            </div>
                             <div id="log-content" class="log-messages">
                                 <p class="log-entry success">✓ Garden +20 gold</p>
                                 <p class="log-entry event">⚠ Office agent killed (event)</p>
@@ -396,10 +396,10 @@
                         </div>
                         <div class="npc-management-actions">
                             <div class="npc-management-buttons">
-                                <button class="btn btn-secondary btn-small" onclick="switchView(3)" data-i18n="npcs.management_back">&lt;- Zurueck zur Hauptansicht</button>
                                 <button class="btn btn-primary btn-small" onclick="openHireModal()" data-i18n="npcs.hire_button">+ NSC einstellen</button>
                             </div>
                             <div id="npc-management-total-upkeep" class="npc-total-upkeep" data-i18n="modal.total_upkeep">Total Upkeep: 0g</div>
+                            <button class="btn btn-secondary btn-small npc-management-back" onclick="switchView(3)" data-i18n="npcs.management_back">&lt;- Zurueck zur Hauptansicht</button>
                         </div>
                     </div>
 
@@ -420,6 +420,40 @@
                             <tbody id="npc-management-body"></tbody>
                         </table>
                         <p id="npc-management-empty" class="text-muted hidden" data-i18n="npcs.management_empty">Keine NSCs vorhanden.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ===== VIEW 5: PLAYER MANAGEMENT ===== -->
+            <div id="view-5" class="view">
+                <div class="player-management-container">
+                    <div class="player-management-header">
+                        <h2 data-i18n="players.manage_title">Spieler verwalten</h2>
+                        <div class="player-management-actions">
+                            <div class="player-management-buttons">
+                                <button class="btn btn-secondary btn-small" onclick="switchView(3)" data-i18n="players.manage_back">&lt;- Zurueck zur Hauptansicht</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="player-management-panel">
+                        <div id="players-management-list" class="players-list" data-player-list="management"></div>
+                        <div class="player-management-add">
+                            <h4 data-i18n="players.manage_add_title">Neuen Charakter hinzufügen:</h4>
+                            <div class="form-group">
+                                <label for="player-manage-name" data-i18n="wizard.player_name">Character-Name:</label>
+                                <input type="text" id="player-manage-name" placeholder="Character Name" data-i18n-placeholder="wizard.player_name_placeholder" />
+                            </div>
+                            <div class="form-group">
+                                <label for="player-manage-class" data-i18n="wizard.player_class">Klasse:</label>
+                                <select id="player-manage-class" class="player-class-select"></select>
+                            </div>
+                            <div class="form-group">
+                                <label for="player-manage-level" data-i18n="wizard.player_level">Level (optional):</label>
+                                <input type="number" id="player-manage-level" placeholder="5" min="1" max="20" data-i18n-placeholder="wizard.player_level_placeholder" />
+                            </div>
+                            <button class="btn btn-secondary" onclick="addPlayerFromManagement()" data-i18n="wizard.add_player">+ Add Player</button>
+                        </div>
                     </div>
                 </div>
             </div>

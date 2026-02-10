@@ -1143,7 +1143,7 @@ function renderOrdersPanel(facilityId) {
             return;
         }
         const outcome = orderDef.outcome || {};
-        const buckets = ['on_success', 'on_critical_success', 'on_failure', 'on_critical_failure'];
+        const buckets = ['on_success', 'on_failure'];
         let hasLines = false;
         buckets.forEach(bucket => {
             const block = outcome[bucket];
@@ -1156,7 +1156,9 @@ function renderOrdersPanel(facilityId) {
             }
             const line = document.createElement('p');
             line.className = 'order-preview-line';
-            line.textContent = `${formatOutcomeBucket(bucket)}: ${formatRawEffectEntries(effects)}`;
+            const label = document.createElement('strong');
+            label.textContent = `${formatOutcomeBucket(bucket)}:`;
+            line.append(label, ` ${formatRawEffectEntries(effects)}`);
             previewBody.appendChild(line);
             hasLines = true;
         });
@@ -2841,7 +2843,8 @@ function addLogEntry(message, type = 'success') {
     const entryEl = document.createElement('p');
     entryEl.className = `log-entry ${type}`;
     const prefix = type === 'success' ? '✓' : (type === 'fail' ? '✗' : '⚠');
-    entryEl.textContent = `${prefix} ${message}`;
+    const turn = appState.session.current_turn ?? appState.session.turn ?? 0;
+    entryEl.textContent = `${turn}: ${prefix} ${message}`;
     logContent.appendChild(entryEl);
     logContent.scrollTop = logContent.scrollHeight;
 }

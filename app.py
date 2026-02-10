@@ -563,8 +563,8 @@ def main():
         title='D&D Bastion Manager',
         url=str(html_file),
         js_api=api,
-        width=1200,
-        height=800,
+        width=1920,
+        height=1080,
         resizable=True,
         fullscreen=False,
     )

@@ -61,6 +61,11 @@
     "players_empty": "Noch keine Spieler hinzugefügt.",
     "create_session": "Neue Session erstellen"
   },
+  "players": {
+    "manage_title": "Spieler verwalten",
+    "manage_back": "Zurück zur Hauptansicht",
+    "manage_add_title": "Neuen Charakter hinzufügen:"
+  },
   "build": {
     "title": "Bastion bauen",
     "back_to_view3": "Zurück",
@@ -90,6 +95,8 @@
     "demolish_ok": "Abreißen",
     "demolish_confirm": "Facility abreißen: {facility}?",
     "demolish_warning_orders": "Achtung: {count} aktive Aufträge laufen noch.",
+    "demolish_refund_hint": "(refund)",
+    "demolish_refund_line": "Erstattung: {refund}",
     "demolish_notice_npcs": "Alle Angestellten werden in die Arbeitslosenliste verschoben.",
     "demolish_failed": "Abreißen fehlgeschlagen: {message}",
     "demolish_success": "Facility abgerissen: {facility} | Erstattung: {refund}",

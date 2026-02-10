@@ -130,6 +130,23 @@ function switchView(viewNum) {
     if (viewNum === 1 && typeof renderPlayersList === 'function') {
         renderPlayersList();
     }
+    if (viewNum === 5) {
+        if (typeof loadPlayerClassOptions === 'function') {
+            loadPlayerClassOptions().then(() => {
+                if (typeof populateAllPlayerClassSelects === 'function') {
+                    populateAllPlayerClassSelects();
+                }
+                if (typeof renderPlayersList === 'function') {
+                    renderPlayersList();
+                }
+            });
+        } else if (typeof renderPlayersList === 'function') {
+            renderPlayersList();
+        }
+    }
+    if (viewNum === 3 && typeof renderAuditLog === 'function') {
+        renderAuditLog();
+    }
 }
 
 function switchTab(tabName, triggerEl = null) {
@@ -440,7 +457,21 @@ function renderAuditLog() {
         return;
     }
 
-    const recent = entries.slice(-20);
+    const turns = [];
+    entries.forEach(entry => {
+        if (entry && Number.isInteger(entry.turn)) {
+            turns.push(entry.turn);
+        }
+    });
+    const uniqueTurns = Array.from(new Set(turns)).sort((a, b) => a - b);
+    const lastTurns = uniqueTurns.slice(-3);
+    let recent = lastTurns.length
+        ? entries.filter(entry => entry && lastTurns.includes(entry.turn))
+        : entries.slice(-20);
+    if (recent.length > 100) {
+        recent = recent.slice(-100);
+    }
+
     recent.forEach(entry => {
         const result = (entry.result || '').toString().toLowerCase();
         let cssType = 'event';
@@ -459,7 +490,9 @@ function renderAuditLog() {
         line.className = `log-entry ${cssType} ${extraClass}`.trim();
         const icon = cssType === 'success' ? '✓' : (cssType === 'fail' ? '✗' : '⚠');
         const text = entry.log_text || formatAuditFallback(entry);
-        const parts = [icon, text].filter(Boolean);
+        const turn = entry.turn ?? appState.session.current_turn ?? appState.session.turn ?? 0;
+        const turnLabel = `${turn}:`;
+        const parts = [turnLabel, icon, text].filter(Boolean);
         line.textContent = parts.join(' ').trim();
         logContent.appendChild(line);
     });

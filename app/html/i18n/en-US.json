@@ -61,6 +61,11 @@
     "players_empty": "No players added yet.",
     "create_session": "Create Session"
   },
+  "players": {
+    "manage_title": "Manage players",
+    "manage_back": "Back to main view",
+    "manage_add_title": "Add new character:"
+  },
   "build": {
     "title": "Build Bastion",
     "back_to_view3": "Back",
@@ -90,6 +95,8 @@
     "demolish_ok": "Demolish",
     "demolish_confirm": "Demolish facility: {facility}?",
     "demolish_warning_orders": "Warning: {count} active orders are still running.",
+    "demolish_refund_hint": "(refund)",
+    "demolish_refund_line": "Refund: {refund}",
     "demolish_notice_npcs": "All employees will be moved to the unemployed list.",
     "demolish_failed": "Demolish failed: {message}",
     "demolish_success": "Facility demolished: {facility} | Refund: {refund}",

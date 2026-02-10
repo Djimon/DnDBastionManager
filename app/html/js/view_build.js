@@ -396,6 +396,62 @@ function getUpgradeTarget(facilityId) {
     return appState.facilityCatalog.find(candidate => candidate && candidate.parent === facilityId) || null;
 }
 
+function getFacilityUpgradeChain(facilityId) {
+    const chain = [];
+    let currentId = facilityId;
+    const seen = new Set();
+    while (currentId && !seen.has(currentId)) {
+        seen.add(currentId);
+        const def = appState.facilityById[currentId];
+        if (!def) {
+            break;
+        }
+        chain.push(def);
+        currentId = def.parent;
+    }
+    return chain;
+}
+
+function sumFacilityChainCosts(chain) {
+    const total = {};
+    chain.forEach(def => {
+        const info = getFacilityBuildInfo(def);
+        const cost = info && info.cost && typeof info.cost === 'object' ? info.cost : null;
+        if (!cost) {
+            return;
+        }
+        Object.entries(cost).forEach(([currency, amount]) => {
+            if (typeof amount !== 'number') {
+                return;
+            }
+            total[currency] = (total[currency] || 0) + amount;
+        });
+    });
+    return total;
+}
+
+function estimateDemolishRefund(facilityId) {
+    const chain = getFacilityUpgradeChain(facilityId);
+    const totalCost = sumFacilityChainCosts(chain);
+    const model = getCurrencyModel();
+    if (model && model.factor_to_base) {
+        const base = computeBaseValue(totalCost, model.factor_to_base);
+        if (typeof base === 'number') {
+            const refundBase = Math.floor(base * 0.3);
+            const wallet = normalizeBaseToWallet(refundBase, model);
+            return wallet;
+        }
+    }
+    const refund = {};
+    Object.entries(totalCost).forEach(([currency, amount]) => {
+        if (typeof amount !== 'number') {
+            return;
+        }
+        refund[currency] = Math.floor(amount * 0.3);
+    });
+    return refund;
+}
+
 function isUpgradeQueued(facilityId) {
     if (!facilityId) {
         return false;
@@ -585,12 +641,26 @@ function cancelEditPlayer() {
     renderPlayersList();
 }
 
-function renderPlayersList() {
-    ensurePlayerState();
-    const list = document.getElementById('players-list');
-    if (!list) {
-        return;
+function getPlayerLists() {
+    const lists = Array.from(document.querySelectorAll('[data-player-list]'));
+    if (lists.length) {
+        return lists;
     }
+    const fallback = document.getElementById('players-list');
+    return fallback ? [fallback] : [];
+}
+
+function populateAllPlayerClassSelects() {
+    const ids = ['player-class', 'player-manage-class'];
+    ids.forEach(id => {
+        const select = document.getElementById(id);
+        if (select) {
+            populatePlayerClassSelect(select, []);
+        }
+    });
+}
+
+function renderPlayersListInto(list) {
     list.innerHTML = '';
 
     if (appState.session.players.length === 0) {
@@ -764,11 +834,19 @@ function renderPlayersList() {
     });
 }
 
+function renderPlayersList() {
+    ensurePlayerState();
+    const lists = getPlayerLists();
+    if (!lists.length) {
+        return;
+    }
+    lists.forEach(renderPlayersListInto);
+}
+
 function initPlayerWizard() {
     ensurePlayerState();
     loadPlayerClassOptions().then(() => {
-        const classSelect = document.getElementById('player-class');
-        populatePlayerClassSelect(classSelect, []);
+        populateAllPlayerClassSelects();
         renderPlayersList();
     });
 }
@@ -791,10 +869,21 @@ async function loadPlayerClassOptions() {
 }
 
 function addPlayer() {
-    ensurePlayerState();
     const nameInput = document.getElementById('player-name');
     const classSelect = document.getElementById('player-class');
     const levelInput = document.getElementById('player-level');
+    addPlayerFromInputs(nameInput, classSelect, levelInput);
+}
+
+function addPlayerFromManagement() {
+    const nameInput = document.getElementById('player-manage-name');
+    const classSelect = document.getElementById('player-manage-class');
+    const levelInput = document.getElementById('player-manage-level');
+    addPlayerFromInputs(nameInput, classSelect, levelInput);
+}
+
+function addPlayerFromInputs(nameInput, classSelect, levelInput) {
+    ensurePlayerState();
     const name = nameInput ? nameInput.value.trim() : '';
     const classes = getSelectedPlayerClasses(classSelect);
     const level = sanitizePlayerLevel(levelInput ? levelInput.value : null);
@@ -1132,11 +1221,14 @@ async function demolishFacility(facilityId) {
     const def = appState.facilityById[facilityId];
     const facilityName = formatFacilityUiName(def, facilityId);
     const activeOrders = countActiveOrders(entry);
+    const refundEstimate = estimateDemolishRefund(facilityId);
+    const refundTextEstimate = formatCost(refundEstimate, getCurrencyOrder());
 
     const lines = [t('build.demolish_confirm', { facility: facilityName })];
     if (activeOrders > 0) {
         lines.push(t('build.demolish_warning_orders', { count: activeOrders }));
     }
+    lines.push(t('build.demolish_refund_line', { refund: refundTextEstimate }));
     lines.push(t('build.demolish_notice_npcs'));
     const confirmText = lines.join('\n');
 
