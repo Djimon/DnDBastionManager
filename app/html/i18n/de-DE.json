@@ -36,9 +36,12 @@
     "player_name_placeholder": "Character Name",
     "player_class": "Klasse:",
     "player_class_placeholder": "z.B. Rogue, Wizard",
+    "player_class_hint": "Mehrfachauswahl mit Strg/Shift",
     "player_level": "Level (optional):",
     "player_level_placeholder": "5",
     "add_player": "+ Spieler hinzufügen",
+    "remove_player": "Entfernen",
+    "players_empty": "Noch keine Spieler hinzugefügt.",
     "create_session": "Neue Session erstellen"
   },
   "build": {

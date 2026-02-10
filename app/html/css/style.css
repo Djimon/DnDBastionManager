@@ -835,16 +835,58 @@ legend {
     border-radius: 8px;
     min-height: 60px;
     grid-column: 1 / -1;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
 }
 
 .player-item {
-    padding: 0.75rem;
+    padding: 0.85rem;
     background: var(--surface-alt);
-    border-radius: 8px;
-    margin-bottom: 0.5rem;
+    border-radius: 10px;
+    display: grid;
+    grid-template-columns: minmax(140px, 1.1fr) minmax(180px, 1.2fr) minmax(100px, 0.5fr) auto;
+    gap: 0.75rem;
+    align-items: end;
+}
+
+.player-field {
     display: flex;
-    justify-content: space-between;
-    align-items: center;
+    flex-direction: column;
+    gap: 0.35rem;
+}
+
+.player-field label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--text-light);
+}
+
+.player-field input,
+.player-field select {
+    padding: 0.55rem;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    font-family: inherit;
+    font-size: 0.9rem;
+    background: var(--surface);
+    color: var(--text-dark);
+}
+
+.player-class-select {
+    min-height: 88px;
+}
+
+.player-remove {
+    align-self: end;
+}
+
+.players-empty {
+    margin: 0;
+}
+
+.player-class-hint {
+    margin-top: 0.35rem;
 }
 
 /* ===== VIEW 2: BUILD ===== */
@@ -2269,6 +2311,14 @@ body.theme-dark .order-progress-circle::after {
 @media (max-width: 900px) {
     .inventory-manage-body {
         flex-direction: column;
+    }
+
+    .player-item {
+        grid-template-columns: 1fr;
+    }
+
+    .player-remove {
+        justify-self: start;
     }
 }
 

@@ -462,36 +462,206 @@ function buildPackBadgeElement(source) {
 
 // ===== VIEW 1: SESSION WIZARD =====
 
+const PLAYER_CLASS_OPTIONS = [
+    { value: 'artificer', label: 'Artificer' },
+    { value: 'barbarian', label: 'Barbarian' },
+    { value: 'bard', label: 'Bard' },
+    { value: 'cleric', label: 'Cleric' },
+    { value: 'druid', label: 'Druid' },
+    { value: 'fighter', label: 'Fighter' },
+    { value: 'monk', label: 'Monk' },
+    { value: 'paladin', label: 'Paladin' },
+    { value: 'ranger', label: 'Ranger' },
+    { value: 'rogue', label: 'Rogue' },
+    { value: 'sorcerer', label: 'Sorcerer' },
+    { value: 'warlock', label: 'Warlock' },
+    { value: 'wizard', label: 'Wizard' }
+];
+
+function ensurePlayerState() {
+    if (!appState.session || typeof appState.session !== 'object') {
+        appState.session = { players: [] };
+    }
+    if (!Array.isArray(appState.session.players)) {
+        appState.session.players = [];
+    }
+}
+
+function populatePlayerClassSelect(selectEl, selectedValues = []) {
+    if (!selectEl) {
+        return;
+    }
+    selectEl.innerHTML = '';
+    PLAYER_CLASS_OPTIONS.forEach(option => {
+        const opt = document.createElement('option');
+        opt.value = option.value;
+        opt.textContent = option.label;
+        if (selectedValues.includes(option.value)) {
+            opt.selected = true;
+        }
+        selectEl.appendChild(opt);
+    });
+}
+
+function getSelectedPlayerClasses(selectEl) {
+    if (!selectEl) {
+        return [];
+    }
+    return Array.from(selectEl.selectedOptions)
+        .map(opt => opt.value)
+        .filter(Boolean);
+}
+
+function normalizePlayerClasses(player) {
+    if (player && Array.isArray(player.classes) && player.classes.length) {
+        return player.classes.filter(Boolean);
+    }
+    if (player && typeof player.class === 'string' && player.class.trim()) {
+        return [player.class.trim()];
+    }
+    return [];
+}
+
+function setPlayerClasses(player, classes) {
+    const filtered = Array.isArray(classes) ? classes.filter(Boolean) : [];
+    player.classes = filtered;
+    player.class = filtered.join(' / ');
+}
+
+function sanitizePlayerLevel(raw) {
+    const parsed = parseInt(raw, 10);
+    if (Number.isInteger(parsed) && parsed > 0) {
+        return parsed;
+    }
+    return 1;
+}
+
+function renderPlayersList() {
+    ensurePlayerState();
+    const list = document.getElementById('players-list');
+    if (!list) {
+        return;
+    }
+    list.innerHTML = '';
+
+    if (appState.session.players.length === 0) {
+        const empty = document.createElement('p');
+        empty.className = 'text-muted players-empty';
+        empty.textContent = t('wizard.players_empty');
+        list.appendChild(empty);
+        return;
+    }
+
+    appState.session.players.forEach((player, index) => {
+        const row = document.createElement('div');
+        row.className = 'player-item';
+        const classes = normalizePlayerClasses(player);
+        setPlayerClasses(player, classes);
+        const levelValue = sanitizePlayerLevel(player.level);
+        player.level = levelValue;
+
+        const nameField = document.createElement('div');
+        nameField.className = 'player-field';
+        const nameLabel = document.createElement('label');
+        nameLabel.textContent = t('wizard.player_name');
+        const nameInput = document.createElement('input');
+        nameInput.type = 'text';
+        nameInput.value = player.name || '';
+        nameInput.addEventListener('input', () => {
+            player.name = nameInput.value;
+        });
+        nameField.appendChild(nameLabel);
+        nameField.appendChild(nameInput);
+
+        const classField = document.createElement('div');
+        classField.className = 'player-field';
+        const classLabel = document.createElement('label');
+        classLabel.textContent = t('wizard.player_class');
+        const classSelect = document.createElement('select');
+        classSelect.className = 'player-class-select';
+        classSelect.multiple = true;
+        populatePlayerClassSelect(classSelect, classes);
+        classSelect.addEventListener('change', () => {
+            setPlayerClasses(player, getSelectedPlayerClasses(classSelect));
+        });
+        classField.appendChild(classLabel);
+        classField.appendChild(classSelect);
+
+        const levelField = document.createElement('div');
+        levelField.className = 'player-field player-level-field';
+        const levelLabel = document.createElement('label');
+        levelLabel.textContent = t('wizard.player_level');
+        const levelInput = document.createElement('input');
+        levelInput.type = 'number';
+        levelInput.min = '1';
+        levelInput.max = '20';
+        levelInput.value = levelValue;
+        levelInput.addEventListener('input', () => {
+            player.level = sanitizePlayerLevel(levelInput.value);
+        });
+        levelField.appendChild(levelLabel);
+        levelField.appendChild(levelInput);
+
+        const removeBtn = document.createElement('button');
+        removeBtn.type = 'button';
+        removeBtn.className = 'btn btn-danger btn-small player-remove';
+        removeBtn.textContent = t('wizard.remove_player');
+        removeBtn.addEventListener('click', () => removePlayer(index));
+
+        row.appendChild(nameField);
+        row.appendChild(classField);
+        row.appendChild(levelField);
+        row.appendChild(removeBtn);
+        list.appendChild(row);
+    });
+}
+
+function initPlayerWizard() {
+    ensurePlayerState();
+    const classSelect = document.getElementById('player-class');
+    populatePlayerClassSelect(classSelect, []);
+    renderPlayersList();
+}
+
 function addPlayer() {
-    const name = document.getElementById('player-name').value;
-    const className = document.getElementById('player-class').value;
-    const level = document.getElementById('player-level').value || '1';
-    
-    if (!name || !className) {
+    ensurePlayerState();
+    const nameInput = document.getElementById('player-name');
+    const classSelect = document.getElementById('player-class');
+    const levelInput = document.getElementById('player-level');
+    const name = nameInput ? nameInput.value.trim() : '';
+    const classes = getSelectedPlayerClasses(classSelect);
+    const level = sanitizePlayerLevel(levelInput ? levelInput.value : null);
+
+    if (!name || classes.length === 0) {
         notifyUser(t('alerts.fill_name_class'));
         return;
     }
-    
-    const playersList = document.getElementById('players-list');
-    const playerDiv = document.createElement('div');
-    playerDiv.className = 'player-item';
-    playerDiv.innerHTML = `
-        <span>${name} (${className}, Level ${level})</span>
-        <button class="btn btn-danger btn-small" onclick="removePlayer(this)">Remove</button>
-    `;
-    playersList.appendChild(playerDiv);
-    
-    // Add to state
-    appState.session.players.push({ name, class: className, level: parseInt(level) });
-    
-    // Clear inputs
-    document.getElementById('player-name').value = '';
-    document.getElementById('player-class').value = '';
-    document.getElementById('player-level').value = '';
+
+    const player = { name, level };
+    setPlayerClasses(player, classes);
+    appState.session.players.push(player);
+    renderPlayersList();
+
+    if (nameInput) {
+        nameInput.value = '';
+    }
+    if (levelInput) {
+        levelInput.value = '';
+    }
+    if (classSelect) {
+        Array.from(classSelect.options).forEach(opt => {
+            opt.selected = false;
+        });
+    }
 }
 
-function removePlayer(element) {
-    element.parentElement.remove();
+function removePlayer(index) {
+    ensurePlayerState();
+    if (!Number.isInteger(index)) {
+        return;
+    }
+    appState.session.players.splice(index, 1);
+    renderPlayersList();
 }
 
 function createSession() {
@@ -508,21 +678,22 @@ function createSession() {
         notifyUser(t('alerts.fill_required_fields'));
         return;
     }
-    
-    // Sammle Players
-    const playerElements = document.querySelectorAll('.player-item');
-    const players = Array.from(playerElements).map(el => {
-        const text = el.querySelector('span').textContent;
-        const match = text.match(/(.+?)\s*\((.+?),\s*Level\s+(\d+)\)/);
-        if (match) {
-            return {
-                name: match[1],
-                class: match[2],
-                level: parseInt(match[3])
-            };
-        }
-        return null;
-    }).filter(p => p !== null);
+
+    ensurePlayerState();
+    const players = appState.session.players.map(player => {
+        const classes = normalizePlayerClasses(player);
+        return {
+            name: player.name ? String(player.name).trim() : '',
+            level: sanitizePlayerLevel(player.level),
+            class: classes.join(' / '),
+            classes
+        };
+    });
+
+    if (players.length > 0 && players.some(player => !player.name || player.classes.length === 0)) {
+        notifyUser(t('alerts.fill_name_class'));
+        return;
+    }
     
     logClient('debug', `Calling API with ${players.length} players`);
     

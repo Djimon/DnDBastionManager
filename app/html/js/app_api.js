@@ -10,6 +10,9 @@ document.addEventListener('DOMContentLoaded', function() {
     renderAuditLog();
     updateQueueDisplay();
     initCatalogFilters();
+    if (typeof initPlayerWizard === 'function') {
+        initPlayerWizard();
+    }
 });
 
 const THEME_STORAGE_KEY = 'bastion_theme';

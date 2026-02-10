@@ -145,6 +145,9 @@ async function setLanguage(lang) {
     if (typeof renderFacilityStates === 'function') {
         renderFacilityStates();
     }
+    if (typeof renderPlayersList === 'function') {
+        renderPlayersList();
+    }
     if (typeof selectFacility === 'function' && window.appState && appState.selectedFacilityId) {
         selectFacility(appState.selectedFacilityId);
     }
@@ -184,6 +187,9 @@ async function initI18n() {
     }
     if (typeof renderFacilityStates === 'function') {
         renderFacilityStates();
+    }
+    if (typeof renderPlayersList === 'function') {
+        renderPlayersList();
     }
 }
 

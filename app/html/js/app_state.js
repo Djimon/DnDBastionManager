@@ -125,6 +125,9 @@ function switchView(viewNum) {
     if (viewNum === 2 && typeof updateQueueDisplay === 'function') {
         updateQueueDisplay();
     }
+    if (viewNum === 1 && typeof renderPlayersList === 'function') {
+        renderPlayersList();
+    }
 }
 
 function switchTab(tabName, triggerEl = null) {
