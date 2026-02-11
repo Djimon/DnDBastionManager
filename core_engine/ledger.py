@@ -10,19 +10,26 @@ logger = setup_logger("ledger")
 
 
 class Ledger:
-    def __init__(self, root_dir: Path):
+    def __init__(self, root_dir: Path, config_manager: Optional[Any] = None):
         self.config_path = root_dir / "core" / "config" / "bastion_config.json"
+        self._config_manager = config_manager
         self.config = self._load_config()
         self.currency_types, self.base_currency, self.factor_to_base = self._build_currency_model()
         self._audit_log = AuditLog()
 
     def _load_config(self) -> Dict[str, Any]:
         try:
+            if self._config_manager:
+                return self._config_manager.get_config()
             with open(self.config_path, "r", encoding="utf-8") as f:
                 return json.load(f)
         except Exception as e:
             logger.warning(f"Failed to load bastion_config.json: {e}")
             return {}
+
+    def reload_config(self) -> None:
+        self.config = self._load_config()
+        self.currency_types, self.base_currency, self.factor_to_base = self._build_currency_model()
 
     def _build_currency_model(self) -> Tuple[List[str], str, Dict[str, int]]:
         currency = self.config.get("currency", {})

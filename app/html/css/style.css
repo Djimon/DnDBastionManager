@@ -270,20 +270,7 @@ body.theme-dark .theme-toggle {
     color: var(--accent);
 }
 
-.dev-validate-btn {
-    font-size: 0.75rem;
-    padding: 0.2rem 0.5rem;
-    border-radius: 6px;
-    border: 1px solid var(--border);
-    background: var(--surface);
-    color: var(--text-light);
-    cursor: pointer;
-}
-
-.dev-validate-btn:hover {
-    color: var(--text-dark);
-    border-color: var(--accent);
-}
+/* footer actions use standard buttons */
 
 /* ===== COMPONENTS ===== */
 #hire-profession option.option-needed {
@@ -570,6 +557,223 @@ body.theme-dark .option-tag {
 
 .modal-tab-content.active {
     display: block;
+}
+
+.settings-section {
+    background: var(--surface-alt);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 1rem;
+    margin-bottom: 1rem;
+}
+
+.settings-section h4 {
+    margin: 0 0 0.75rem 0;
+    color: var(--text-dark);
+}
+
+.settings-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.settings-row {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.5rem;
+    min-width: 0;
+}
+
+.settings-row label {
+    min-width: 0;
+    font-weight: 600;
+    font-size: 0.8rem;
+    color: var(--text-light);
+}
+
+.settings-row input,
+.settings-row select {
+    padding: 0.45rem 0.6rem;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    background: var(--surface);
+    color: var(--text-dark);
+    font-family: inherit;
+    width: 100%;
+}
+
+.settings-row input[type="checkbox"] {
+    width: auto;
+}
+
+.settings-inline {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    align-items: center;
+}
+
+.settings-row-inline {
+    flex-direction: row;
+    justify-content: space-between;
+}
+
+.settings-inline-label {
+    font-size: 0.8rem;
+    color: var(--text-light);
+    font-weight: 600;
+}
+
+.settings-subtitle {
+    font-weight: 600;
+    color: var(--text-dark);
+    margin-bottom: 0.4rem;
+}
+
+.settings-dice {
+    margin-left: 0.5rem;
+    font-weight: 600;
+    font-size: 0.8rem;
+    color: var(--text-light);
+    text-transform: none;
+}
+
+.settings-placeholder-actions {
+    margin-top: 0.25rem;
+}
+
+.settings-placeholder-actions .btn {
+    opacity: 0.75;
+}
+
+.settings-placeholder {
+    background: var(--surface-alt);
+}
+
+.settings-section > .settings-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 0.75rem;
+}
+
+.settings-section > .settings-list > .settings-row {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 0.6rem 0.7rem;
+    box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.02);
+}
+
+.settings-section > .settings-list > .settings-list {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 0.75rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.65rem;
+}
+
+.settings-section > .settings-list > .settings-list .settings-subtitle {
+    margin-bottom: 0.2rem;
+}
+
+.settings-list .settings-list {
+    background: var(--surface-alt);
+    border: 1px dashed var(--border);
+    border-left: 3px solid var(--accent);
+    border-radius: 8px;
+    padding: 0.6rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+}
+
+.settings-details {
+    background: var(--surface-alt);
+    border: 1px dashed var(--border);
+    border-left: 3px solid var(--accent);
+    border-radius: 8px;
+    padding: 0.5rem 0.6rem;
+    position: relative;
+}
+
+.settings-details[open] {
+    background: var(--surface);
+    border-style: solid;
+}
+
+.settings-details summary {
+    cursor: pointer;
+    list-style: none;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding-right: 1.5rem;
+}
+
+.settings-details summary::-webkit-details-marker {
+    display: none;
+}
+
+.settings-details summary::before {
+    content: "▸";
+    font-size: 0.9rem;
+    color: var(--text-light);
+    transition: transform 0.2s ease;
+}
+
+.settings-details[open] summary::before {
+    transform: rotate(90deg);
+}
+
+.settings-level-group {
+    margin-top: 0.6rem;
+}
+
+.settings-delete-btn {
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    width: 22px;
+    height: 22px;
+    border-radius: 999px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--accent);
+    font-weight: 700;
+    line-height: 1;
+    cursor: pointer;
+}
+
+.settings-delete-btn:hover {
+    background: var(--accent-soft);
+    border-color: var(--accent);
+}
+
+.settings-list .settings-list .settings-subtitle {
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    font-size: 0.75rem;
+    color: var(--text-light);
+    margin-bottom: 0.2rem;
+}
+
+#settings-check-profiles > .settings-list {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 0.85rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+#settings-check-profiles > .settings-list > .settings-row {
+    background: var(--surface-alt);
+    border: 1px solid var(--border);
 }
 
 /* ===== EVENT HISTORY ===== */

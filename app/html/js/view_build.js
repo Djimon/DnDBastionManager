@@ -525,11 +525,15 @@ function normalizePlayerClassOptions(rawList) {
     return rawList.map(entry => {
         if (typeof entry === 'string') {
             const value = entry.trim();
-            return value ? { value } : null;
+            return value ? { value, custom: false } : null;
         }
         if (entry && typeof entry === 'object') {
             const value = (entry.id || entry.value || entry.label || entry.name || '').trim();
-            return value ? { value } : null;
+            if (!value) {
+                return null;
+            }
+            const custom = entry.custom === true || entry.source === 'custom';
+            return { value, custom };
         }
         return null;
     }).filter(Boolean);
@@ -583,7 +587,7 @@ function resolvePlayerClassValue(rawValue) {
             return false;
         }
         const optionValue = option.value.toLowerCase();
-        const optionLabel = getPlayerClassLabel(option.value).toLowerCase();
+        const optionLabel = getPlayerClassBaseLabel(option.value).toLowerCase();
         const rawLower = value.toLowerCase();
         return optionValue === rawLower || optionLabel === rawLower;
     });
@@ -595,11 +599,21 @@ function formatPlayerClassLabel(value) {
 }
 
 function getPlayerClassLabel(value) {
+    const label = getPlayerClassBaseLabel(value);
+    return isCustomPlayerClass(value) ? `${label} (Custom)` : label;
+}
+
+function getPlayerClassBaseLabel(value) {
     const key = `wizard.player_class_${value}`;
     const label = typeof t === 'function' ? t(key) : value;
     return label === key ? value : label;
 }
 
+function isCustomPlayerClass(value) {
+    const options = Array.isArray(appState.playerClassOptions) ? appState.playerClassOptions : [];
+    const entry = options.find(option => option && option.value === value);
+    return !!(entry && entry.custom);
+}
 function normalizePlayerClasses(player) {
     if (player && Array.isArray(player.classes) && player.classes.length) {
         return player.classes.map(resolvePlayerClassValue).filter(Boolean);

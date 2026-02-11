@@ -1,0 +1,40 @@
+{
+  "pack_id": "example.config.only",
+  "name": "Example Config-Only Pack",
+  "version": 1,
+  "author": "Example",
+  "config": {
+    "currency": {
+      "types": [
+        "platinum",
+        "lead coin"
+      ],
+      "conversion": [
+        {
+          "from": "gold",
+          "to": "platinum",
+          "rate": 10
+        },
+        {
+          "from": "lead coin",
+          "to": "copper",
+          "rate": 100
+        }
+      ]
+    },
+    "check_profiles": {
+      "d8_easy": {
+        "sides": 8,
+        "default": {
+          "dc": 4,
+          "crit_success": 8,
+          "crit_fail": 1
+        }
+      }
+    },
+    "player_classes": [
+      "Bloodhunter",
+      "Warlord"
+    ]
+  }
+}

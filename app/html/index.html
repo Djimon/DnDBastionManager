@@ -463,7 +463,7 @@
         <!-- GLOBAL DEV FOOTER -->
         <footer class="global-dev-footer">
             <div id="dev-footer-log" class="dev-footer-log"></div>
-            <button class="dev-validate-btn" onclick="validatePacks()" data-i18n="dev.validate_packs">Validate Packs</button>
+            <button class="btn btn-secondary btn-small" onclick="openSettingsModal()" data-i18n="settings.open_button">Settings</button>
         </footer>
     </div>
 
@@ -594,6 +594,47 @@
                 <div class="modal-footer">
                     <button class="btn btn-secondary" onclick="closeModal('formula-input-modal')" data-i18n="common.confirm_no">Abbrechen</button>
                     <button id="formula-input-save" class="btn btn-primary" data-i18n="orders.formula_save">Speichern</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Settings Modal -->
+    <div id="settings-modal" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 data-i18n="settings.title">Settings</h3>
+                <button class="modal-close" onclick="closeModal('settings-modal')">x</button>
+            </div>
+            <div class="modal-tab-content active">
+                <p id="settings-status" class="text-muted hidden"></p>
+
+                <section class="settings-section">
+                    <h4 data-i18n="settings.currency_title">Currency Conversion</h4>
+                    <div class="settings-subtitle" data-i18n="settings.currency_visibility_title">Visibility</div>
+                    <div id="settings-currency-hidden" class="settings-list"></div>
+                    <div class="settings-subtitle" data-i18n="settings.currency_conversion_title">Conversion</div>
+                    <div id="settings-currency-list" class="settings-list"></div>
+                </section>
+
+                <section class="settings-section">
+                    <h4 data-i18n="settings.build_costs_title">Default Build Costs</h4>
+                    <div id="settings-build-costs" class="settings-list"></div>
+                </section>
+
+                <section class="settings-section">
+                    <h4 data-i18n="settings.npc_progression_title">NPC Progression</h4>
+                    <div id="settings-npc-progression" class="settings-list"></div>
+                </section>
+
+                <section class="settings-section">
+                    <h4 data-i18n="settings.check_profiles_title">Check Profiles</h4>
+                    <div id="settings-check-profiles" class="settings-list"></div>
+                </section>
+
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" onclick="closeModal('settings-modal')" data-i18n="settings.cancel_button">Cancel</button>
+                    <button class="btn btn-primary" onclick="saveSettings()" data-i18n="settings.save_button">Save</button>
                 </div>
             </div>
         </div>

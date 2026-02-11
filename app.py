@@ -10,6 +10,7 @@ from core_engine.stats_registry import StatsRegistryLoader
 from core_engine.audit_log import AuditLog
 from core_engine.logger import setup_logger
 from core_engine.pack_validator import PackValidator
+from core_engine.config_manager import ConfigManager
 
 # Initialisiere Logger
 logger = setup_logger("app")
@@ -27,10 +28,11 @@ class Api:
         # WICHTIG: Nicht als self.xxx speichern - pywebview kann Path-Objekte nicht serialisieren!
         self._session_manager = SessionManager(self.sessions_dir)
         self._initial_state_gen = InitialStateGenerator()
-        self._ledger = Ledger(Path(__file__).parent)
+        self._config_manager = ConfigManager(Path(__file__).parent)
+        self._ledger = Ledger(Path(__file__).parent, self._config_manager)
         self._stats_registry = StatsRegistryLoader(Path(__file__).parent)
-        self._facility_manager = FacilityManager(Path(__file__).parent, self._ledger)
-        self._pack_validator = PackValidator(Path(__file__).parent)
+        self._facility_manager = FacilityManager(Path(__file__).parent, self._ledger, self._config_manager)
+        self._pack_validator = PackValidator(Path(__file__).parent, self._config_manager)
         self._audit_log = AuditLog()
         self._ui_prefs_path = Path(__file__).parent / "core" / "config" / "ui_prefs.json"
         self._ui_prefs = self._load_ui_prefs()
@@ -55,6 +57,19 @@ class Api:
             self._ui_prefs_path.write_text(json.dumps(prefs, indent=2, ensure_ascii=False), encoding="utf-8")
         except Exception as e:
             logger.warning(f"Failed to save ui_prefs.json: {e}")
+
+    def _ensure_treasury_keys(self, session_state: dict) -> None:
+        if not isinstance(session_state, dict):
+            return
+        bastion = session_state.setdefault("bastion", {})
+        wallet = bastion.setdefault("treasury", {})
+        currency = self._config_manager.get_config().get("currency", {})
+        types = currency.get("types") if isinstance(currency, dict) else []
+        if not isinstance(types, list):
+            return
+        for entry in types:
+            if isinstance(entry, str) and entry not in wallet:
+                wallet[entry] = 0
     
     # ===== SLICE 1: SESSION LIFECYCLE =====
     
@@ -80,6 +95,7 @@ class Api:
                 players=players
             )
             self._stats_registry.apply_to_session(state)
+            self._ensure_treasury_keys(state)
             logger.debug(f"Generated state with session_id: {state.get('session_id')}")
             
             # Validiere State
@@ -170,6 +186,8 @@ class Api:
             if success:
                 self.current_session = session_state
                 self._stats_registry.apply_to_session(self.current_session)
+                self._ensure_treasury_keys(self.current_session)
+                self._ensure_treasury_keys(self.current_session)
 
             filename = None
             if isinstance(session_state, dict):
@@ -465,9 +483,80 @@ class Api:
             classes = self._facility_manager.config.get("player_classes", [])
             if not isinstance(classes, list):
                 classes = []
-            return {"classes": classes}
+            base_classes = []
+            try:
+                base_path = Path(__file__).parent / "core" / "config" / "bastion_config.json"
+                base_data = json.loads(base_path.read_text(encoding="utf-8"))
+                if isinstance(base_data, dict):
+                    base_classes = base_data.get("player_classes", [])
+            except Exception:
+                base_classes = []
+            base_set = {c for c in base_classes if isinstance(c, str)}
+            payload = []
+            for entry in classes:
+                if not isinstance(entry, str):
+                    continue
+                value = entry.strip()
+                if not value:
+                    continue
+                payload.append({
+                    "value": value,
+                    "custom": value not in base_set,
+                })
+            return {"classes": payload}
         except Exception as e:
             return {"classes": [], "error": str(e)}
+
+    def get_bastion_config(self) -> dict:
+        """
+        Return merged bastion config (base + packs + settings).
+        """
+        try:
+            return self._config_manager.get_config()
+        except Exception as e:
+            return {"error": str(e)}
+
+    def get_bastion_base_config(self) -> dict:
+        """
+        Return merged bastion config without settings (base + packs).
+        """
+        try:
+            return self._config_manager.get_base_config()
+        except Exception as e:
+            return {"error": str(e)}
+
+    def get_bastion_core_config(self) -> dict:
+        """
+        Return core bastion config without packs/settings.
+        """
+        try:
+            return self._config_manager.get_core_config()
+        except Exception as e:
+            return {"error": str(e)}
+
+    def get_settings(self) -> dict:
+        """
+        Return persisted settings.json (may be empty).
+        """
+        try:
+            return self._config_manager.get_settings()
+        except Exception as e:
+            return {"error": str(e)}
+
+    def save_settings(self, settings: dict) -> dict:
+        """
+        Validate and persist settings.json.
+        """
+        try:
+            result = self._config_manager.save_settings(settings or {})
+            if result.get("success"):
+                self._ledger.reload_config()
+                self._facility_manager.reload_config()
+                if self.current_session:
+                    self._ensure_treasury_keys(self.current_session)
+            return result
+        except Exception as e:
+            return {"success": False, "errors": [str(e)], "warnings": []}
 
     def save_formula_inputs(self, facility_id: str, order_id: str, trigger_id: str, inputs: dict) -> dict:
         """

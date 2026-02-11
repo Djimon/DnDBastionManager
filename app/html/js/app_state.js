@@ -105,6 +105,10 @@ let appState = {
     hireFacilityUserTouched: false,
     playerClassOptions: [],
     playerEditingIndex: null,
+    config: null,
+    baseConfig: null,
+    coreConfig: null,
+    settings: null,
 };
 
 const BUILDABLE_TIER = 1;
@@ -572,9 +576,12 @@ function translateFacilityState(state) {
 }
 
 function getCurrencyOrder() {
+    const hidden = getHiddenCurrencies();
     if (appState.currencyModel && Array.isArray(appState.currencyModel.types) && appState.currencyModel.types.length) {
         const factor = appState.currencyModel.factor_to_base || {};
-        return [...appState.currencyModel.types].sort((a, b) => {
+        return [...appState.currencyModel.types]
+            .filter(currency => !hidden.has(currency))
+            .sort((a, b) => {
             const fa = typeof factor[a] === 'number' ? factor[a] : 0;
             const fb = typeof factor[b] === 'number' ? factor[b] : 0;
             return fb - fa;
@@ -582,9 +589,17 @@ function getCurrencyOrder() {
     }
     const wallet = appState.session && appState.session.bastion && appState.session.bastion.treasury;
     if (wallet && typeof wallet === 'object') {
-        return Object.keys(wallet);
+        return Object.keys(wallet).filter(currency => !hidden.has(currency));
     }
     return [];
+}
+
+function getHiddenCurrencies() {
+    const hidden = appState && appState.settings && appState.settings.currency && appState.settings.currency.hidden;
+    if (Array.isArray(hidden)) {
+        return new Set(hidden.filter(entry => typeof entry === 'string'));
+    }
+    return new Set();
 }
 
 function formatCost(cost, currencyOrder = []) {
@@ -595,8 +610,12 @@ function formatCost(cost, currencyOrder = []) {
     const order = currencyOrder.length ? currencyOrder : Object.keys(cost);
     const parts = [];
     const seen = new Set();
+    const hidden = getHiddenCurrencies();
 
     order.forEach(currency => {
+        if (hidden.has(currency)) {
+            return;
+        }
         seen.add(currency);
         const amount = cost[currency];
         if (typeof amount === 'number' && amount !== 0) {
@@ -605,7 +624,7 @@ function formatCost(cost, currencyOrder = []) {
     });
 
     Object.keys(cost).forEach(currency => {
-        if (seen.has(currency)) {
+        if (seen.has(currency) || hidden.has(currency)) {
             return;
         }
         const amount = cost[currency];

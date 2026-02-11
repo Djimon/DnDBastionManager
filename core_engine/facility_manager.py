@@ -15,9 +15,10 @@ logger = setup_logger("facility_manager")
 
 
 class FacilityManager:
-    def __init__(self, root_dir: Path, ledger: Ledger):
+    def __init__(self, root_dir: Path, ledger: Ledger, config_manager: Optional[Any] = None):
         self.root_dir = root_dir
         self.ledger = ledger
+        self._config_manager = config_manager
         self.facilities_dir = root_dir / "core" / "facilities"
         self.custom_packs_dir = root_dir / "custom_packs"
         self.config_path = root_dir / "core" / "config" / "bastion_config.json"
@@ -29,10 +30,15 @@ class FacilityManager:
 
     def _load_config(self) -> Dict[str, Any]:
         try:
+            if self._config_manager:
+                return self._config_manager.get_config()
             return json.loads(self.config_path.read_text(encoding="utf-8"))
         except Exception as e:
             logger.warning(f"Failed to load bastion_config.json: {e}")
             return {}
+
+    def reload_config(self) -> None:
+        self.config = self._load_config()
 
     def _load_facility_catalog(self) -> Dict[str, Dict[str, Any]]:
         catalog: Dict[str, Dict[str, Any]] = {}

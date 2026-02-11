@@ -1,0 +1,152 @@
+{
+  "currency": {
+    "conversion": [
+      {
+        "from": "copper",
+        "to": "silver",
+        "rate": 10
+      },
+      {
+        "from": "silver",
+        "to": "gold",
+        "rate": 10
+      },
+      {
+        "from": "gold",
+        "to": "platinum",
+        "rate": 10
+      },
+      {
+        "from": "lead coin",
+        "to": "copper",
+        "rate": 100
+      }
+    ],
+    "hidden": [
+      "platinum"
+    ]
+  },
+  "default_build_costs": {
+    "new_facility": {
+      "gold": 250,
+      "duration_turns": 1
+    },
+    "upgrade_tier_1": {
+      "gold": 500,
+      "duration_turns": 2
+    },
+    "upgrade_tier_2": {
+      "gold": 1000,
+      "duration_turns": 3
+    }
+  },
+  "npc_progression": {
+    "xp_per_success": 1,
+    "level_thresholds": {
+      "apprentice_to_experienced": 5,
+      "experienced_to_master": 10
+    },
+    "level_names": {
+      "1": "apprentice",
+      "2": "experienced",
+      "3": "master"
+    }
+  },
+  "check_profiles": {
+    "d20": {
+      "default": {
+        "dc": 10,
+        "crit_success": 20,
+        "crit_fail": [
+          1,
+          2
+        ]
+      },
+      "experienced": {
+        "dc": 9,
+        "crit_fail": 1
+      },
+      "master": {
+        "dc": 7,
+        "crit_success": [
+          19,
+          20
+        ],
+        "crit_fail": 1
+      }
+    },
+    "d20_hard": {
+      "default": {
+        "dc": 15,
+        "crit_success": 20,
+        "crit_fail": [
+          1,
+          2
+        ]
+      },
+      "experienced": {
+        "dc": 12,
+        "crit_fail": 1
+      },
+      "master": {
+        "dc": 10,
+        "crit_success": [
+          19,
+          20
+        ],
+        "crit_fail": 1
+      }
+    },
+    "d12": {
+      "default": {
+        "dc": 6,
+        "crit_success": 99,
+        "crit_fail": 0
+      },
+      "master": {
+        "dc": 5
+      }
+    },
+    "d10": {
+      "default": {
+        "dc": 5,
+        "crit_success": 99,
+        "crit_fail": -1
+      },
+      "master": {
+        "dc": 4
+      }
+    },
+    "d6": {
+      "default": {
+        "dc": 4,
+        "crit_success": 99,
+        "crit_fail": -1
+      },
+      "master": {
+        "dc": 3
+      }
+    },
+    "d4": {
+      "default": {
+        "dc": 4,
+        "crit_success": 99,
+        "crit_fail": -1
+      }
+    },
+    "bool": {
+      "default": {
+        "dc": 2,
+        "crit_success": 99,
+        "crit_fail": -1
+      }
+    },
+    "d8_easy": {
+      "default": {
+        "dc": 4,
+        "crit_success": 8,
+        "crit_fail": 1
+      }
+    }
+  }
+}

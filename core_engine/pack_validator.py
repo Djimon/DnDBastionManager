@@ -31,11 +31,12 @@ class PackValidator:
     def _path(self, pack_file: Path, suffix: str) -> str:
         return f"{pack_file.name}:{suffix}"
 
-    def __init__(self, root_dir: Path):
+    def __init__(self, root_dir: Path, config_manager: Optional[Any] = None):
         self.root_dir = root_dir
         self.facilities_dir = root_dir / "core" / "facilities"
         self.custom_packs_dir = root_dir / "custom_packs"
         self.config_path = root_dir / "core" / "config" / "bastion_config.json"
+        self._config_manager = config_manager
 
     def validate_all(self) -> Dict[str, Any]:
         logger.info("Pack validation started")
@@ -56,6 +57,12 @@ class PackValidator:
         if config_result.warnings:
             for warn in config_result.warnings:
                 logger.warning(f"Config: {warn}")
+        if self._config_manager:
+            extra_warnings = self._config_manager.get_warnings()
+            if extra_warnings:
+                report["config"]["warnings"].extend(extra_warnings)
+                for warn in extra_warnings:
+                    logger.warning(f"Config: {warn}")
 
 
         all_pack_ids: Set[str] = set()
@@ -124,7 +131,14 @@ class PackValidator:
 
     def _load_and_validate_config(self) -> Tuple[Dict[str, Any], ValidationResult]:
         result = ValidationResult()
-        data, error = self._load_json(self.config_path)
+        data = None
+        error = None
+        if self._config_manager:
+            data = self._config_manager.get_config()
+            if not isinstance(data, dict):
+                error = "Merged config must be a JSON object."
+        else:
+            data, error = self._load_json(self.config_path)
         if error:
             result.add_error(error)
             return {}, result
@@ -278,6 +292,15 @@ class PackValidator:
                             )
 
         return data, result
+
+    @staticmethod
+    def _currency_types(config: Dict[str, Any]) -> List[str]:
+        currency = config.get("currency", {})
+        if isinstance(currency, dict):
+            types = currency.get("types")
+            if isinstance(types, list):
+                return [t for t in types if isinstance(t, str)]
+        return []
 
     def _validate_pack_file(
         self, pack_file: Path, config: Dict[str, Any]
@@ -662,6 +685,7 @@ class PackValidator:
                 e_result, e_data = self._sanitize_effect(
                     effect,
                     pack_file=pack_file,
+                    config=config,
                     mechanics_index=mechanics_index,
                     path=f"{path}.outcome.{block_key}.effects[{e_idx}]",
                 )
@@ -684,6 +708,7 @@ class PackValidator:
         self,
         effect: Any,
         pack_file: Path,
+        config: Dict[str, Any],
         mechanics_index: Dict[str, Set[str]],
         path: str,
     ) -> Tuple[ValidationResult, Optional[Dict[str, Any]]]:
@@ -698,7 +723,9 @@ class PackValidator:
                 f"{pack_file.name}: {path} uses currency/amount; prefer configured currency keys."
             )
 
-        known_keys = {"gold", "silver", "copper", "item", "qty", "stat", "delta", "log", "event", "random_event", "trigger"}
+        currency_types = self._currency_types(config)
+        known_keys = set(currency_types)
+        known_keys.update({"item", "qty", "stat", "delta", "log", "event", "random_event", "trigger"})
         if not keys & known_keys:
             result.add_warning(
                 f"{pack_file.name}: {path} unknown effect keys: {', '.join(sorted(keys))}."
@@ -900,7 +927,15 @@ class PackValidator:
                 continue
             for e_idx, effect in enumerate(effects):
                 e_result = self._validate_effect(
-                    effect, pack_file, facility_id, order_id, block_key, e_idx, mechanics_index, f"{path}.outcome.{block_key}.effects[{e_idx}]"
+                    effect,
+                    pack_file,
+                    facility_id,
+                    order_id,
+                    block_key,
+                    e_idx,
+                    mechanics_index,
+                    f"{path}.outcome.{block_key}.effects[{e_idx}]",
+                    config,
                 )
                 result.extend(e_result)
 
@@ -916,6 +951,7 @@ class PackValidator:
         index: int,
         mechanics_index: Dict[str, Set[str]],
         path: str,
+        config: Dict[str, Any],
     ) -> ValidationResult:
         result = ValidationResult()
         if not isinstance(effect, dict):
@@ -927,10 +963,12 @@ class PackValidator:
         keys = set(effect.keys())
         if "currency" in keys or "amount" in keys:
             result.add_warning(
-                f"{pack_file.name}: {path} uses currency/amount; prefer gold/silver/copper."
+                f"{pack_file.name}: {path} uses currency/amount; prefer configured currency keys."
             )
 
-        known_keys = {"gold", "silver", "copper", "item", "qty", "stat", "delta", "log", "event", "random_event", "trigger"}
+        currency_types = self._currency_types(config)
+        known_keys = set(currency_types)
+        known_keys.update({"item", "qty", "stat", "delta", "log", "event", "random_event", "trigger"})
         if not keys & known_keys:
             result.add_warning(
                 f"{pack_file.name}: {path} unknown effect keys: {', '.join(sorted(keys))}."

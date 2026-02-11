@@ -18,6 +18,10 @@ Packs are pure JSON and designed for drop-in customization, no code changes requ
 Add or edit files in `custom_packs` to extend facilities, orders, stats, events, and mechanics.
 This keeps content modular and reviewable, and makes it easy to merge curated packs into core later.
 
+## Settings (settings.json)
+`core/config/bastion_config.json` is the internal baseline config.
+User overrides live in `core/config/settings.json` and are merged at runtime (base -> pack config -> settings).
+
 ## What Makes It Special
 - Plug-and-play: packs can be customized purely via JSON, no code required.
 - Decision-driven instead of passive income: every facility has orders with clear consequences.
