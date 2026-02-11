@@ -55,21 +55,6 @@ flowchart TD
 ## Status
 Status: Prototype in active development.
 
-```mermaid
-flowchart LR
-  A[2026-02-06 - Prototype - Core systems (Slices 1-4) in progress] --> B[Slice 5 - Orders + Rolls]
-  B --> C[Slice 6 - Events + Auto-Log]
-  C --> D[Slice 7 - Formula Engine Lite (Pub)]
-  D --> E[Slice 8 - Polishing/UX]
-
-  classDef in_progress fill:#FFF4CC,stroke:#FFB300,stroke-width:1px,color:#7A4F01;
-  classDef planned fill:#E3F2FD,stroke:#1E88E5,stroke-width:1px,color:#0D47A1;
-  classDef later fill:#ECEFF1,stroke:#607D8B,stroke-width:1px,color:#37474F;
-
-  class A in_progress;
-  class B,C planned;
-  class D,E later;
-```
 
 ## Docs
 - [Bastion System Concept](docs/concepts/bastion.md)
