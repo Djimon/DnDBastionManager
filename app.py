@@ -70,6 +70,14 @@ class Api:
         for entry in types:
             if isinstance(entry, str) and entry not in wallet:
                 wallet[entry] = 0
+
+    def _ensure_treasury_base(self, session_state: dict) -> None:
+        if not isinstance(session_state, dict):
+            return
+        try:
+            self._ledger.get_treasury_base(session_state)
+        except Exception as e:
+            logger.warning(f"Failed to ensure treasury_base: {e}")
     
     # ===== SLICE 1: SESSION LIFECYCLE =====
     
@@ -96,6 +104,7 @@ class Api:
             )
             self._stats_registry.apply_to_session(state)
             self._ensure_treasury_keys(state)
+            self._ensure_treasury_base(state)
             logger.debug(f"Generated state with session_id: {state.get('session_id')}")
             
             # Validiere State
@@ -142,7 +151,7 @@ class Api:
             
             if not state_to_save:
                 return {"success": False, "message": "No session to save"}
-            
+            self._ensure_treasury_base(state_to_save)
             success, message = self._session_manager.create_session(state_to_save)
             return {"success": success, "message": message}
         
