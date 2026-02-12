@@ -17,6 +17,12 @@ document.addEventListener('DOMContentLoaded', function() {
 
 if (window.addEventListener) {
     window.addEventListener('pywebviewready', () => {
+        loadBastionConfig().then(() => {
+            if (typeof updateQueueDisplay === 'function') {
+                updateQueueDisplay();
+            }
+        });
+        loadCurrencyModel();
         if (typeof loadPlayerClassOptions === 'function') {
             loadPlayerClassOptions().then(() => {
                 const classSelect = document.getElementById('player-class');
@@ -266,6 +272,20 @@ async function loadCurrencyModel() {
         }
     } catch (err) {
         logClient('error', `Failed to load currency model: ${err}`);
+    }
+}
+
+async function loadBastionConfig() {
+    if (!(window.pywebview && window.pywebview.api && window.pywebview.api.get_bastion_config)) {
+        return;
+    }
+    try {
+        const config = await window.pywebview.api.get_bastion_config();
+        if (config && !config.error) {
+            appState.config = config;
+        }
+    } catch (err) {
+        logClient('error', `Failed to load bastion config: ${err}`);
     }
 }
 

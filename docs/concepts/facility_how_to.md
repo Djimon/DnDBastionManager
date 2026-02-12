@@ -26,11 +26,6 @@ my_first_pack.json
       "tier": 1,
       "parent": null,
 
-      "build": {
-        "cost": { "gold": 250 },
-        "duration_turns": 1
-      },
-
       "npc_slots": 1,
       "npc_allowed_professions": ["gardener"],
 
@@ -45,12 +40,14 @@ my_first_pack.json
 Diese Datei definiert: 
 - ein Pack
 - eine Facility
-- baubar für 250 Gold
-- 1 Turn Bauzeit
+- Baukosten & Dauer kommen aus den globalen Defaults (Settings)
 - Platz für 1 NPC
 - noch keine Orders
 
 Das reicht bereits, damit die Facility im Tool auftaucht und gebaut werden kann.
+
+**Wichtig:** `build` ist optional. Wenn `build` fehlt oder `build.cost`/`build.duration_turns` nicht gesetzt sind,
+nutzt das System automatisch die globalen Defaults aus `settings.json` (`default_build_costs`).
 
 ---
 
@@ -221,7 +218,7 @@ Tier 2 (core.garden:garden:**t2**):
  ```
 
 
-**build (Pflicht)**: Definiert Bau- oder Upgrade-Kosten. Gleiche Struktur für Neubau UND Upgrade.
+**build (Optional)**: Definiert Bau- oder Upgrade-Kosten. Gleiche Struktur für Neubau UND Upgrade.
 Beispiel:
 ```json
 {
@@ -231,6 +228,7 @@ Beispiel:
 ```
 - cost → Ressourcen die bezahlt werden
 - duration_turns → wie viele Runden der Bau dauert
+Wenn `build` oder einzelne Felder fehlen, werden die globalen Defaults aus `settings.json` verwendet.
 
 
 **npc_slots (Pflicht)**: Wie viele NPCs hier gleichzeitig arbeiten können.

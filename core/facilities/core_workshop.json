@@ -10,12 +10,6 @@
       "description": "A basic crafting space for creating and repairing equipment.",
       "tier": 1,
       "parent": null,
-      "build": {
-        "cost": {
-          "gold": 250
-        },
-        "duration_turns": 1
-      },
       "npc_slots": 1,
       "npc_allowed_professions": [
         "craftsman",
@@ -255,12 +249,6 @@
       "description": "An upgraded workshop with superior tools and workspace for masterwork creations.",
       "tier": 2,
       "parent": "core.workshop:workshop:t1",
-      "build": {
-        "cost": {
-          "gold": 500
-        },
-        "duration_turns": 2
-      },
       "npc_slots": 2,
       "npc_allowed_professions": [
         "craftsman",
@@ -522,12 +510,6 @@
       "description": "A legendary workshop capable of creating artifacts and enchanted equipment.",
       "tier": 3,
       "parent": "core.workshop:workshop:t2",
-      "build": {
-        "cost": {
-          "gold": 1000
-        },
-        "duration_turns": 3
-      },
       "npc_slots": 3,
       "npc_allowed_professions": [
         "craftsman",

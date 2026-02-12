@@ -754,6 +754,31 @@ function getFacilityDisplayName(facilityId) {
     return facilityId || '[Facility]';
 }
 
+function getDefaultBuildInfo(facility) {
+    const defaults = appState.config && appState.config.default_build_costs;
+    if (!defaults || typeof defaults !== 'object') {
+        return { cost: null, duration: null };
+    }
+    const tier = Number.isInteger(facility.tier) ? facility.tier : null;
+    const isBase = !facility.parent || tier === 1 || tier === null;
+    const key = isBase ? 'new_facility' : (tier && tier > 1 ? `upgrade_tier_${tier - 1}` : null);
+    if (!key || !defaults[key] || typeof defaults[key] !== 'object') {
+        return { cost: null, duration: null };
+    }
+    const entry = defaults[key];
+    const cost = {};
+    Object.entries(entry).forEach(([currency, amount]) => {
+        if (currency === 'duration_turns') {
+            return;
+        }
+        if (typeof amount === 'number') {
+            cost[currency] = amount;
+        }
+    });
+    const duration = Number.isInteger(entry.duration_turns) ? entry.duration_turns : null;
+    return { cost: Object.keys(cost).length ? cost : null, duration };
+}
+
 function getFacilityBuildInfo(facility) {
     if (!facility || typeof facility !== 'object') {
         return { cost: null, duration: null };
@@ -761,5 +786,13 @@ function getFacilityBuildInfo(facility) {
     const build = facility.build && typeof facility.build === 'object' ? facility.build : {};
     const cost = build.cost && typeof build.cost === 'object' ? build.cost : null;
     const duration = Number.isInteger(build.duration_turns) ? build.duration_turns : null;
-    return { cost, duration };
+    const hasCost = cost && Object.keys(cost).length;
+    if (hasCost && duration) {
+        return { cost, duration };
+    }
+    const fallback = getDefaultBuildInfo(facility);
+    return {
+        cost: hasCost ? cost : fallback.cost,
+        duration: duration || fallback.duration,
+    };
 }

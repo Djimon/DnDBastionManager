@@ -10,12 +10,6 @@
       "description": "A tower for observing celestial movements and interpreting cosmic omens.",
       "tier": 1,
       "parent": null,
-      "build": {
-        "cost": {
-          "gold": 250
-        },
-        "duration_turns": 1
-      },
       "npc_slots": 1,
       "npc_allowed_professions": [
         "astrologer",
@@ -204,12 +198,6 @@
       "description": "An advanced observatory with superior instruments for deep cosmic insight.",
       "tier": 2,
       "parent": "core.observatory:observatory:t1",
-      "build": {
-        "cost": {
-          "gold": 500
-        },
-        "duration_turns": 2
-      },
       "npc_slots": 2,
       "npc_allowed_professions": [
         "astrologer",
@@ -432,12 +420,6 @@
       "description": "A pinnacle of celestial study, where the boundaries between material and cosmic realms blur.",
       "tier": 3,
       "parent": "core.observatory:observatory:t2",
-      "build": {
-        "cost": {
-          "gold": 1000
-        },
-        "duration_turns": 3
-      },
       "npc_slots": 3,
       "npc_allowed_professions": [
         "astrologer",
