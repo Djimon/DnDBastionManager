@@ -3125,11 +3125,19 @@ function renderSettingsCurrency(baseConfig, mergedConfig, settings, coreConfig) 
     const coreTypes = coreConfig && coreConfig.currency && Array.isArray(coreConfig.currency.types)
         ? coreConfig.currency.types.filter(t => typeof t === 'string')
         : [];
+    const protectedSet = new Set(coreTypes);
+    const baseCurrencyId = baseCurrency && typeof baseCurrency.base_currency === 'string'
+        ? baseCurrency.base_currency
+        : null;
+    if (baseCurrencyId) {
+        protectedSet.add(baseCurrencyId);
+    }
     const coreSet = new Set(coreTypes);
     const hiddenList = settings && settings.currency && Array.isArray(settings.currency.hidden)
         ? settings.currency.hidden
         : [];
     const hiddenSet = new Set(hiddenList.filter(entry => typeof entry === 'string'));
+    protectedSet.forEach(entry => hiddenSet.delete(entry));
 
     types.forEach(type => {
         const row = document.createElement('div');
@@ -3142,23 +3150,27 @@ function renderSettingsCurrency(baseConfig, mergedConfig, settings, coreConfig) 
         const wrap = document.createElement('div');
         wrap.className = 'settings-inline';
 
-        const checkbox = document.createElement('input');
-        checkbox.type = 'checkbox';
-        checkbox.checked = hiddenSet.has(type);
-        checkbox.dataset.currency = type;
+        if (!protectedSet.has(type)) {
+            const checkbox = document.createElement('input');
+            checkbox.type = 'checkbox';
+            checkbox.checked = hiddenSet.has(type);
+            checkbox.dataset.currency = type;
 
-        const hint = document.createElement('span');
-        hint.className = 'settings-inline-label';
-        hint.textContent = t('settings.currency_hide_label');
+            const hint = document.createElement('span');
+            hint.className = 'settings-inline-label';
+            hint.textContent = t('settings.currency_hide_label');
 
-        checkbox.addEventListener('change', () => {
-            applyCurrencyVisibility(container, getHiddenCurrenciesFromContainer(hiddenContainer));
-        });
+            checkbox.addEventListener('change', () => {
+                applyCurrencyVisibility(container, getHiddenCurrenciesFromContainer(hiddenContainer));
+            });
 
-        wrap.appendChild(checkbox);
-        wrap.appendChild(hint);
-        row.appendChild(label);
-        row.appendChild(wrap);
+            wrap.appendChild(checkbox);
+            wrap.appendChild(hint);
+            row.appendChild(label);
+            row.appendChild(wrap);
+        } else {
+            row.appendChild(label);
+        }
         hiddenContainer.appendChild(row);
     });
 

@@ -49,6 +49,7 @@ class ConfigManager:
             logger.warning(base_error)
             base_config = {}
         core_config = self._normalize_currency_config(copy.deepcopy(base_config))
+        self._core_config = core_config
         merged_base, pack_warnings = self._build_base_with_packs(base_config)
         merged_base = self._normalize_currency_config(merged_base)
 
@@ -62,7 +63,6 @@ class ConfigManager:
         merged = self._apply_settings(merged_base, settings)
         merged = self._normalize_currency_config(merged)
 
-        self._core_config = core_config
         self._base_config = merged_base
         self._config = merged
         self._settings = settings
@@ -75,6 +75,7 @@ class ConfigManager:
             return {"success": False, "errors": [base_error], "warnings": []}
 
         core_config = self._normalize_currency_config(copy.deepcopy(base_config))
+        self._core_config = core_config
         merged_base, pack_warnings = self._build_base_with_packs(base_config)
         merged_base = self._normalize_currency_config(merged_base)
         errors, warnings = self.validate_settings(settings, merged_base)
@@ -93,7 +94,6 @@ class ConfigManager:
         merged = self._apply_settings(merged_base, settings)
         merged = self._normalize_currency_config(merged)
         self._config = merged
-        self._core_config = core_config
         self._base_config = merged_base
         self._settings = settings
         self._warnings = pack_warnings + warnings
@@ -337,7 +337,8 @@ class ConfigManager:
     def _apply_hidden_currency(self, currency: Dict[str, Any], hidden: List[Any]) -> None:
         if not isinstance(currency, dict):
             return
-        hidden_set = {h for h in hidden if isinstance(h, str) and h}
+        protected = self._core_currency_types()
+        hidden_set = {h for h in hidden if isinstance(h, str) and h and h not in protected}
         if not hidden_set:
             return
         types = currency.get("types")
@@ -393,6 +394,14 @@ class ConfigManager:
 
         return config
 
+    def _core_currency_types(self) -> set:
+        core = self._core_config if isinstance(self._core_config, dict) else {}
+        currency = core.get("currency", {}) if isinstance(core, dict) else {}
+        types = currency.get("types") if isinstance(currency, dict) else None
+        if isinstance(types, list):
+            return {t for t in types if isinstance(t, str) and t}
+        return set()
+
     def _validate_currency_settings(
         self,
         currency_settings: Any,
@@ -417,14 +426,15 @@ class ConfigManager:
             errors.append("settings.currency.hidden must be a list")
             hidden = []
         types = self._currency_types_from(base_config)
+        protected = self._core_currency_types()
         if isinstance(hidden, list):
             hidden_set = set()
             for idx, entry in enumerate(hidden):
                 if not isinstance(entry, str) or not entry:
                     errors.append(f"settings.currency.hidden[{idx}] must be a string")
                     continue
-                if entry == "copper":
-                    errors.append("settings.currency.hidden cannot include base currency 'copper'")
+                if entry in protected:
+                    warnings.append(f"settings.currency.hidden cannot include core currency '{entry}'")
                     continue
                 if entry not in types:
                     errors.append(f"settings.currency.hidden[{idx}] '{entry}' not in currency types")
