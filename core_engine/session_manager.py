@@ -8,6 +8,7 @@ from typing import Dict, Any, Optional, Tuple
 from datetime import datetime
 import shutil
 from .logger import setup_logger
+from .file_utils import sanitize_filename
 
 logger = setup_logger("session_manager")
 
@@ -43,20 +44,24 @@ class SessionManager:
             self._ensure_event_history(session_state)
             filename = session_state.get("_session_filename")
 
-            if not filename:
-                session_id = session_state.get("session_id")
-                if isinstance(session_id, str) and session_id.strip():
-                    filename = f"{session_id}.json"
-                else:
-                    # Erstelle Dateinamen mit Timestamp (Fallback)
-                    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-                    # FIXED: Nutze 'bastion.name' nicht 'metadata.session_name'
-                    session_name = session_state.get('bastion', {}).get('name', 'unnamed')
-                    logger.debug(f"Creating session file with bastion name: {session_name}")
+            if not isinstance(filename, str) or not filename.strip():
+                filename = ""
+            else:
+                filename = filename.strip()
+                if Path(filename).name != filename:
+                    logger.warning("Session filename contained path separators; regenerating.")
+                    filename = ""
 
-                    # Sanitize filename
-                    safe_name = "".join(c for c in session_name if c.isalnum() or c in (' ', '_', '-')).rstrip()
-                    filename = f"session_{safe_name}_{timestamp}.json"
+            if not filename:
+                # Erstelle Dateinamen mit Timestamp (Fallback)
+                timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+                session_name = session_state.get("session_name")
+                if not isinstance(session_name, str) or not session_name.strip():
+                    session_name = session_state.get("bastion", {}).get("name", "session")
+                logger.debug(f"Creating session file with session name: {session_name}")
+
+                safe_name = sanitize_filename(session_name, fallback="session")
+                filename = f"session_{safe_name}_{timestamp}.json"
 
             # Merke Dateiname im State, damit Saves stabil bleiben
             session_state["_session_filename"] = filename

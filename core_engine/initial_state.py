@@ -6,6 +6,7 @@ import json
 from typing import Dict, List, Any
 from datetime import datetime
 from .logger import setup_logger
+from .file_utils import sanitize_filename
 
 logger = setup_logger("initial_state")
 
@@ -42,10 +43,11 @@ class InitialStateGenerator:
         """
         logger.info(f"Generating initial state for session '{session_name}' with bastion '{bastion_name}'")
         today = datetime.now().strftime("%Y-%m-%d")
+        session_slug = sanitize_filename(session_name, fallback="session")
         
         state = {
             # ===== METADATA =====
-            "session_id": f"session_{session_name.lower().replace(' ', '_')}_{datetime.now().strftime('%Y%m%d_%H%M%S')}",
+            "session_id": f"session_{session_slug}_{datetime.now().strftime('%Y%m%d_%H%M%S')}",
             "session_name": session_name,
             "dm_name": dm_name,
             "created": today,

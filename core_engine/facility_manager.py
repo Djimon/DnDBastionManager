@@ -40,6 +40,17 @@ class FacilityManager:
     def reload_config(self) -> None:
         self.config = self._load_config()
 
+    def _get_internal_int_setting(self, key: str, default: int) -> int:
+        if not isinstance(self.config, dict):
+            return default
+        internal = self.config.get("internal_settings")
+        if not isinstance(internal, dict):
+            return default
+        value = internal.get(key)
+        if isinstance(value, int) and value > 0:
+            return value
+        return default
+
     def _load_facility_catalog(self) -> Dict[str, Dict[str, Any]]:
         catalog: Dict[str, Dict[str, Any]] = {}
         pack_dirs = [
@@ -1114,10 +1125,12 @@ class FacilityManager:
                 continue
             value = 0
             if "formula" in calc and isinstance(calc.get("formula"), str):
-                value = self._eval_formula_expression(calc.get("formula"), variables)
+                value = self._eval_formula_expression(calc.get("formula"), variables, errors)
             elif "conditions" in calc and isinstance(calc.get("conditions"), list):
-                value = self._eval_formula_conditions(calc.get("conditions"), variables)
+                value = self._eval_formula_conditions(calc.get("conditions"), variables, errors)
             variables[name] = value
+            if errors:
+                return [], errors
 
         resolved_effects: List[Dict[str, Any]] = []
         for effect in effects:
@@ -1238,25 +1251,42 @@ class FacilityManager:
                 return 0.0
         return 0.0
 
-    def _eval_formula_expression(self, expr: str, variables: Dict[str, float]) -> float:
+    def _eval_formula_expression(
+        self,
+        expr: str,
+        variables: Dict[str, float],
+        errors: Optional[List[str]] = None,
+    ) -> float:
         if not isinstance(expr, str) or not expr:
             return 0.0
-        rolled = self._roll_dice(expr)
+        max_len = self._get_internal_int_setting("formula_max_len", 256)
+        if max_len and len(expr) > max_len:
+            if isinstance(errors, list):
+                errors.append(f"Formula too long (max {max_len} chars).")
+            return 0.0
+        rolled = self._roll_dice(expr, errors)
+        if rolled is None:
+            return 0.0
         try:
             tree = ast.parse(rolled, mode="eval")
             return float(self._eval_ast(tree.body, variables))
         except Exception:
             return 0.0
 
-    def _eval_formula_conditions(self, conditions: List[Dict[str, Any]], variables: Dict[str, float]) -> float:
+    def _eval_formula_conditions(
+        self,
+        conditions: List[Dict[str, Any]],
+        variables: Dict[str, float],
+        errors: Optional[List[str]] = None,
+    ) -> float:
         for cond in conditions:
             if not isinstance(cond, dict):
                 continue
             if "if" in cond and isinstance(cond.get("if"), str):
-                result = self._eval_formula_expression(cond.get("if"), variables)
+                result = self._eval_formula_expression(cond.get("if"), variables, errors)
                 if result:
                     if "then_formula" in cond and isinstance(cond.get("then_formula"), str):
-                        return self._eval_formula_expression(cond.get("then_formula"), variables)
+                        return self._eval_formula_expression(cond.get("then_formula"), variables, errors)
                     if "then" in cond:
                         return self._coerce_number(cond.get("then"))
             if "else" in cond:
@@ -1320,7 +1350,9 @@ class FacilityManager:
                 return 1.0 if any(self._eval_ast(v, variables) for v in node.values) else 0.0
         return 0.0
 
-    def _roll_dice(self, expr: str) -> str:
+    def _roll_dice(self, expr: str, errors: Optional[List[str]] = None) -> Optional[str]:
+        max_count = self._get_internal_int_setting("dice_max_count", 100)
+        max_sides = self._get_internal_int_setting("dice_max_sides", 1000)
         pattern = re.compile(r'(?<![\w.])(\d*)d(\d+)', re.IGNORECASE)
 
         def repl(match: re.Match) -> str:
@@ -1329,12 +1361,19 @@ class FacilityManager:
             sides = int(match.group(2))
             if count <= 0 or sides <= 0:
                 return "0"
+            if count > max_count or sides > max_sides:
+                raise ValueError(f"Dice limit exceeded: {count}d{sides}")
             total = 0
             for _ in range(count):
                 total += random.randint(1, sides)
             return str(total)
 
-        return pattern.sub(repl, expr)
+        try:
+            return pattern.sub(repl, expr)
+        except ValueError as exc:
+            if isinstance(errors, list):
+                errors.append(str(exc))
+            return None
 
     def _resolve_formula_value(self, raw_value: Any, variables: Dict[str, float]) -> Any:
         if isinstance(raw_value, str):

@@ -2,6 +2,11 @@
   "version": "1.0.0",
   "config_type": "bastion_config",
   "turn_duration": "1 week",
+  "internal_settings": {
+    "dice_max_sides": 1000,
+    "dice_max_count": 100,
+    "formula_max_len": 256
+  },
 
   "currency": {
     "types": [
