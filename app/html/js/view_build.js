@@ -1106,13 +1106,23 @@ function sumQueueCostsBase(factorToBase) {
 }
 
 function computeRemainingBudget(totalCost) {
-    const wallet = appState.session && appState.session.bastion && appState.session.bastion.treasury;
-    if (!wallet || typeof wallet !== 'object') {
+    const model = getCurrencyModel();
+    if (!model || !model.factor_to_base) {
+        return {};
+    }
+    const baseValue = appState.session && appState.session.bastion
+        ? appState.session.bastion.treasury_base
+        : 0;
+    const normalized = normalizeBaseToWallet(
+        typeof baseValue === 'number' ? baseValue : 0,
+        model
+    );
+    if (!normalized) {
         return {};
     }
     const remaining = {};
-    Object.keys(wallet).forEach(currency => {
-        const amount = wallet[currency];
+    Object.keys(normalized).forEach(currency => {
+        const amount = normalized[currency];
         if (typeof amount !== 'number') {
             return;
         }
@@ -1160,10 +1170,9 @@ function updateQueueDisplay() {
     const model = getCurrencyModel();
     if (model && model.factor_to_base) {
         const totalBase = sumQueueCostsBase(model.factor_to_base);
-        const wallet = appState.session && appState.session.bastion && appState.session.bastion.treasury;
         const treasuryBase = (appState.session && appState.session.bastion && typeof appState.session.bastion.treasury_base === 'number')
             ? appState.session.bastion.treasury_base
-            : computeBaseValue(wallet, model.factor_to_base);
+            : 0;
 
         if (typeof totalBase === 'number') {
             const normalizedTotal = normalizeBaseToWallet(totalBase, model);
@@ -1293,10 +1302,9 @@ async function startBuilding() {
     const model = getCurrencyModel();
     if (model && model.factor_to_base) {
         const totalBase = sumQueueCostsBase(model.factor_to_base);
-        const wallet = appState.session && appState.session.bastion && appState.session.bastion.treasury;
         const treasuryBase = (appState.session && appState.session.bastion && typeof appState.session.bastion.treasury_base === 'number')
             ? appState.session.bastion.treasury_base
-            : computeBaseValue(wallet, model.factor_to_base);
+            : 0;
 
         if (typeof totalBase === 'number' && typeof treasuryBase === 'number' && totalBase > treasuryBase) {
             const projectedBase = treasuryBase - totalBase;

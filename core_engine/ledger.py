@@ -31,12 +31,16 @@ class Ledger:
         self.config = self._load_config()
         self.currency_types, self.base_currency, self.factor_to_base = self._build_currency_model()
 
-    def _build_currency_model(self) -> Tuple[List[str], str, Dict[str, int]]:
+    def _build_currency_model(self) -> Tuple[List[str], str, Dict[str, float]]:
         currency = self.config.get("currency", {})
         types = currency.get("types")
         if not isinstance(types, list) or not types:
-            logger.warning("Currency types missing; falling back to empty list")
+            logger.warning("Currency types missing; falling back to copper only")
             return self._fallback_currency()
+        types = [t for t in types if isinstance(t, str) and t]
+        if "copper" not in types:
+            logger.warning("Base currency 'copper' missing; injecting into currency types")
+            types.append("copper")
 
         conversion = currency.get("conversion", [])
         to_set = set()
@@ -58,9 +62,9 @@ class Ledger:
                 adjacency[src].append((dst, Fraction(rate, 1)))
                 adjacency[dst].append((src, Fraction(1, rate)))
 
-        base = next((t for t in types if t not in to_set), None)
-        if not base:
-            logger.warning("Could not determine base currency; falling back to [Curr]")
+        base = "copper"
+        if base not in adjacency:
+            logger.warning("Base currency 'copper' missing from adjacency; falling back to copper only")
             return self._fallback_currency()
 
         factors: Dict[str, Fraction] = {base: Fraction(1, 1)}
@@ -74,41 +78,38 @@ class Ledger:
                 stack.append(nxt)
 
         invalid_types: List[str] = []
-        factor_to_base: Dict[str, int] = {}
+        factor_to_base: Dict[str, float] = {}
         for t in types:
             if t not in factors:
                 invalid_types.append(t)
                 continue
-            factor = factors[t]
-            if factor.denominator != 1:
-                invalid_types.append(t)
-                continue
-            factor_to_base[t] = int(factor.numerator)
+            factor_to_base[t] = float(factors[t])
 
         if invalid_types:
             logger.warning(
-                "Currency model invalid (missing/non-integer factors); falling back to [Curr]"
+                f"Currency model incomplete; dropping: {', '.join(invalid_types)}"
             )
-            return self._fallback_currency()
+            types = [t for t in types if t in factor_to_base]
+            if not types:
+                return self._fallback_currency()
 
         return types, base, factor_to_base
 
-    def _fallback_currency(self) -> Tuple[List[str], str, Dict[str, int]]:
-        return ["[Curr]"], "[Curr]", {"[Curr]": 1}
+    def _fallback_currency(self) -> Tuple[List[str], str, Dict[str, float]]:
+        return ["copper"], "copper", {"copper": 1.0}
 
     def apply_effects(self, session_state: Dict[str, Any], effects: List[Dict[str, Any]], context: Dict[str, Any] = None) -> Dict[str, Any]:
         if not session_state:
             return {"success": False, "errors": ["No session state provided"], "entries": []}
 
         bastion = session_state.setdefault("bastion", {})
-        wallet = bastion.setdefault("treasury", {})
         inventory = bastion.setdefault("inventory", [])
         stats = bastion.setdefault("stats", {})
 
         entries = []
         errors = []
 
-        treasury_base = self._ensure_treasury_base(bastion, wallet, errors)
+        treasury_base = self._ensure_treasury_base(bastion, errors)
 
         for effect in effects:
             if not isinstance(effect, dict):
@@ -176,7 +177,6 @@ class Ledger:
                     entries.append({"type": "log", "message": msg})
 
         bastion["treasury_base"] = treasury_base
-        self._update_wallet_from_base(wallet, treasury_base)
 
         turn = int(session_state.get("current_turn", 0))
         ctx = context or {}
@@ -208,62 +208,19 @@ class Ledger:
             "session_state": session_state,
         }
 
-    def get_treasury_base(self, session_state: Dict[str, Any]) -> Optional[int]:
+    def get_treasury_base(self, session_state: Dict[str, Any]) -> Optional[float]:
         if not session_state:
             return None
         bastion = session_state.setdefault("bastion", {})
-        wallet = bastion.setdefault("treasury", {})
         errors: List[str] = []
-        return self._ensure_treasury_base(bastion, wallet, errors)
+        return self._ensure_treasury_base(bastion, errors)
 
-    def _ensure_treasury_base(self, bastion: Dict[str, Any], wallet: Dict[str, Any], errors: List[str]) -> int:
-        if isinstance(bastion.get("treasury_base"), int):
-            return bastion["treasury_base"]
-
-        total = 0
-        for currency in self.currency_types:
-            amount = wallet.get(currency, 0)
-            if not isinstance(amount, int):
-                errors.append(f"Treasury '{currency}' must be int")
-                continue
-            factor = self.factor_to_base.get(currency)
-            if factor is None:
-                errors.append(f"Currency '{currency}' has no base factor")
-                continue
-            total += amount * factor
-
-        bastion["treasury_base"] = total
-        return total
-
-    def _update_wallet_from_base(self, wallet: Dict[str, Any], base_value: int) -> None:
-        if not self.currency_types or not self.factor_to_base:
-            return
-        if self.base_currency not in self.factor_to_base:
-            logger.warning("Base currency has no factor; cannot normalize wallet.")
-            return
-
-        # Variant A: negative stays in base currency only
-        if base_value < 0:
-            for currency in self.currency_types:
-                wallet[currency] = 0
-            wallet[self.base_currency] = base_value
-            return
-
-        # Positive: break down from largest to smallest
-        ordered = sorted(
-            self.currency_types,
-            key=lambda c: self.factor_to_base.get(c, 0),
-            reverse=True,
-        )
-        remaining = base_value
-        for currency in ordered:
-            factor = self.factor_to_base.get(currency)
-            if not factor or factor <= 0:
-                wallet[currency] = 0
-                continue
-            amount = remaining // factor
-            remaining = remaining % factor
-            wallet[currency] = amount
+    def _ensure_treasury_base(self, bastion: Dict[str, Any], errors: List[str]) -> float:
+        base_value = bastion.get("treasury_base")
+        if isinstance(base_value, (int, float)) and not isinstance(base_value, bool):
+            return float(base_value)
+        bastion["treasury_base"] = 0
+        return 0.0
 
     def _format_changes(self, entries: List[Dict[str, Any]]) -> str:
         parts = []

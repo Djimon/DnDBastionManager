@@ -438,10 +438,6 @@ async function adjustTreasury(mode = 'add') {
         return;
     }
 
-    const wallet = appState.session && appState.session.bastion && appState.session.bastion.treasury
-        ? appState.session.bastion.treasury
-        : {};
-    const currentValue = Number.isInteger(wallet[currency]) ? wallet[currency] : 0;
     let delta = amount;
     if (mode === 'remove') {
         delta = -amount;
@@ -592,7 +588,7 @@ function getNpcProgression() {
 }
 
 function getCurrencyDisplayOrder() {
-    const model = appState.currencyModel;
+    const model = getCurrencyModel();
     if (model && Array.isArray(model.types) && model.factor_to_base) {
         return [...model.types].sort((a, b) => {
             const fa = model.factor_to_base[a] || 0;
@@ -1800,8 +1796,9 @@ function getNpcUpkeepBase(upkeep) {
     if (!upkeep || typeof upkeep !== 'object') {
         return 0;
     }
-    if (appState.currencyModel && appState.currencyModel.factor_to_base) {
-        const baseValue = computeBaseValue(upkeep, appState.currencyModel.factor_to_base);
+    const model = getCurrencyModel();
+    if (model && model.factor_to_base) {
+        const baseValue = computeBaseValue(upkeep, model.factor_to_base);
         if (typeof baseValue === 'number') {
             return baseValue;
         }
@@ -2022,23 +2019,15 @@ function renderInventoryPanel() {
         ? appState.session.bastion.inventory
         : [];
 
-    const wallet = appState.session && appState.session.bastion && appState.session.bastion.treasury
-        ? appState.session.bastion.treasury
-        : {};
     if (walletEl) {
-        let displayWallet = wallet;
-        let baseValue = appState.session && appState.session.bastion
+        const model = getCurrencyModel();
+        const baseValue = appState.session && appState.session.bastion
             ? appState.session.bastion.treasury_base
-            : null;
-        if (!Number.isInteger(baseValue) && appState.currencyModel) {
-            baseValue = computeBaseValue(wallet, appState.currencyModel.factor_to_base);
-        }
-        if (Number.isInteger(baseValue) && appState.currencyModel) {
-            const normalized = normalizeBaseToWallet(baseValue, appState.currencyModel);
-            if (normalized) {
-                displayWallet = normalized;
-            }
-        }
+            : 0;
+        const displayWallet = normalizeBaseToWallet(
+            typeof baseValue === 'number' ? baseValue : 0,
+            model
+        );
         const order = getCurrencyDisplayOrder();
         walletEl.innerHTML = '';
         const label = document.createElement('div');
@@ -2050,7 +2039,7 @@ function renderInventoryPanel() {
         list.className = 'inventory-wallet-list';
         if (order && order.length) {
             order.forEach(currency => {
-                const value = Number.isInteger(displayWallet[currency]) ? displayWallet[currency] : 0;
+                const value = typeof displayWallet[currency] === 'number' ? displayWallet[currency] : 0;
                 const line = document.createElement('div');
                 line.className = 'inventory-wallet-line';
                 line.textContent = `${value} ${currency}`;

@@ -257,20 +257,17 @@ class PackValidator:
                     adjacency[dst].append((src, Fraction(1, rate)))
 
                 if known_types:
-                    base_candidates = [t for t in types if t not in to_set]
-                    if len(base_candidates) == 0:
-                        result.add_error("currency has no base (every type appears as 'to').")
-                        base = types[0]
-                    elif len(base_candidates) > 1:
-                        result.add_warning(
-                            f"currency has multiple base candidates: {', '.join(base_candidates)}."
-                        )
-                        base = base_candidates[0]
-                    else:
-                        base = base_candidates[0]
+                    base = "copper"
+                    if base not in known_types:
+                        result.add_error("currency missing base 'copper'.")
+                        base = types[0] if types else None
 
-                    factors = {base: Fraction(1, 1)}
-                    stack = [base]
+                    factors: Dict[str, Fraction] = {}
+                    stack: List[str] = []
+                    if base and base in adjacency:
+                        factors[base] = Fraction(1, 1)
+                        stack = [base]
+
                     while stack:
                         cur = stack.pop()
                         for nxt, mult in adjacency.get(cur, []):
@@ -286,10 +283,6 @@ class PackValidator:
                     for t in types:
                         if t not in factors:
                             result.add_error(f"currency '{t}' not connected to base '{base}'.")
-                        elif factors[t].denominator != 1:
-                            result.add_error(
-                                f"currency '{t}' has non-integer factor to base ({factors[t]})."
-                            )
 
         return data, result
 

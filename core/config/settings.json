@@ -28,16 +28,16 @@
   },
   "default_build_costs": {
     "new_facility": {
-      "gold": 250,
+      "gold": 500,
       "duration_turns": 1
     },
     "upgrade_tier_1": {
-      "gold": 500,
-      "duration_turns": 2
-    },
-    "upgrade_tier_2": {
       "gold": 1000,
       "duration_turns": 3
+    },
+    "upgrade_tier_2": {
+      "gold": 2500,
+      "duration_turns": 5
     }
   },
   "npc_progression": {

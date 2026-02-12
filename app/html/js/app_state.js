@@ -576,22 +576,16 @@ function translateFacilityState(state) {
 }
 
 function getCurrencyOrder() {
-    const hidden = getHiddenCurrencies();
-    if (appState.currencyModel && Array.isArray(appState.currencyModel.types) && appState.currencyModel.types.length) {
-        const factor = appState.currencyModel.factor_to_base || {};
-        return [...appState.currencyModel.types]
-            .filter(currency => !hidden.has(currency))
-            .sort((a, b) => {
+    const model = getCurrencyModel();
+    if (model && Array.isArray(model.types) && model.types.length) {
+        const factor = model.factor_to_base || {};
+        return [...model.types].sort((a, b) => {
             const fa = typeof factor[a] === 'number' ? factor[a] : 0;
             const fb = typeof factor[b] === 'number' ? factor[b] : 0;
             return fb - fa;
         });
     }
-    const wallet = appState.session && appState.session.bastion && appState.session.bastion.treasury;
-    if (wallet && typeof wallet === 'object') {
-        return Object.keys(wallet).filter(currency => !hidden.has(currency));
-    }
-    return [];
+    return ['copper'];
 }
 
 function getHiddenCurrencies() {
@@ -610,12 +604,8 @@ function formatCost(cost, currencyOrder = []) {
     const order = currencyOrder.length ? currencyOrder : Object.keys(cost);
     const parts = [];
     const seen = new Set();
-    const hidden = getHiddenCurrencies();
 
     order.forEach(currency => {
-        if (hidden.has(currency)) {
-            return;
-        }
         seen.add(currency);
         const amount = cost[currency];
         if (typeof amount === 'number' && amount !== 0) {
@@ -624,7 +614,7 @@ function formatCost(cost, currencyOrder = []) {
     });
 
     Object.keys(cost).forEach(currency => {
-        if (seen.has(currency) || hidden.has(currency)) {
+        if (seen.has(currency)) {
             return;
         }
         const amount = cost[currency];
@@ -649,7 +639,14 @@ function formatDuration(turns) {
 }
 
 function getCurrencyModel() {
-    return appState.currencyModel;
+    if (appState.currencyModel && Array.isArray(appState.currencyModel.types) && appState.currencyModel.factor_to_base) {
+        return appState.currencyModel;
+    }
+    return {
+        types: ['copper'],
+        base_currency: 'copper',
+        factor_to_base: { copper: 1 }
+    };
 }
 
 function formatBaseValue(baseValue) {

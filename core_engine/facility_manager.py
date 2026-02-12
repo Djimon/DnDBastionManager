@@ -1553,7 +1553,7 @@ class FacilityManager:
 
         return {"success": True, "evaluated": evaluated, "skipped": skipped, "results": results}
 
-    def _projected_treasury_base(self, session_state: Dict[str, Any], cost: Dict[str, Any]) -> Optional[int]:
+    def _projected_treasury_base(self, session_state: Dict[str, Any], cost: Dict[str, Any]) -> Optional[float]:
         base = self.ledger.get_treasury_base(session_state)
         if base is None:
             return None

@@ -423,6 +423,9 @@ class ConfigManager:
                 if not isinstance(entry, str) or not entry:
                     errors.append(f"settings.currency.hidden[{idx}] must be a string")
                     continue
+                if entry == "copper":
+                    errors.append("settings.currency.hidden cannot include base currency 'copper'")
+                    continue
                 if entry not in types:
                     errors.append(f"settings.currency.hidden[{idx}] '{entry}' not in currency types")
                     continue
