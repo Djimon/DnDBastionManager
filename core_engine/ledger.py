@@ -15,7 +15,7 @@ class Ledger:
         self._config_manager = config_manager
         self.config = self._load_config()
         self.currency_types, self.base_currency, self.factor_to_base = self._build_currency_model()
-        self._audit_log = AuditLog()
+        self._audit_log = AuditLog(self._config_manager)
 
     def _load_config(self) -> Dict[str, Any]:
         try:

@@ -26,7 +26,7 @@ class FacilityManager:
         self.catalog = self._load_facility_catalog()
         self.event_index, self.event_groups = self._load_event_tables()
         self.formula_index = self._load_formula_engines()
-        self._audit_log = AuditLog()
+        self._audit_log = AuditLog(self._config_manager)
 
     def _load_config(self) -> Dict[str, Any]:
         try:
@@ -49,6 +49,17 @@ class FacilityManager:
         value = internal.get(key)
         if isinstance(value, int) and value > 0:
             return value
+        return default
+
+    def _get_internal_float_setting(self, key: str, default: float) -> float:
+        if not isinstance(self.config, dict):
+            return default
+        internal = self.config.get("internal_settings")
+        if not isinstance(internal, dict):
+            return default
+        value = internal.get(key)
+        if isinstance(value, (int, float)) and not isinstance(value, bool) and value >= 0:
+            return float(value)
         return default
 
     def _load_facility_catalog(self) -> Dict[str, Dict[str, Any]]:
@@ -392,9 +403,10 @@ class FacilityManager:
         total_cost = self._sum_facility_chain_costs(facility_id, chain_target)
 
         refund: Dict[str, int] = {}
+        refund_ratio = self._get_internal_float_setting("facility_refund_ratio", 0.3)
         for currency, amount in total_cost.items():
             if isinstance(amount, int) and amount > 0:
-                refund_amount = int(amount * 0.3)
+                refund_amount = int(amount * refund_ratio)
                 if refund_amount:
                     refund[currency] = refund_amount
 

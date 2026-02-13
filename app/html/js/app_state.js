@@ -9,7 +9,51 @@ function logClient(level, message) {
     }
 }
 
-const DEV_FOOTER_LIMIT = 1;
+const DEFAULT_DEV_FOOTER_LIMIT = 1;
+const DEFAULT_BUILDABLE_TIER = 1;
+const DEFAULT_FACILITY_REFUND_RATIO = 0.3;
+
+function getInternalSettings() {
+    const config = appState && appState.config;
+    if (config && typeof config === 'object') {
+        const internal = config.internal_settings;
+        if (internal && typeof internal === 'object') {
+            return internal;
+        }
+    }
+    return {};
+}
+
+function getInternalIntSetting(key, fallback) {
+    const internal = getInternalSettings();
+    const value = internal[key];
+    if (Number.isInteger(value) && value > 0) {
+        return value;
+    }
+    return fallback;
+}
+
+function getInternalFloatSetting(key, fallback) {
+    const internal = getInternalSettings();
+    const value = internal[key];
+    if (typeof value === 'number' && Number.isFinite(value) && value >= 0) {
+        return value;
+    }
+    return fallback;
+}
+
+function getDevFooterLimit() {
+    return getInternalIntSetting('dev_footer_limit', DEFAULT_DEV_FOOTER_LIMIT);
+}
+
+function getBuildableTier() {
+    const value = getInternalIntSetting('buildable_tier', DEFAULT_BUILDABLE_TIER);
+    return Number.isInteger(value) ? value : null;
+}
+
+function getFacilityRefundRatio() {
+    return getInternalFloatSetting('facility_refund_ratio', DEFAULT_FACILITY_REFUND_RATIO);
+}
 
 function formatDevTimestamp(date = new Date()) {
     const pad = value => String(value).padStart(2, '0');
@@ -51,7 +95,8 @@ function appendDevFooterMessage(message, severity = 'Info') {
     entry.className = `dev-footer-entry ${level}`;
     entry.textContent = text;
 
-    while (container.children.length > DEV_FOOTER_LIMIT) {
+    const limit = getDevFooterLimit();
+    while (container.children.length > limit) {
         container.removeChild(container.firstChild);
     }
 }
@@ -110,8 +155,6 @@ let appState = {
     coreConfig: null,
     settings: null,
 };
-
-const BUILDABLE_TIER = 1;
 
 // ===== VIEW NAVIGATION =====
 

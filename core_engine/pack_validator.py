@@ -208,12 +208,27 @@ class PackValidator:
         elif not isinstance(internal, dict):
             result.add_warning("bastion_config.json internal_settings must be an object.")
         else:
-            for key in ("dice_max_sides", "dice_max_count", "formula_max_len"):
+            int_keys = (
+                "dice_max_sides",
+                "dice_max_count",
+                "formula_max_len",
+                "audit_log_keep_turns",
+                "dev_footer_limit",
+                "buildable_tier",
+            )
+            for key in int_keys:
                 value = internal.get(key)
                 if value is None:
                     result.add_warning(f"internal_settings missing '{key}'.")
                 elif not isinstance(value, int) or value <= 0:
                     result.add_warning(f"internal_settings.{key} must be a positive int.")
+            float_keys = ("facility_refund_ratio",)
+            for key in float_keys:
+                value = internal.get(key)
+                if value is None:
+                    result.add_warning(f"internal_settings missing '{key}'.")
+                elif not isinstance(value, (int, float)) or isinstance(value, bool) or value < 0:
+                    result.add_warning(f"internal_settings.{key} must be a non-negative number.")
 
         # npc_progression checks
         npc_prog = data.get("npc_progression")

@@ -47,8 +47,9 @@ function populateCatalogFilters() {
         tierFilter.appendChild(option);
     });
 
-    if (Number.isInteger(BUILDABLE_TIER)) {
-        const desired = String(BUILDABLE_TIER);
+    const buildableTier = getBuildableTier();
+    if (Number.isInteger(buildableTier)) {
+        const desired = String(buildableTier);
         if (Array.from(tierFilter.options).some(opt => opt.value === desired)) {
             tierFilter.value = desired;
         }
@@ -69,7 +70,7 @@ function applyCatalogFilters() {
         if (!facility || typeof facility !== 'object') {
             return false;
         }
-        if (Number.isInteger(BUILDABLE_TIER) && facility.tier !== BUILDABLE_TIER) {
+        if (Number.isInteger(buildableTier) && facility.tier !== buildableTier) {
             return false;
         }
         if (packValue && facility._pack_id !== packValue) {
@@ -437,17 +438,19 @@ function estimateDemolishRefund(facilityId) {
     if (model && model.factor_to_base) {
         const base = computeBaseValue(totalCost, model.factor_to_base);
         if (typeof base === 'number') {
-            const refundBase = Math.floor(base * 0.3);
+            const ratio = getFacilityRefundRatio();
+            const refundBase = Math.floor(base * ratio);
             const wallet = normalizeBaseToWallet(refundBase, model);
             return wallet;
         }
     }
+    const ratio = getFacilityRefundRatio();
     const refund = {};
     Object.entries(totalCost).forEach(([currency, amount]) => {
         if (typeof amount !== 'number') {
             return;
         }
-        refund[currency] = Math.floor(amount * 0.3);
+        refund[currency] = Math.floor(amount * ratio);
     });
     return refund;
 }
@@ -1037,7 +1040,8 @@ function addToQueue(facilityId) {
         notifyUser(t('build.already_built'));
         return;
     }
-    if (Number.isInteger(BUILDABLE_TIER) && facility.tier !== BUILDABLE_TIER) {
+    const buildableTier = getBuildableTier();
+    if (Number.isInteger(buildableTier) && facility.tier !== buildableTier) {
         notifyUser(t('build.tier1_only'));
         return;
     }

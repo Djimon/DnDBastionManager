@@ -33,7 +33,7 @@ class Api:
         self._stats_registry = StatsRegistryLoader(Path(__file__).parent)
         self._facility_manager = FacilityManager(Path(__file__).parent, self._ledger, self._config_manager)
         self._pack_validator = PackValidator(Path(__file__).parent, self._config_manager)
-        self._audit_log = AuditLog()
+        self._audit_log = AuditLog(self._config_manager)
         self._ui_prefs_path = Path(__file__).parent / "core" / "config" / "ui_prefs.json"
         self._ui_prefs = self._load_ui_prefs()
         
