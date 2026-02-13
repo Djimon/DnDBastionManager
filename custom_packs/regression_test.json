@@ -1,0 +1,40 @@
+﻿{
+  "pack_id": "custom.regression.xss",
+  "name": "Regression XSS Pack",
+  "version": 1,
+  "author": "Codex",
+  "facilities": [
+    {
+      "id": "custom.regression:xss:t1",
+      "name": "XSS Facility <img src=x onerror='alert(1)'>",
+      "description": "Facility description <img src=x onerror='alert(2)'>",
+      "tier": 1,
+      "parent": null,
+      "build": {
+        "cost": {
+          "gold": 1
+        },
+        "duration_turns": 1
+      },
+      "npc_slots": 0,
+      "npc_allowed_professions": [],
+      "orders": [
+        {
+          "id": "xss_order",
+          "name": "XSS Order <img src=x onerror='alert(3)'>",
+          "description": "Order description <img src=x onerror='alert(4)'>",
+          "duration_turns": 1,
+          "outcome": {
+            "on_success": {
+              "effects": [
+                {
+                  "log": "Log text <img src=x onerror='alert(5)'>"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
