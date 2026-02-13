@@ -213,7 +213,6 @@ class PackValidator:
                 "dice_max_count",
                 "formula_max_len",
                 "audit_log_keep_turns",
-                "dev_footer_limit",
                 "buildable_tier",
             )
             for key in int_keys:

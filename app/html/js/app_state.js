@@ -43,7 +43,7 @@ function getInternalFloatSetting(key, fallback) {
 }
 
 function getDevFooterLimit() {
-    return getInternalIntSetting('dev_footer_limit', DEFAULT_DEV_FOOTER_LIMIT);
+    return DEFAULT_DEV_FOOTER_LIMIT;
 }
 
 function getBuildableTier() {

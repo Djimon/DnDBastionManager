@@ -3,12 +3,11 @@
   "config_type": "bastion_config",
   "turn_duration": "1 week",
   "internal_settings": {
-    "audit_log_keep_turns": 2,
+    "audit_log_keep_turns": 3,
     "dice_max_sides": 1000,
     "dice_max_count": 100,
     "formula_max_len": 256,
     "facility_refund_ratio": 0.3,
-    "dev_footer_limit": 1,
     "buildable_tier": 1
   },
 
