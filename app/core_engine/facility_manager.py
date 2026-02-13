@@ -10,6 +10,13 @@ from typing import Any, Dict, List, Optional, Tuple
 from .logger import setup_logger
 from .ledger import Ledger
 from .audit_log import AuditLog
+from .facility_helpers import (
+    coerce_number,
+    currency_to_base,
+    is_number,
+    round_commercial,
+    value_set,
+)
 
 logger = setup_logger("facility_manager")
 
@@ -1215,12 +1222,12 @@ class FacilityManager:
                 item_key = default if isinstance(default, str) else name
                 value = self._get_inventory_qty(inventory, item_key)
             elif source == "currency":
-                value = self._currency_to_base(default)
+                value = currency_to_base(default, self.ledger.factor_to_base)
             else:
                 errors.append(f"Invalid formula input source: {name}")
                 continue
 
-            variables[name] = self._coerce_number(value)
+            variables[name] = coerce_number(value)
 
         return variables, errors
 
@@ -1233,35 +1240,6 @@ class FacilityManager:
             if entry.get("item") == item_key and isinstance(entry.get("qty"), int):
                 return entry.get("qty")
         return 0
-
-    def _currency_to_base(self, value: Any) -> float:
-        if isinstance(value, (int, float)):
-            return float(value)
-        if not isinstance(value, dict):
-            return 0.0
-        total = 0.0
-        for currency, amount in value.items():
-            if not isinstance(currency, str):
-                continue
-            if not isinstance(amount, (int, float)):
-                continue
-            factor = self.ledger.factor_to_base.get(currency)
-            if not factor:
-                continue
-            total += float(amount) * float(factor)
-        return total
-
-    def _coerce_number(self, value: Any) -> float:
-        if isinstance(value, bool):
-            return 1.0 if value else 0.0
-        if isinstance(value, (int, float)):
-            return float(value)
-        if isinstance(value, str):
-            try:
-                return float(value)
-            except ValueError:
-                return 0.0
-        return 0.0
 
     def _eval_formula_expression(
         self,
@@ -1300,9 +1278,9 @@ class FacilityManager:
                     if "then_formula" in cond and isinstance(cond.get("then_formula"), str):
                         return self._eval_formula_expression(cond.get("then_formula"), variables, errors)
                     if "then" in cond:
-                        return self._coerce_number(cond.get("then"))
+                        return coerce_number(cond.get("then"))
             if "else" in cond:
-                return self._coerce_number(cond.get("else"))
+                return coerce_number(cond.get("else"))
         return 0.0
 
     def _eval_ast(self, node: ast.AST, variables: Dict[str, float]) -> float:
@@ -1394,7 +1372,7 @@ class FacilityManager:
                 return str(variables.get(key, ""))
 
             replaced = re.sub(r"\$\{([^}]+)\}", repl, raw_value)
-            if self._is_number(replaced):
+            if is_number(replaced):
                 try:
                     return float(replaced)
                 except ValueError:
@@ -1410,29 +1388,13 @@ class FacilityManager:
         if key == "log":
             return str(value) if value is not None else ""
         if isinstance(value, (int, float)):
-            return int(self._round_commercial(float(value)))
-        if isinstance(value, str) and self._is_number(value):
+            return int(round_commercial(float(value)))
+        if isinstance(value, str) and is_number(value):
             try:
-                return int(self._round_commercial(float(value)))
+                return int(round_commercial(float(value)))
             except ValueError:
                 return value
         return value
-
-    def _round_commercial(self, value: float) -> float:
-        if value >= 0:
-            return math.floor(value + 0.5)
-        return math.ceil(value - 0.5)
-
-    def _is_number(self, value: Any) -> bool:
-        if isinstance(value, (int, float)):
-            return True
-        if isinstance(value, str):
-            try:
-                float(value)
-                return True
-            except ValueError:
-                return False
-        return False
 
     def _pick_random_event(self, group_id: str) -> Optional[Dict[str, Any]]:
         if not isinstance(group_id, str) or not group_id:
@@ -1968,13 +1930,6 @@ class FacilityManager:
         merged = {**default, **override}
         return merged
 
-    def _value_set(self, value: Any) -> set:
-        if isinstance(value, list):
-            return set(v for v in value if isinstance(v, int))
-        if isinstance(value, int):
-            return {value}
-        return set()
-
     def _determine_outcome(self, check_profile: Any, npc_level: Any, roll: Any) -> str:
         if not check_profile:
             return "on_success"
@@ -1982,8 +1937,8 @@ class FacilityManager:
         if not profile or not isinstance(roll, int):
             return "on_failure"
 
-        crit_success = self._value_set(profile.get("crit_success"))
-        crit_fail = self._value_set(profile.get("crit_fail"))
+        crit_success = value_set(profile.get("crit_success"))
+        crit_fail = value_set(profile.get("crit_fail"))
         if roll in crit_success:
             return "on_critical_success"
         if roll in crit_fail:
