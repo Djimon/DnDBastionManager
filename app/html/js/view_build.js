@@ -1158,13 +1158,25 @@ function updateQueueDisplay() {
         const durationText = formatDuration(buildInfo.duration);
         const item = document.createElement('div');
         item.className = 'queue-item';
-        item.innerHTML = `
-            <div class="queue-item-info">
-                <strong>${name}</strong>
-                <p>${costText} | ${durationText}</p>
-            </div>
-            <button class="btn btn-danger" onclick="removeFromQueue(${index})">${t('build.remove')}</button>
-        `;
+        const info = document.createElement('div');
+        info.className = 'queue-item-info';
+
+        const title = document.createElement('strong');
+        title.textContent = name;
+
+        const details = document.createElement('p');
+        details.textContent = `${costText} | ${durationText}`;
+
+        const removeBtn = document.createElement('button');
+        removeBtn.className = 'btn btn-danger';
+        removeBtn.type = 'button';
+        removeBtn.textContent = t('build.remove');
+        removeBtn.addEventListener('click', () => removeFromQueue(index));
+
+        info.appendChild(title);
+        info.appendChild(details);
+        item.appendChild(info);
+        item.appendChild(removeBtn);
         queueList.appendChild(item);
     });
 

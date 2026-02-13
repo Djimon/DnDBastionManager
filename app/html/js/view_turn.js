@@ -2869,12 +2869,22 @@ function loadSession() {
                 const div = document.createElement('div');
                 div.className = 'session-item';
                 div.style.cssText = 'padding: 10px; border: 1px solid #ccc; margin: 5px 0; cursor: pointer; border-radius: 4px;';
-                div.innerHTML = `
-                    <div style="display: flex; justify-content: space-between; align-items: center;">
-                        <strong>${filename}</strong>
-                        <button class="btn btn-primary btn-small" onclick="loadSessionFile('${filename}')">${t('load_session.load_button')}</button>
-                    </div>
-                `;
+
+                const row = document.createElement('div');
+                row.style.cssText = 'display: flex; justify-content: space-between; align-items: center;';
+
+                const nameEl = document.createElement('strong');
+                nameEl.textContent = filename;
+
+                const btn = document.createElement('button');
+                btn.className = 'btn btn-primary btn-small';
+                btn.type = 'button';
+                btn.textContent = t('load_session.load_button');
+                btn.addEventListener('click', () => loadSessionFile(filename));
+
+                row.appendChild(nameEl);
+                row.appendChild(btn);
+                div.appendChild(row);
                 sessionsList.appendChild(div);
             });
             
