@@ -13,6 +13,7 @@ logger = setup_logger("pack_validator")
 class ValidationResult:
     errors: List[str] = field(default_factory=list)
     warnings: List[str] = field(default_factory=list)
+    infos: List[str] = field(default_factory=list)
 
     def add_error(self, message: str) -> None:
         self.errors.append(message)
@@ -20,11 +21,16 @@ class ValidationResult:
     def add_warning(self, message: str) -> None:
         self.warnings.append(message)
 
+    def add_info(self, message: str) -> None:
+        self.infos.append(message)
+
     def extend(self, other: "ValidationResult", prefix: str = "") -> None:
         for err in other.errors:
             self.errors.append(f"{prefix}{err}")
         for warn in other.warnings:
             self.warnings.append(f"{prefix}{warn}")
+        for info in other.infos:
+            self.infos.append(f"{prefix}{info}")
 
 
 class PackValidator:
@@ -44,19 +50,24 @@ class PackValidator:
             "success": True,
             "errors": [],
             "warnings": [],
-            "config": {"errors": [], "warnings": []},
+            "infos": [],
+            "config": {"errors": [], "warnings": [], "infos": []},
             "packs": [],
         }
 
         config, config_result = self._load_and_validate_config()
         report["config"]["errors"] = config_result.errors
         report["config"]["warnings"] = config_result.warnings
+        report["config"]["infos"] = config_result.infos
         if config_result.errors:
             for err in config_result.errors:
                 logger.error(f"Config: {err}")
         if config_result.warnings:
             for warn in config_result.warnings:
                 logger.warning(f"Config: {warn}")
+        if config_result.infos:
+            for info in config_result.infos:
+                logger.info(f"Config: {info}")
         if self._config_manager:
             extra_warnings = self._config_manager.get_warnings()
             if extra_warnings:
@@ -88,6 +99,9 @@ class PackValidator:
                 if pack_result.warnings:
                     for warn in pack_result.warnings:
                         logger.warning(warn)
+                if pack_result.infos:
+                    for info in pack_result.infos:
+                        logger.info(info)
                 if not pack_result.errors and not pack_result.warnings:
                     logger.info(f"Pack OK: {pack_file}")
                 report["packs"].append(
@@ -97,6 +111,7 @@ class PackValidator:
                         "pack_id": pack_id,
                         "errors": pack_result.errors,
                         "warnings": pack_result.warnings,
+                        "infos": pack_result.infos,
                         "facility_count": len(facility_ids),
                         "skipped_facilities": skip_counts.get("facilities", 0),
                         "skipped_orders": skip_counts.get("orders", 0),
@@ -108,14 +123,19 @@ class PackValidator:
                 all_facility_ids.update(facility_ids)
                 report["errors"].extend(pack_result.errors)
                 report["warnings"].extend(pack_result.warnings)
+                report["infos"].extend(pack_result.infos)
 
         report["success"] = len(report["errors"]) == 0 and len(report["config"]["errors"]) == 0
         report["errors"].extend(report["config"]["errors"])
         report["warnings"].extend(report["config"]["warnings"])
+        report["infos"].extend(report["config"]["infos"])
 
         total_errors = len(report.get("errors", []))
         total_warnings = len(report.get("warnings", []))
-        logger.info(f"Pack validation completed: {total_errors} errors, {total_warnings} warnings")
+        total_infos = len(report.get("infos", []))
+        logger.info(
+            f"Pack validation completed: {total_errors} errors, {total_warnings} warnings, {total_infos} infos"
+        )
         return report
 
     def _load_json(self, path: Path) -> Tuple[Optional[Dict[str, Any]], Optional[str]]:
@@ -350,13 +370,13 @@ class PackValidator:
 
         facilities = data.get("facilities")
         if facilities is None:
-            result.add_warning(f"{pack_file}: no 'facilities' section found (skipping).")
+            result.add_info(f"{pack_file}: no 'facilities' section found (skipping).")
             facilities = []
         elif not isinstance(facilities, list):
             result.add_error(f"{pack_file}: 'facilities' must be a list.")
             facilities = []
         elif len(facilities) == 0:
-            result.add_warning(f"{pack_file}: facilities list is empty.")
+            result.add_info(f"{pack_file}: facilities list is empty.")
 
         custom_mechanics = data.get("custom_mechanics", [])
         mechanics_result, mechanics_index = self._validate_custom_mechanics(custom_mechanics, pack_file)
@@ -577,20 +597,20 @@ class PackValidator:
 
         build = facility.get("build")
         if build is None:
-            result.add_warning(
+            result.add_info(
                 f"{pack_file.name}: {path}.build missing; using default build cost/duration."
             )
         elif not isinstance(build, dict):
-            result.add_warning(
+            result.add_info(
                 f"{pack_file.name}: {path}.build must be object; using default build cost/duration."
             )
         else:
             cost = build.get("cost")
             if cost is not None and not isinstance(cost, dict):
-                result.add_warning(f"{pack_file.name}: {path}.build.cost must be object.")
+                result.add_info(f"{pack_file.name}: {path}.build.cost must be object.")
             duration = build.get("duration_turns")
             if duration is not None and (not isinstance(duration, int) or duration <= 0):
-                result.add_warning(
+                result.add_info(
                     f"{pack_file.name}: {path}.build.duration_turns must be positive int."
                 )
 
@@ -848,20 +868,20 @@ class PackValidator:
 
         build = facility.get("build")
         if build is None:
-            result.add_warning(
+            result.add_info(
                 f"{pack_file.name}: {path}.build missing; using default build cost/duration."
             )
         elif not isinstance(build, dict):
-            result.add_warning(
+            result.add_info(
                 f"{pack_file.name}: {path}.build must be object; using default build cost/duration."
             )
         else:
             cost = build.get("cost")
             if cost is not None and not isinstance(cost, dict):
-                result.add_warning(f"{pack_file.name}: {path}.build.cost must be object.")
+                result.add_info(f"{pack_file.name}: {path}.build.cost must be object.")
             duration = build.get("duration_turns")
             if duration is not None and (not isinstance(duration, int) or duration <= 0):
-                result.add_warning(
+                result.add_info(
                     f"{pack_file.name}: {path}.build.duration_turns must be positive int."
                 )
 
