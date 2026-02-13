@@ -201,6 +201,20 @@ class PackValidator:
                             result.add_error(f"check_profile '{profile_name}.{level_key}.{key}' must be int or list of int.")
 
 
+        # internal_settings checks (warnings only)
+        internal = data.get("internal_settings")
+        if internal is None:
+            result.add_warning("bastion_config.json missing internal_settings.")
+        elif not isinstance(internal, dict):
+            result.add_warning("bastion_config.json internal_settings must be an object.")
+        else:
+            for key in ("dice_max_sides", "dice_max_count", "formula_max_len"):
+                value = internal.get(key)
+                if value is None:
+                    result.add_warning(f"internal_settings missing '{key}'.")
+                elif not isinstance(value, int) or value <= 0:
+                    result.add_warning(f"internal_settings.{key} must be a positive int.")
+
         # npc_progression checks
         npc_prog = data.get("npc_progression")
         if npc_prog is None:
