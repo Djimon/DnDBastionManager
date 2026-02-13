@@ -1,11 +1,11 @@
 {
-  "pack_id": "core.observatory",
+  "pack_id": "core",
   "name": "Observatory",
   "version": 1,
   "author": "Djih",
   "facilities": [
     {
-      "id": "core.observatory:observatory:t1",
+      "id": "core:observatory:t1",
       "name": "Observatory",
       "description": "A tower for observing celestial movements and interpreting cosmic omens.",
       "tier": 1,
@@ -193,11 +193,11 @@
       ]
     },
     {
-      "id": "core.observatory:observatory:t2",
+      "id": "core:observatory:t2",
       "name": "Celestial Observatory",
       "description": "An advanced observatory with superior instruments for deep cosmic insight.",
       "tier": 2,
-      "parent": "core.observatory:observatory:t1",
+      "parent": "core:observatory:t1",
       "npc_slots": 2,
       "npc_allowed_professions": [
         "astrologer",
@@ -415,11 +415,11 @@
       ]
     },
     {
-      "id": "core.observatory:observatory:t3",
+      "id": "core:observatory:t3",
       "name": "Cosmic Nexus",
       "description": "A pinnacle of celestial study, where the boundaries between material and cosmic realms blur.",
       "tier": 3,
-      "parent": "core.observatory:observatory:t2",
+      "parent": "core:observatory:t2",
       "npc_slots": 3,
       "npc_allowed_professions": [
         "astrologer",

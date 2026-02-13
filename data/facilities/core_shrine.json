@@ -43,7 +43,7 @@
   ],
   "facilities": [
     {
-      "id": "core.shrine:shrine:t1",
+      "id": "core:shrine:t1",
       "name": "Shrine",
       "description": "A modest shrine for worship, offerings, and seeking divine favor.",
       "tier": 1,
@@ -431,11 +431,11 @@
       ]
     },
     {
-      "id": "core.shrine:shrine:t2",
+      "id": "core:shrine:t2",
       "name": "Temple",
       "description": "An expanded temple with greater divine presence and influence.",
       "tier": 2,
-      "parent": "core.shrine:shrine:t1",
+      "parent": "core:shrine:t1",
       "npc_slots": 2,
       "npc_allowed_professions": [
         "priest",
@@ -676,11 +676,11 @@
       ]
     },
     {
-      "id": "core.shrine:shrine:t3",
+      "id": "core:shrine:t3",
       "name": "Cathedral",
       "description": "A grand cathedral, a beacon of faith and divine power.",
       "tier": 3,
-      "parent": "core.shrine:shrine:t2",
+      "parent": "core:shrine:t2",
       "npc_slots": 3,
       "npc_allowed_professions": [
         "priest",

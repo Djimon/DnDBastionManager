@@ -1,5 +1,5 @@
 {
-  "pack_id": "core.extended.pub",
+  "pack_id": "core.extended",
   "name": "Pub",
   "version": 1,
   "author": "Djih",
@@ -103,7 +103,7 @@
   ],
   "facilities": [
     {
-      "id": "core.pub:pub:t1",
+      "id": "core.extended:pub:t1",
       "name": "Pub",
       "description": "A cozy establishment serving food and drink to locals and travelers.",
       "tier": 1,
@@ -404,11 +404,11 @@
       ]
     },
     {
-      "id": "core.pub:pub:t2",
+      "id": "core.extended:pub:t2",
       "name": "Tavern",
       "description": "A larger and more popular establishment with rooms for rent and entertainment.",
       "tier": 2,
-      "parent": "core.pub:pub:t1",
+      "parent": "core.extended:pub:t1",
       "build": {
         "cost": {
           "gold": 500
@@ -703,11 +703,11 @@
       ]
     },
     {
-      "id": "core.pub:pub:t3",
+      "id": "core.extended:pub:t3",
       "name": "Grand Inn",
       "description": "A prestigious establishment known throughout the region for its hospitality and entertainment.",
       "tier": 3,
-      "parent": "core.pub:pub:t2",
+      "parent": "core.extended:pub:t2",
       "build": {
         "cost": {
           "gold": 1000

@@ -11,7 +11,7 @@ logger = setup_logger("ledger")
 
 class Ledger:
     def __init__(self, root_dir: Path, config_manager: Optional[Any] = None):
-        self.config_path = root_dir / "core" / "config" / "bastion_config.json"
+        self.config_path = root_dir / "data" / "config" / "bastion_config.json"
         self._config_manager = config_manager
         self.config = self._load_config()
         self.currency_types, self.base_currency, self.factor_to_base = self._build_currency_model()

@@ -1,6 +1,6 @@
 """
 Simple Logger Utility
-Schreibt Logs in logs/ Verzeichnis
+Schreibt Logs in data/logs/ Verzeichnis
 """
 import logging
 import os
@@ -11,15 +11,15 @@ _initialized_loggers = set()
 
 def setup_logger(name: str = "app"):
     """
-    Erstelle einen Logger der in logs/ schreibt.
+    Erstelle einen Logger der in data/logs/ schreibt.
     
     Args:
-        name: Logger-Name (wird zur Datei: logs/{name}.log)
+        name: Logger-Name (wird zur Datei: data/logs/{name}.log)
     
     Returns:
         Logger-Objekt
     """
-    logs_dir = Path(__file__).parent.parent / "logs"
+    logs_dir = Path(__file__).resolve().parents[2] / "data" / "logs"
     logs_dir.mkdir(parents=True, exist_ok=True)
     
     log_file = logs_dir / f"{name}.log"

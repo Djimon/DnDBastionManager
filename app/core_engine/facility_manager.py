@@ -19,9 +19,9 @@ class FacilityManager:
         self.root_dir = root_dir
         self.ledger = ledger
         self._config_manager = config_manager
-        self.facilities_dir = root_dir / "core" / "facilities"
+        self.facilities_dir = root_dir / "data" / "facilities"
         self.custom_packs_dir = root_dir / "custom_packs"
-        self.config_path = root_dir / "core" / "config" / "bastion_config.json"
+        self.config_path = root_dir / "data" / "config" / "bastion_config.json"
         self.config = self._load_config()
         self.catalog = self._load_facility_catalog()
         self.event_index, self.event_groups = self._load_event_tables()

@@ -1,11 +1,11 @@
 {
-  "pack_id": "core.garden",
+  "pack_id": "core",
   "name": "Garden",
   "version": 1,
   "author": "Djih",
   "facilities": [
     {
-      "id": "core.garden:garden:t1",
+      "id": "core:garden:t1",
       "name": "Garden",
       "description": "A modest garden for growing herbs, vegetables, and common plants.",
       "tier": 1,
@@ -181,11 +181,11 @@
       ]
     },
     {
-      "id": "core.garden:garden:t2",
+      "id": "core:garden:t2",
       "name": "Greenhouse",
       "description": "An upgraded garden with controlled climate for exotic and magical plants.",
       "tier": 2,
-      "parent": "core.garden:garden:t1",
+      "parent": "core:garden:t1",
       "npc_slots": 2,
       "npc_allowed_professions": [
         "gardener",
@@ -373,11 +373,11 @@
       ]
     },
     {
-      "id": "core.garden:garden:t3",
+      "id": "core:garden:t3",
       "name": "Enchanted Arboretum",
       "description": "A magically enhanced garden capable of growing legendary plants and creatures.",
       "tier": 3,
-      "parent": "core.garden:garden:t2",
+      "parent": "core:garden:t2",
       "npc_slots": 3,
       "npc_allowed_professions": [
         "gardener",

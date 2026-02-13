@@ -17,9 +17,9 @@ ALLOWED_CHECK_PROFILE_LEVELS = {"default", "apprentice", "experienced", "master"
 class ConfigManager:
     def __init__(self, root_dir: Path):
         self.root_dir = root_dir
-        self.base_config_path = root_dir / "core" / "config" / "bastion_config.json"
-        self.settings_path = root_dir / "core" / "config" / "settings.json"
-        self.facilities_dir = root_dir / "core" / "facilities"
+        self.base_config_path = root_dir / "data" / "config" / "bastion_config.json"
+        self.settings_path = root_dir / "data" / "config" / "settings.json"
+        self.facilities_dir = root_dir / "data" / "facilities"
         self.custom_packs_dir = root_dir / "custom_packs"
         self._config: Dict[str, Any] = {}
         self._base_config: Dict[str, Any] = {}

@@ -30,14 +30,14 @@ Zentrale Dokumentation aller vereinbarten Projekt-Regeln und Commitments zwische
 - Begruendung: Fuer ein kleines Projekt waere Overengineering mit automatisierten Tests nicht sinnvoll.
 
 ## Logging & Debugging
-- Python: Alle Module loggen via `core_engine.logger.setup_logger()`.
+- Python: Alle Module loggen via `app/core_engine/logger.setup_logger()`.
 - JavaScript: Frontend loggt via `logClient(level, message)` -> Server API.
-- Log-Dateien: `logs/app.log`, `logs/session_manager.log`, etc.
+- Log-Dateien: `data/logs/app.log`, `data/logs/session_manager.log`, etc.
 - Agent und User pruefen regelmaessig Logs zur Fehleranalyse nach manuellen Tests.
 - Logs werden nur auf Anfrage oder bei Fehler-/Issue-Meldungen geprueft; wenn Logs gefragt sind, ist das der erste Schritt.
 
 ## Projektstruktur & Pfade
-- Struktur: `core_engine/` fuer Backend, `app/html/` fuer Frontend, `core/` fuer Daten.
+- Struktur: `app/core_engine/` fuer Backend, `app/html/` fuer Frontend, `data/` fuer Daten.
 
 ## Daten-/Schema-Konventionen
 - Leitplanke: `Session_save.json` ist die kanonische Struktur.

@@ -1,7 +1,13 @@
-import webview
 import json
 import os
+import sys
 from pathlib import Path
+import webview
+
+APP_DIR = Path(__file__).parent / "app"
+if str(APP_DIR) not in sys.path:
+    sys.path.insert(0, str(APP_DIR))
+
 from core_engine.session_manager import SessionManager
 from core_engine.initial_state import InitialStateGenerator
 from core_engine.ledger import Ledger
@@ -20,9 +26,9 @@ class Api:
     
     def __init__(self):
         logger.info("Initializing Api...")
-        self.data_dir = str(Path(__file__).parent / "core" / "facilities")
+        self.data_dir = str(Path(__file__).parent / "data" / "facilities")
         self.custom_dir = str(Path(__file__).parent / "custom_packs")
-        self.sessions_dir = str(Path(__file__).parent / "sessions")
+        self.sessions_dir = str(Path(__file__).parent / "data" / "sessions")
         
         # Slice 1: Session Management
         # WICHTIG: Nicht als self.xxx speichern - pywebview kann Path-Objekte nicht serialisieren!
@@ -34,7 +40,7 @@ class Api:
         self._facility_manager = FacilityManager(Path(__file__).parent, self._ledger, self._config_manager)
         self._pack_validator = PackValidator(Path(__file__).parent, self._config_manager)
         self._audit_log = AuditLog(self._config_manager)
-        self._ui_prefs_path = Path(__file__).parent / "core" / "config" / "ui_prefs.json"
+        self._ui_prefs_path = Path(__file__).parent / "data" / "config" / "ui_prefs.json"
         self._ui_prefs = self._load_ui_prefs()
         
         # Current loaded session (in-memory)
@@ -494,7 +500,7 @@ class Api:
                 classes = []
             base_classes = []
             try:
-                base_path = Path(__file__).parent / "core" / "config" / "bastion_config.json"
+                base_path = Path(__file__).parent / "data" / "config" / "bastion_config.json"
                 base_data = json.loads(base_path.read_text(encoding="utf-8"))
                 if isinstance(base_data, dict):
                     base_classes = base_data.get("player_classes", [])

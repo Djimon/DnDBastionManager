@@ -39,9 +39,9 @@ class PackValidator:
 
     def __init__(self, root_dir: Path, config_manager: Optional[Any] = None):
         self.root_dir = root_dir
-        self.facilities_dir = root_dir / "core" / "facilities"
+        self.facilities_dir = root_dir / "data" / "facilities"
         self.custom_packs_dir = root_dir / "custom_packs"
-        self.config_path = root_dir / "core" / "config" / "bastion_config.json"
+        self.config_path = root_dir / "data" / "config" / "bastion_config.json"
         self._config_manager = config_manager
 
     def validate_all(self) -> Dict[str, Any]:

@@ -1,5 +1,5 @@
 {
-  "pack_id": "core.extended.shop",
+  "pack_id": "core.extended",
   "name": "Storehouse & Trading Post",
   "version": 1,
   "author": "Djih",
@@ -279,7 +279,7 @@
   ],
   "facilities": [
     {
-      "id": "core.shop:shop:t1",
+      "id": "core.extended:shop:t1",
       "name": "Storehouse",
       "description": "A modest trading post for buying and selling common goods.",
       "tier": 1,
@@ -437,7 +437,7 @@
       "name": "Trading House",
       "description": "A well-established merchant operation with broader market reach.",
       "tier": 2,
-      "parent": "core.shop:shop:t1",
+      "parent": "core.extended:shop:t1",
       "build": {
         "cost": {
           "gold": 500
@@ -664,7 +664,7 @@
       ]
     },
     {
-      "id": "core.shop:shop:t3",
+      "id": "core.extended:shop:t3",
       "name": "Grand Emporium",
       "description": "A legendary trading empire with influence across multiple regions.",
       "tier": 3,

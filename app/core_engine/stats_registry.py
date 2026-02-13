@@ -9,7 +9,7 @@ logger = setup_logger("stats_registry")
 
 class StatsRegistryLoader:
     def __init__(self, root_dir: Path):
-        self.packs_dir = root_dir / "core" / "facilities"
+        self.packs_dir = root_dir / "data" / "facilities"
         self.custom_packs_dir = root_dir / "custom_packs"
 
     def load_registry(self) -> Tuple[Dict[str, Dict[str, Any]], Dict[str, int], List[str]]:
