@@ -65,6 +65,7 @@ function applyCatalogFilters() {
     const term = search ? search.value.trim().toLowerCase() : '';
     const packValue = packFilter ? packFilter.value : '';
     const tierValue = tierFilter ? tierFilter.value : '';
+    const buildableTier = getBuildableTier();
 
     const filtered = appState.facilityCatalog.filter(facility => {
         if (!facility || typeof facility !== 'object') {

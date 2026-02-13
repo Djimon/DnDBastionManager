@@ -573,20 +573,23 @@ class PackValidator:
             facility_errors = True
 
         build = facility.get("build")
-        if not isinstance(build, dict):
-            result.add_error(f"{pack_file.name}: {path}.build missing or invalid.")
-            facility_errors = True
+        if build is None:
+            result.add_warning(
+                f"{pack_file.name}: {path}.build missing; using default build cost/duration."
+            )
+        elif not isinstance(build, dict):
+            result.add_warning(
+                f"{pack_file.name}: {path}.build must be object; using default build cost/duration."
+            )
         else:
             cost = build.get("cost")
-            if not isinstance(cost, dict):
-                result.add_error(f"{pack_file.name}: {path}.build.cost must be object.")
-                facility_errors = True
+            if cost is not None and not isinstance(cost, dict):
+                result.add_warning(f"{pack_file.name}: {path}.build.cost must be object.")
             duration = build.get("duration_turns")
-            if not isinstance(duration, int) or duration <= 0:
-                result.add_error(
+            if duration is not None and (not isinstance(duration, int) or duration <= 0):
+                result.add_warning(
                     f"{pack_file.name}: {path}.build.duration_turns must be positive int."
                 )
-                facility_errors = True
 
         npc_slots = facility.get("npc_slots")
         if not isinstance(npc_slots, int) or npc_slots < 0:
@@ -841,15 +844,21 @@ class PackValidator:
             result.add_error(f"{pack_file.name}: {path}.parent missing for tier {tier}.")
 
         build = facility.get("build")
-        if not isinstance(build, dict):
-            result.add_error(f"{pack_file.name}: {path}.build missing or invalid.")
+        if build is None:
+            result.add_warning(
+                f"{pack_file.name}: {path}.build missing; using default build cost/duration."
+            )
+        elif not isinstance(build, dict):
+            result.add_warning(
+                f"{pack_file.name}: {path}.build must be object; using default build cost/duration."
+            )
         else:
             cost = build.get("cost")
-            if not isinstance(cost, dict):
-                result.add_error(f"{pack_file.name}: {path}.build.cost must be object.")
+            if cost is not None and not isinstance(cost, dict):
+                result.add_warning(f"{pack_file.name}: {path}.build.cost must be object.")
             duration = build.get("duration_turns")
-            if not isinstance(duration, int) or duration <= 0:
-                result.add_error(
+            if duration is not None and (not isinstance(duration, int) or duration <= 0):
+                result.add_warning(
                     f"{pack_file.name}: {path}.build.duration_turns must be positive int."
                 )
 
