@@ -349,10 +349,13 @@ class PackValidator:
             result.add_warning(f"{pack_file}: missing 'version'.")
 
         facilities = data.get("facilities")
-        if not isinstance(facilities, list):
+        if facilities is None:
+            result.add_warning(f"{pack_file}: no 'facilities' section found (skipping).")
+            facilities = []
+        elif not isinstance(facilities, list):
             result.add_error(f"{pack_file}: 'facilities' must be a list.")
-            return result, pack_id, set()
-        if len(facilities) == 0:
+            facilities = []
+        elif len(facilities) == 0:
             result.add_warning(f"{pack_file}: facilities list is empty.")
 
         custom_mechanics = data.get("custom_mechanics", [])
