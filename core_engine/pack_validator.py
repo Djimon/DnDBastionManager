@@ -343,89 +343,6 @@ class PackValidator:
                 return [t for t in types if isinstance(t, str)]
         return []
 
-    def _validate_pack_file(
-        self, pack_file: Path, config: Dict[str, Any]
-    ) -> Tuple[ValidationResult, Optional[str], Set[str]]:
-        result = ValidationResult()
-        data, error = self._load_json(pack_file)
-        if error:
-            result.add_error(error)
-            return result, None, set()
-
-        if not isinstance(data, dict):
-            result.add_error(f"{pack_file} must be a JSON object.")
-            return result, None, set()
-
-        pack_id = data.get("pack_id")
-        if not pack_id or not isinstance(pack_id, str):
-            result.add_error(f"{pack_file}: missing or invalid 'pack_id'.")
-        elif " " in pack_id:
-            result.add_warning(f"{pack_file}: pack_id contains spaces ('{pack_id}').")
-
-        if "name" not in data or not isinstance(data["name"], str):
-            result.add_error(f"{pack_file}: missing or invalid 'name'.")
-
-        if "version" not in data:
-            result.add_warning(f"{pack_file}: missing 'version'.")
-
-        facilities = data.get("facilities")
-        if facilities is None:
-            result.add_info(f"{pack_file}: no 'facilities' section found (skipping).")
-            facilities = []
-        elif not isinstance(facilities, list):
-            result.add_error(f"{pack_file}: 'facilities' must be a list.")
-            facilities = []
-        elif len(facilities) == 0:
-            result.add_info(f"{pack_file}: facilities list is empty.")
-
-        custom_mechanics = data.get("custom_mechanics", [])
-        mechanics_result, mechanics_index = self._validate_custom_mechanics(custom_mechanics, pack_file)
-        result.extend(mechanics_result)
-
-        facility_ids: Set[str] = set()
-        facility_id_to_tier: Dict[str, int] = {}
-
-        for idx, facility in enumerate(facilities):
-            f_result, f_id, f_tier = self._validate_facility(
-                facility,
-                pack_file=pack_file,
-                index=idx,
-                config=config,
-                mechanics_index=mechanics_index,
-                path=f"facilities[{idx}]"
-            )
-            result.extend(f_result)
-            if f_id:
-                if f_id in facility_ids:
-                    result.add_error(f"{pack_file.name}: facilities[{idx}].id duplicate '{f_id}'.")
-                facility_ids.add(f_id)
-                if f_tier is not None:
-                    facility_id_to_tier[f_id] = f_tier
-
-        for idx, facility in enumerate(facilities):
-            if not isinstance(facility, dict):
-                continue
-            f_id = facility.get("id")
-            parent_id = facility.get("parent")
-            tier = facility.get("tier")
-            if tier == 1:
-                if parent_id is not None:
-                    result.add_error(
-                        f"{pack_file.name}: facilities[{idx}].parent must be null for tier 1."
-                    )
-            if isinstance(parent_id, str):
-                if parent_id not in facility_ids:
-                    result.add_error(
-                        f"{pack_file.name}: facilities[{idx}].parent '{parent_id}' not found in pack."
-                    )
-                elif f_id in facility_id_to_tier and parent_id in facility_id_to_tier:
-                    if facility_id_to_tier[parent_id] >= facility_id_to_tier[f_id]:
-                        result.add_warning(
-                            f"{pack_file.name}: facilities[{idx}].parent tier >= child tier."
-                        )
-
-        return result, pack_id, facility_ids
-
     def _validate_custom_mechanics(
         self, mechanics: Any, pack_file: Path
     ) -> Tuple[ValidationResult, Dict[str, Set[str]]]:
@@ -491,10 +408,13 @@ class PackValidator:
             result.add_warning(f"{pack_file}: missing 'version'.")
 
         facilities = data.get("facilities")
-        if not isinstance(facilities, list):
+        if facilities is None:
+            result.add_info(f"{pack_file}: no 'facilities' section found (skipping).")
+            facilities = []
+        elif not isinstance(facilities, list):
             result.add_error(f"{pack_file}: 'facilities' must be a list.")
-            return result, pack_id, set(), skip_counts
-        if len(facilities) == 0:
+            facilities = []
+        elif len(facilities) == 0:
             result.add_warning(f"{pack_file}: facilities list is empty.")
 
         custom_mechanics = data.get("custom_mechanics", [])
@@ -833,85 +753,6 @@ class PackValidator:
                 for entry in entries:
                     if isinstance(entry, dict) and entry.get("id"):
                         index["event_ids"].add(entry["id"])
-
-    def _validate_facility(
-        self,
-        facility: Any,
-        pack_file: Path,
-        index: int,
-        config: Dict[str, Any],
-        mechanics_index: Dict[str, Set[str]],
-        path: str,
-    ) -> Tuple[ValidationResult, Optional[str], Optional[int]]:
-        result = ValidationResult()
-        if not isinstance(facility, dict):
-            result.add_error(f"{pack_file.name}: {path} must be an object.")
-            return result, None, None
-
-        facility_id = facility.get("id")
-        if not facility_id or not isinstance(facility_id, str):
-            result.add_error(f"{pack_file.name}: {path}.id missing or invalid.")
-        elif " " in facility_id:
-            result.add_warning(f"{pack_file.name}: {path}.id contains spaces ('{facility_id}').")
-
-        name = facility.get("name")
-        if not name or not isinstance(name, str):
-            result.add_error(f"{pack_file.name}: {path}.name missing or invalid.")
-
-        tier = facility.get("tier")
-        if not isinstance(tier, int):
-            result.add_error(f"{pack_file.name}: {path}.tier missing or invalid.")
-
-        parent = facility.get("parent")
-        if tier != 1 and parent is None:
-            result.add_error(f"{pack_file.name}: {path}.parent missing for tier {tier}.")
-
-        build = facility.get("build")
-        if build is None:
-            result.add_info(
-                f"{pack_file.name}: {path}.build missing; using default build cost/duration."
-            )
-        elif not isinstance(build, dict):
-            result.add_info(
-                f"{pack_file.name}: {path}.build must be object; using default build cost/duration."
-            )
-        else:
-            cost = build.get("cost")
-            if cost is not None and not isinstance(cost, dict):
-                result.add_info(f"{pack_file.name}: {path}.build.cost must be object.")
-            duration = build.get("duration_turns")
-            if duration is not None and (not isinstance(duration, int) or duration <= 0):
-                result.add_info(
-                    f"{pack_file.name}: {path}.build.duration_turns must be positive int."
-                )
-
-        npc_slots = facility.get("npc_slots")
-        if not isinstance(npc_slots, int) or npc_slots < 0:
-            result.add_error(f"{pack_file.name}: {path}.npc_slots must be >= 0 int.")
-
-        npc_allowed = facility.get("npc_allowed_professions")
-        if npc_allowed is not None and not isinstance(npc_allowed, list):
-            result.add_error(f"{pack_file.name}: {path}.npc_allowed_professions must be list.")
-
-        orders = facility.get("orders")
-        if not isinstance(orders, list):
-            result.add_error(f"{pack_file.name}: {path}.orders must be list.")
-            return result, facility_id, tier if isinstance(tier, int) else None
-
-        order_ids: Set[str] = set()
-        for o_idx, order in enumerate(orders):
-            o_result, o_id = self._validate_order(
-                order, pack_file, facility_id, o_idx, config, mechanics_index, f"{path}.orders[{o_idx}]"
-            )
-            result.extend(o_result)
-            if o_id:
-                if o_id in order_ids:
-                    result.add_error(
-                        f"{pack_file.name}: {path}.orders duplicate id '{o_id}'."
-                    )
-                order_ids.add(o_id)
-
-        return result, facility_id, tier if isinstance(tier, int) else None
 
     def _validate_order(
         self,
