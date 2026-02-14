@@ -15,6 +15,8 @@ if (Test-Path "$Name.spec") { Remove-Item "$Name.spec" -Force }
 
 Write-Host "Building..."
 & $Python -m PyInstaller --noconfirm --clean --windowed --name $Name app.py `
+  --paths "app" `
+  --collect-submodules core_engine `
   --add-data "app/html;app/html" `
   --add-data "data;data" `
   --add-data "custom_packs;custom_packs" `

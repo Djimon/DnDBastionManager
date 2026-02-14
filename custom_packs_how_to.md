@@ -1,14 +1,14 @@
-# Schnellstart – kleinste funktionierende Facility
+# Quickstart ? Smallest Working Facility
 
-Wenn du nur schnell starten willst, kopiere dieses Beispiel.
-Das ist die **kleinste gültige Facility**, die im System funktioniert.
+If you just want to get started quickly, copy this example.
+This is the **smallest valid facility** that works in the system.
 
-Speichere sie als eigene Datei, z. B.:
+Save it as its own file, for example:
 
 my_first_pack.json
 
 
-## Minimalbeispiel
+## Minimal Example
 
 ```json
 {
@@ -35,36 +35,36 @@ my_first_pack.json
 }
 ```
 
-## Was passiert hier?
+## What happens here?
 
-Diese Datei definiert: 
-- ein Pack
-- eine Facility
-- Baukosten & Dauer kommen aus den globalen Defaults (bastion_config.json, optional ueberschrieben durch settings.json)
-- Platz für 1 NPC
-- noch keine Orders
+This file defines:
+- a pack
+- a facility
+- build cost & duration come from the global defaults (bastion_config.json, optionally overridden by settings.json)
+- space for 1 NPC
+- no orders yet
 
-Das reicht bereits, damit die Facility im Tool auftaucht und gebaut werden kann.
+That is enough for the facility to show up in the tool and be buildable.
 
-**Wichtig:** `build` ist optional. Wenn `build` fehlt oder `build.cost`/`build.duration_turns` nicht gesetzt sind,
-nutzt das System automatisch die globalen Defaults aus `bastion_config.json` (ggf. durch `settings.json` ueberschrieben).
+**Important:** `build` is optional. If `build` is missing or `build.cost`/`build.duration_turns` are not set,
+the system automatically uses the global defaults from `bastion_config.json` (optionally overridden by `settings.json`).
 
 ---
 
-# Aufbau einer Pack-Datei (Top Level)
+# Pack File Structure (Top Level)
 
-Eine Facility-Datei ist einfach eine normale JSON-Datei.
+A facility file is just a normal JSON file.
 
-Sie enthält:
+It contains:
 
-- allgemeine Pack-Informationen
-- eine Liste von Facilities
-- optional Konfigurationen (config)
-- optional zusätzliche Systeme (Custom Mechanics)
+- general pack information
+- a list of facilities
+- optional configuration (config)
+- optional additional systems (custom mechanics)
 
 
 
-## Grundstruktur
+## Basic Structure
 
 ```json
 {
@@ -85,62 +85,62 @@ Sie enthält:
 }
 ```
 
-### Felder erklärt
+### Field Explanations
 
-**pack_id**: Eindeutige ID des Packs. sollte einzigartig sein. keine Leerzeichen. am besten punkt- oder namespace-basiert.
-Beispiele:
+**pack_id**: Unique ID of the pack. Should be unique. No spaces. Prefer dot- or namespace-based IDs.
+Examples:
 ```text
 core.garden
 my.homebrew.alchemy
 djih.blackmarket
 ```
 
-**name**: Anzeigename im Tool. Freier Text.
-Beispiele:
+**name**: Display name in the tool. Free text.
+Examples:
 ```text
 "Herbalism & Gardens"
 ```
 
-**version**: Nur für dich zur Verwaltung. Erhöhe die Zahl, wenn du größere Änderungen machst.
-Beispiel:
+**version**: For your own tracking. Increase the number when you make major changes.
+Example:
 ```text
 "version": 2
 ```
 
-**author**: Optional. Nur Anzeigezweck.
+**author**: Optional. Display only.
 
-**config** (Optional): Pack-spezifische Config-Erweiterungen. Erlaubt:
+**config** (Optional): Pack-specific config extensions. Allowed:
 - currency (types + conversion)
 - check_profiles
 - player_classes
-Damit kannst du reine Config-Packs bauen, ohne Facilities zu definieren.
+This lets you build config-only packs without defining facilities.
 
 
 ### facilities (Optional)
-Liste aller Facilities in diesem Pack.
+List of all facilities in this pack.
 
-Hier definierst du:
-- Gebäude
-- Upgrades
-- NPC-Slots
-- Orders
-- Effekte
+Here you define:
+- buildings
+- upgrades
+- NPC slots
+- orders
+- effects
 
-Wenn das Feld fehlt, ist das Pack trotzdem gueltig (z. B. reine Konfig-Packs).
-Wenn es vorhanden aber leer ist, bekommst du eine Warnung.
+If this field is missing, the pack is still valid (e.g., config-only packs).
+If it exists but is empty, you will get a warning.
 
 ### custom_mechanics (Optional)
-Nur für fortgeschrittene Features.
+Only for advanced features.
 
-Beispiele:
+Examples:
 - stat_counter
 - formula_engine
 
-Für normale Facilities nicht nötig.
+Not needed for normal facilities.
 
-Wenn du unsicher bist: einfach weglassen.
+If you are unsure: just leave it out.
 
-## Minimalstruktur (Facility-Pack)
+## Minimal Structure (Facility Pack)
 ```json
 {
   "pack_id": "my.pack",
@@ -150,9 +150,9 @@ Wenn du unsicher bist: einfach weglassen.
 }
 ```
 
-Alles andere ist optional.
+Everything else is optional.
 
-## Minimalstruktur (Config-Only Pack)
+## Minimal Structure (Config-Only Pack)
 ```json
 {
   "pack_id": "my.pack",
@@ -165,20 +165,20 @@ Alles andere ist optional.
 
 ---
 
-# Facility-Grundstruktur
+# Facility Base Structure
 
-Eine Facility ist ein einzelnes Gebäude oder eine Ausbaustufe davon.
+A facility is a single building or an upgrade stage of one.
 
-Jeder Eintrag im Feld `facilities[]` beschreibt genau **eine** baubare Stufe (Tier).
+Each entry in `facilities[]` describes exactly **one** buildable tier.
 
-Du definierst hier:
-- Name
-- Baukosten
-- NPC-Slots
-- erlaubte Berufe
-- Orders (Aktionen pro Runde)
+You define:
+- name
+- build cost
+- NPC slots
+- allowed professions
+- orders (actions per turn)
 
-## Komplette Beispielstruktur
+## Complete Example Structure
 ```json
 {
   "id": "core:garden:t1",
@@ -201,36 +201,36 @@ Du definierst hier:
 }
 ```
 
-## Felder erklärt (von oben nach unten)
+## Field Explanations (Top to Bottom)
 
-**id (Pflicht)**: Eindeutige ID dieser Facility-Stufe.
+**id (Required)**: Unique ID of this facility tier.
 
-Regeln:
-- muss einzigartig sein
-- keine Leerzeichen
-- bleibt dauerhaft stabil (nicht später umbenennen)
+Rules:
+- must be unique
+- no spaces
+- keep stable (do not rename later)
 
-Empfehlung: *pack_id:facility:tX*
+Recommendation: *pack_id:facility:tX*
 
-Beispiele:
+Examples:
 ```text
 core:garden:t1
 core.extended:shop:t2
 my.alchemy:lab:t2
 ```
 
-**name (Pflicht)**: Anzeigename im Tool. Freier Text.
+**name (Required)**: Display name in the tool. Free text.
 
 
-**description (Optional, empfohlen)**: Kurze Beschreibung für den DM. Nur Flavour/Erklärung, keine Regeln.
+**description (Optional, recommended)**: Short description for the DM. Flavor/explanation only, no rules.
 
-**tier (Pflicht)**: Stufe der Facility. Nur Zahl.
-Typisch:
-1 = Basis
-2 = Upgrade
-3 = großes Upgrade
+**tier (Required)**: Facility tier. Number only.
+Typical:
+1 = base
+2 = upgrade
+3 = major upgrade
 
-**parent (Pflicht)**: Verweist auf die vorherige Stufe. So weiß das System: Diese Facility ist ein Upgrade einer anderen.
+**parent (Required)**: Points to the previous tier. This tells the system that this facility is an upgrade of another.
 Tier 1 (core:garden:**t1**):
 ```json
  parent: null
@@ -241,75 +241,75 @@ Tier 2 (core:garden:**t2**):
  ```
 
 
-**build (Optional)**: Definiert Bau- oder Upgrade-Kosten. Gleiche Struktur für Neubau UND Upgrade.
-Beispiel:
+**build (Optional)**: Build or upgrade costs. Same structure for new build AND upgrade.
+Example:
 ```json
 {
   "cost": { "gold": 250 },
   "duration_turns": 1
 }
 ```
-- cost → Ressourcen die bezahlt werden
-- duration_turns → wie viele Runden der Bau dauert
-Wenn `build` oder einzelne Felder fehlen, werden die globalen Defaults aus `bastion_config.json` verwendet (optional durch `settings.json` ueberschrieben).
+- cost ? resources that are paid
+- duration_turns ? how many turns the build takes
+If `build` or individual fields are missing, the global defaults from `bastion_config.json` are used (optionally overridden by `settings.json`).
 
 
-**npc_slots (Pflicht)**: Wie viele NPCs hier gleichzeitig arbeiten können.
-Beispiel:
+**npc_slots (Required)**: How many NPCs can work here at the same time.
+Example:
 ```text
-0 = keine NPCs nötig
-1 = ein Arbeiter
-3 = kleines Team
+0 = no NPCs needed
+1 = one worker
+3 = small team
 ```
 
-**npc_allowed_professions (Optional)**: Welche Berufe hier arbeiten dürfen. Nur Filter. Der DM kann frei NPCs erstellen, aber nur diese dürfen hier eingesetzt werden.
+**npc_allowed_professions (Optional)**: Which professions may work here. Only a filter. The DM can create NPCs freely, but only these can be assigned here.
 
-Beispiel:
+Example:
 ```json
 "npc_allowed_professions": ["gardener", "herbalist", "alchemist"]
 ```
 
-**npc_base_upkeep (Optional)**: Richtwert für Unterhalt pro Runde. Nur eine Hilfe für den DM. Der tatsächliche Wert wird später beim Anheuern gewürfel/gespeichert.
+**npc_base_upkeep (Optional)**: Reference upkeep per turn. Only a DM aid. The actual value is later rolled/saved when hiring.
 
-Beispiel:
+Example:
 ```json
 "npc_base_upkeep": { "silver": 5 }
 ```
 
-**orders (Pflicht, darf leer sein)**: Liste aller Aktionen, die diese Facility ausführen kann.
+**orders (Required, can be empty)**: List of all actions this facility can perform.
 ```json
 "orders": []
 ```
-Wenn leer: Die Facility existiert nur als Gebäude ohne Aktionen.
+If empty: the facility exists only as a building without actions.
 
-*Orders werden im einen der nächsten Kapitel erklärt.*
+*Orders are explained in one of the next chapters.*
 
 
 
 ## Tiers & Upgrades
 
-Viele Facilities haben mehrere Ausbaustufen:
-- Tier 1 = Basis
-- Tier 2 = Upgrade
-- Tier 3 = großes Upgrade
+Many facilities have multiple upgrade stages:
+- Tier 1 = base
+- Tier 2 = upgrade
+- Tier 3 = major upgrade
 
-Wichtig:
-Jede Stufe ist eine **eigene Facility-Definition**.
+Important:
+Each tier is its **own facility definition**.
 
-Es gibt kein spezielles "Upgrade-System".
-Ein Upgrade ist einfach nur eine neue Facility, die auf eine andere verweist.
+There is no special "upgrade system".
+An upgrade is just a new facility that points to another one.
 
 ---
 
-### Grundidee
+### Core Idea
 
-- Tier 1 steht alleine.
-- Tier 2 verweist auf Tier 1 mit `parent`.
-- Tier 3 verweist auf Tier 2.
+- Tier 1 stands alone.
+- Tier 2 points to Tier 1 via `parent`.
+- Tier 3 points to Tier 2.
 
-So entsteht eine Kette.
+That creates a chain.
 
-Beispiel: Tier 1 → Tier 2
+Example: Tier 1 ? Tier 2
 ```json
 [
   {
@@ -345,69 +345,69 @@ Beispiel: Tier 1 → Tier 2
 ```
 
 
-### Wie Upgrades funktionieren
+### How Upgrades Work
 
-Wenn der Spieler Tier 2 baut:
+When the player builds Tier 2:
 
-- Tier 1 wird ersetzt
-- Tier 2 übernimmt den Platz
-- neue Werte gelten sofort (mehr Slots, neue Orders, etc.)
+- Tier 1 is replaced
+- Tier 2 takes its place
+- new values apply immediately (more slots, new orders, etc.)
 
-Das System erkennt das automatisch über: **parent**
+The system recognizes this automatically via: **parent**
 
 
-### Regeln
+### Rules
 
 **Tier 1** : parent = null
 
-**Tier 2 oder höher**
-- parent muss gesetzt sein
-- parent zeigt auf die vorherige Stufe
+**Tier 2 or higher**
+- parent must be set
+- parent points to the previous tier
 
-**Reihenfolge egal**: Die Einträge müssen nicht sortiert sein. Die Verknüpfung passiert nur über IDs.
+**Order does not matter**: Entries do not have to be sorted. The linkage is only by IDs.
 
 
-### Was darf sich zwischen Tiers ändern?
-Alles. Du kannst pro Stufe frei anpassen:
+### What can change between tiers?
+Everything. You can freely adjust per tier:
 
-- Baukosten
-- Bauzeit
-- NPC-Slots
-- erlaubte Berufe
-- Orders
-- Effekte
+- build cost
+- build time
+- NPC slots
+- allowed professions
+- orders
+- effects
 
-Typische Upgrades:
-- mehr NPC-Slots
-- bessere/zusätzliche Orders
-- kürzere Dauer
-- höhere Erträge
+Typical upgrades:
+- more NPC slots
+- better/additional orders
+- shorter duration
+- higher yields
 
 ### Optional
 
-Upgrades sind komplett freiwillig.
+Upgrades are completely optional.
 
-Du kannst auch nur Tier 1 definieren.
+You can also define only Tier 1.
 
-Das reicht völlig aus.
+That is perfectly fine.
 
 --- 
 
-# Orders erstellen
+# Creating Orders
 
-Orders sind die Aktionen, die eine Facility pro Runde ausführen kann.
-Beispiele:
-- Kräuter sammeln
-- Waren handeln
-- Forschung betreiben
-- NPCs trainieren
-- Informationen beschaffen
+Orders are the actions a facility can perform each turn.
+Examples:
+- gather herbs
+- trade goods
+- conduct research
+- train NPCs
+- gather information
 
-Ohne Orders ist eine Facility nur ein Gebäude ohne Gameplay.
+Without orders, a facility is just a building with no gameplay.
 
-## Wo werden Orders definiert?
+## Where are Orders defined?
 
-Direkt in der Facility:
+Directly inside the facility:
 ```json
 "orders": [
   { ... },
@@ -415,9 +415,9 @@ Direkt in der Facility:
 ]
 ```
 
-Jeder Eintrag ```{...}``` ist genau **eine Aktion**.
+Each entry `{...}` is exactly **one action**.
 
-## Minimalbeispiel einer Order
+## Minimal Order Example
 ```json
 {
   "id": "gather_herbs",
@@ -431,9 +431,9 @@ Jeder Eintrag ```{...}``` ist genau **eine Aktion**.
 }
 ```
 
-Das reicht bereits für eine gültige Order.
+That is already a valid order.
 
-## Komplette Beispielstruktur
+## Complete Example Structure
 ```json
 {
   "id": "gather_herbs",
@@ -463,66 +463,66 @@ Das reicht bereits für eine gültige Order.
 ```
 
 
-## Felder erklärt
+## Field Explanations
 
-**id (Pflicht)**: Eindeutige ID der Order.
-Regeln:
-- einzigartig innerhalb der Facility
-- keine Leerzeichen
-- nicht später ändern
+**id (Required)**: Unique ID of the order.
+Rules:
+- unique within the facility
+- no spaces
+- do not rename later
 
-Beispiele:
+Examples:
 ```text
 gather_herbs
 brew_potions
 run_trade
 ```
 
-**name (Pflicht)**: Anzeigename im Tool.Freier Text.
+**name (Required)**: Display name in the tool. Free text.
 
-**description (Optional, empfohlen)**: Kurze Erklärung für den DM. Nur Text, keine Regeln.
+**description (Optional, recommended)**: Short explanation for the DM. Text only, no rules.
 
-**min_npc_level (Optional)**: Minimales Erfahrungslevel des NPCs.
-Typisch:
-- 1 = Anfänger
-- 2 = Erfahren
-- 3 = Meister
+**min_npc_level (Optional)**: Minimum NPC experience level.
+Typical:
+- 1 = beginner
+- 2 = experienced
+- 3 = master
 
-Wenn nicht gesetzt: :jede Stufe darf die Order ausführen.
+If not set: any level can run the order.
 
-**duration_turns (Pflicht)**: Wie viele Runden die Order dauert. Währenddessen ist die Facility blockiert.
-Beispiele:
-- 1 = nächste Runde fertig
-- 3 = dauert 3 Runden
+**duration_turns (Required)**: How many turns the order takes. The facility is blocked during that time.
+Examples:
+- 1 = done next turn
+- 3 = takes 3 turns
 
-**outcome (Pflicht)**: Definiert, was nach Abschluss passiert.
-Hier kommen:
-- Würfelchecks
-- Erfolg/Misserfolg
-- Effekte
+**outcome (Required)**: Defines what happens when the order finishes.
+Here you define:
+- checks
+- success/failure
+- effects
 
-*Details dazu im nächsten Kapitel.*
+*Details in the next chapter.*
 
-## Wichtige Reglen und Empfehlungen
+## Important Rules and Recommendations
 
-- Pro Facility kann immer nur eine Order gleichzeitig laufen
-- Bauen/Upgraden blockiert die Facility
-- Ergebnis wird erst am Ende ausgewertet
-- Mehrere kleine Orders sind besser als eine riesige komplexe
+- A facility can only run one order at a time
+- Building/upgrading blocks the facility
+- Results are evaluated only at the end
+- Several small orders are better than one huge complex one
 
 ---
 
 # Outcomes
 
-Im Outcome wird festgelegt, **was nach Abschluss einer Order passiert**.
-Hier definierst du:
-- ob gewürfelt wird
-- Erfolg oder Misserfolg
-- welche Belohnungen oder Kosten entstehen
+The outcome defines **what happens after an order completes**.
+Here you define:
+- whether a roll happens
+- success or failure
+- rewards or costs
 
-Das Outcome ist der wichtigste Teil einer Order.
+The outcome is the most important part of an order.
 
-## Grundstruktur
+## Base Structure
 ```json
 "outcome": {
   "check_profile": "d20",
@@ -536,45 +536,45 @@ Das Outcome ist der wichtigste Teil einer Order.
   }
 }
 ```
-Alles andere ist optional.
+Everything else is optional.
 
-## Check (Würfelwurf) 
+## Check (Dice Roll)
 
-Das Profil bestimmt:
-- Würfeltyp (z.B. d20)
-- Schwierigkeit (DC)
-- Kritische Erfolge / Patzer
-- Die genauen Werte kommen automatisch aus der globalen Konfiguration.
+The profile defines:
+- die type (e.g. d20)
+- difficulty (DC)
+- critical success/failure
+- exact values come from global configuration
 
-Beispiel:
+Example:
 ```json
 "check_profile": "d20"
 ```
-Typische Profile:
+Typical profiles:
 - d20
 - d20_easy
 - d20_hard
 - d6
 - d10
 
-Wenn du KEINEN Check willst:
-→ check_profile einfach weglassen
-Dann passiert das Outcome immer automatisch.
+If you want NO check:
+? simply omit check_profile
+Then the outcome always happens automatically.
 
-## Ergebnis-Typen
+## Result Types
 
-Du kannst folgende Blöcke verwenden:
+You can use these blocks:
 ```json
 "on_success" : {...}
-"on_failure" : {...}  
-"on_critical_success": {...}  
-"on_critical_failure": {...}  
+"on_failure" : {...}
+"on_critical_success": {...}
+"on_critical_failure": {...}
 ```
-Alle sind optional. Du kannst einzelne weglassen.
-Nicht definierte Fälle machen einfach nichts.
+All are optional. You can leave some out.
+Undefined cases do nothing.
 
 
-## Beispiel
+## Example
 ```json
 "outcome": {
   "check_profile": "d20",
@@ -598,8 +598,8 @@ Nicht definierte Fälle machen einfach nichts.
 
 # Effects
 
-Effects sind einfache Aktionen, die automatisch ausgeführt werden.
-Du kannst mehrere kombinieren.
+Effects are simple actions that are executed automatically.
+You can combine multiple.
 ```json
 "effects": [
   { ... },
@@ -607,70 +607,70 @@ Du kannst mehrere kombinieren.
   { ... }
 ]
 ```
-Sie werden der Reihe nach abgearbeitet.
+They are processed in order.
 
-## Unterstützte Effect-Typen (komplette Liste)
+## Supported Effect Types (Complete List)
 
-**Währungen**: Ändert das globale Budget.
+**Currencies**: Changes the global budget.
 ```json
 { "gold": 10 }
 { "silver": -5 }
 { "copper": 25 }
 ```
-Positive Werte = Gewinn  
-Negative Werte = Kosten/Verlust
+Positive values = gain  
+Negative values = cost/loss
 
-**Items**: Fügt Items hinzu oder entfernt sie.
+**Items**: Adds or removes items.
 ```json
 { "item": "beer", "qty": 3 }
 { "item": "herbs", "qty": -2 }
 ```
-Positive ```qty``` = zum Basiton-Invenatr hinzufügen  
-Negative ```qty``` = aus Basiton-Inventar entfernen
+Positive `qty` = add to bastion inventory  
+Negative `qty` = remove from bastion inventory
 
-**Stats**: Ändert einen benutzerdefinierten Wert (z.B. Ruf oder Heat).
+**Stats**: Changes a custom value (e.g., reputation or heat).
 ```json
 { "stat": "reputation", "delta": 1 }
 { "stat": "heat", "delta": -2 }
 ```
 
-**Log**: Zeigt nur eine Nachricht an. Gut für Feedback oder Story.
+**Log**: Shows a message only. Good for feedback or story.
 ```json
 { "log": "The workers found something interesting." }
 ```
 
-**Event (optional)**: Löst ein benutzerdefiniertes Event aus. Eine höher gewichtigeres Log für den DM.
+**Event (optional)**: Triggers a custom event. A higher-weighted log for the DM.
 ```json
 { "event": "spawn_bandits" }
 ```
-Nur nötig für spezielle Mechaniken oder Erweiterungen.
+Only needed for special mechanics or extensions.
 
 
-## Tipps
+## Tips
 
-- lieber viele kleine Effects statt eine große komplizierte Berechnung
-- einfache Zahlen sind besser lesbar als Formeln
-- Logs helfen dem DM zu verstehen, was passiert ist
-- Effects dürfen gemischt werden
+- prefer many small effects instead of one big complex calculation
+- simple numbers are easier to read than formulas
+- logs help the DM understand what happened
+- effects can be mixed
 
-Beispiel:
-Gold verdienen + Item verlieren + Ruf steigen + Log anzeigen
+Example:
+Gain gold + lose item + increase reputation + log message
 
 --- 
 
-# Komplettes Beispiel – Eine fertige Facility
+# Complete Example ? A Finished Facility
 
-Dieses Beispiel zeigt eine typische, realistische Facility mit:
-- Tier 1 und Tier 2 (Upgrade)
-- NPC-Slots
-- mehreren Orders
-- Würfelchecks
-- Belohnungen und Kosten
+This example shows a typical, realistic facility with:
+- Tier 1 and Tier 2 (upgrade)
+- NPC slots
+- multiple orders
+- dice checks
+- rewards and costs
 
-Nutze es als Vorlage oder kopiere Teile davon.
+Use it as a template or copy parts of it.
 
 
-## Beispiel: Herbalist Garden
+## Example: Herbalist Garden
 ```json
 {
   "pack_id": "example.herbalism",
@@ -810,53 +810,53 @@ Nutze es als Vorlage oder kopiere Teile davon.
 }
 ```
 
-## Was dieses Beispiel zeigt
+## What this example shows
 Tier 1 "Small Herbal Garden":
-- 1 NPC Slot
-- einfache Orders
-- kleine Erträge
+- 1 NPC slot
+- simple orders
+- small yields
 
 Tier 2 "Expanded Herbal Garden":
-- mehr NPC Slots
-- bessere Orders
-- höhere Gewinne
+- more NPC slots
+- better orders
+- higher profits
 
-Upgrade erfolgt automatisch über: **parent**
+Upgrade happens automatically via: **parent**
 
-## Tipp
-Kopiere dieses Beispiel und passe nur an:
-- Namen
-- Kosten
-- NPC-Slots
-- Orders
-- Effekte
+## Tip
+Copy this example and adjust only:
+- names
+- costs
+- NPC slots
+- orders
+- effects
 
-Mehr brauchst du für 90% aller Facilities nicht.
+That is enough for 90% of all facilities.
 
 ---
 
-# Custom Mechanics (optional / fortgeschritten)
+# Custom Mechanics (optional / advanced)
 
-**Wichtig vorweg**: Du brauchst Custom Mechanics NICHT für normale Facilities.
+**Important first:** You do NOT need custom mechanics for normal facilities.
 
-90% aller Gebäude funktionieren nur mit:
-- Build
+90% of buildings work with just:
+- build
 - NPCs
-- Orders
-- Effects
+- orders
+- effects
 
-Custom Mechanics sind nur nötig, wenn du:
-- Berechnungen brauchst
-- Maerkte simulieren willst
-- komplexe Formeln nutzen willst
-- eigene Systeme bauen willst (Shop, Pub, Forschung, etc.)
+Custom mechanics are only needed if you:
+- need calculations
+- want to simulate markets
+- want complex formulas
+- want to build your own systems (shop, pub, research, etc.)
 
-Wenn du nur Ressourcen, Items oder Gold vergeben willst → überspring dieses Kapitel.
+If you just want to grant resources, items, or gold ? skip this chapter.
 
 
-## Wo werden Mechanics definiert?
+## Where are mechanics defined?
 
-idealerweise Ganz oben im Pack. Dann ist es überschaubar wenn du in deinen Facilities/Orders auf diese Mechanic zurückgreifst.
+Ideally at the top of the pack. That keeps it readable when you reference them in facilities/orders.
 ```json
 {
   "pack_id": "...",
@@ -870,24 +870,24 @@ idealerweise Ganz oben im Pack. Dann ist es überschaubar wenn du in deinen Faci
   "facilities": []
 }
 ```
-Mechanics gehören auf Pack-Ebene, nicht in eine Facility.
-*Denn*: Mehrere Facilities können dieselbe Mechanik verwenden.
+Mechanics belong at pack level, not inside a facility.
+*Because*: multiple facilities can use the same mechanic.
 
 
-## Grundidee
+## Core Idea
 
-Eine Mechanik ist ein kleines Zusatzsystem.
-Beispiele:
-- Marktpreise berechnen
-- Verbrauch simulieren
-- Einnahmen aus Formeln berechnen
-- eigene Zähler verwalten
+A mechanic is a small add-on system.
+Examples:
+- calculate market prices
+- simulate consumption
+- calculate revenue with formulas
+- manage custom counters
 
-Orders können diese Mechanics später auslösen/nutzen.
+Orders can later trigger/use these mechanics.
 
-## Typische Mechanik-Typen
+## Typical Mechanic Types
 
-Die wichtigsten:
+The most common:
 - stat_counter
 - event_table
 - formula_engine
@@ -895,16 +895,16 @@ Die wichtigsten:
 
 ### stat_counter
 
-Verwaltet eigene Werte wie:
-- Reputation
-- Heat
-- Fortschritt
-- Forschungspunkte
-- Manapool
+Manages custom values like:
+- reputation
+- heat
+- progress
+- research points
+- mana pool
 
-Im Grunde nur ein zusätzlicher Zähler.
+Basically just an extra counter.
 
-Minimalbeispiel
+Minimal example
 ```json
 {
   "id": "reputation",
@@ -920,13 +920,13 @@ Minimalbeispiel
 }
 ```
 
-Hinweis:
-- Der Stat-Key kommt aus `custom_stat_name`, sonst aus `id`/`name`.
-- `min`/`max` sind ebenfalls erlaubt (Alternative zu `min_value`/`max_value`).
+Note:
+- The stat key comes from `custom_stat_name`, otherwise from `id`/`name`.
+- `min`/`max` are also allowed (alternative to `min_value`/`max_value`).
 
-Viele einfache Systeme brauchen gar keine extra Mechanik, weil normale "stat" Effects schon reichen.
-#### Verwendung in Orders
-Diese Stats können einfach im Order-Output angesteuert werden:
+Many simple systems do not need an extra mechanic, because normal "stat" effects are enough.
+#### Usage in Orders
+These stats can be targeted directly in the order output:
 ```json
 "on_success": {
     "effects": [
@@ -943,15 +943,15 @@ Diese Stats können einfach im Order-Output angesteuert werden:
 
 ### event_table
 
-Definiert **Story-Events** als zentral gepflegte Tabellen (inkl. Gewichtung) und erlaubt es, in Orders entweder **ein konkretes Event** auszulösen oder **zufällig aus einer Gruppe** zu ziehen.
+Defines **story events** as centrally maintained tables (with weights) and allows orders to either trigger **a specific event** or **draw one at random from a group**.
 
-Wichtig:
-- Events sind **keine Mechanics-Logik** und keine „Berechnungen“.
-- Die Engine kann beim Auslösen automatisch den `text` loggen (DM muss keinen extra Log-Effect schreiben).
-- Du pflegst Events **einmal zentral** statt überall im Pack „magische Strings“ zu verteilen.
+Important:
+- Events are **not mechanics logic** and not "calculations".
+- The engine can automatically log the `text` when the event triggers (DM does not need an extra log effect).
+- You define events **once centrally** instead of scattering "magic strings" across the pack.
 
 
-Minimalbeispiel
+Minimal example
 ```json
 {
   "id": "my_events",
@@ -973,22 +973,22 @@ Minimalbeispiel
 }
 ```
 
-#### Aufbau
+#### Structure
 
-- `groups[]` enthält mehrere Event-Gruppen (random tables)
-- Jede Gruppe hat:
-  - `id` (wird beim random_event referenziert)
-  - `name` (nur Anzeige / Lesbarkeit)
-  - `entries[]` (die auswählbaren Events)
-- Jede Entry hat:
-  - `id` (konkrete Event-ID, kann auch direkt referenziert werden)
-  - `weight` (Gewichtung bei Zufallsauswahl)
-  - `text` (Story-Text, kann automatisch geloggt werden)
+- `groups[]` contains multiple event groups (random tables)
+- Each group has:
+  - `id` (referenced by random_event)
+  - `name` (display/readability only)
+  - `entries[]` (selectable events)
+- Each entry has:
+  - `id` (specific event ID, can also be referenced directly)
+  - `weight` (weight for random selection)
+  - `text` (story text, can be logged automatically)
 
 
-#### Verwendung in Orders
+#### Usage in Orders
 
-**Konkretes Event auslösen (fixe ID)**
+**Trigger a specific event (fixed ID)**
 ```json
 "on_success": {
   "effects": [
@@ -996,7 +996,7 @@ Minimalbeispiel
   ]
 }
 ```
-**Zufälliges Event aus einer Gruppe ziehen**
+**Draw a random event from a group**
 ```json
 "on_failure": {
   "effects": [
@@ -1004,46 +1004,46 @@ Minimalbeispiel
   ]
 }
 ```
-Dabei gilt:
-- `event` löst genau diese Event-ID aus
-- `random_event` würfelt aus der angegebenen Gruppe nach `weight` und löst die gezogene Event-ID aus
+Rules:
+- `event` triggers exactly that event ID
+- `random_event` rolls from the given group by `weight` and triggers the selected event ID
 
 
 ### formula_engine
 
-Für Berechnungen und Formeln.
+For calculations and formulas.
 
-Beispiele:
-- Einnahmen = Besucher × Preis
-- Verbrauch = 1d6 + Reputation
-- Profit = Umsatz − Kosten
+Examples:
+- income = visitors * price
+- consumption = 1d6 + reputation
+- profit = revenue - costs
 
-#### Bestandteile
+#### Components
 
 **inputs**
-→ Werte, die die Formel nutzt
+values the formula uses
 
 **calculations**
-→ Berechnungen oder Bedingungen
+calculations or conditions
 
 **effects**
-→ Ergebnisse pro Runde - wie bei normalen Orders
+results per turn - just like normal orders
 
 
-#### Inputs (Quelle/Source)
+#### Inputs (Source)
 
-`source` ist Pflichtfeld.
+`source` is required.
 
-Erlaubte Quellen:
-- `number`: UI-Input fuer eine Zahl. `default` ist optional und dient als Vorschlag.
-- `check`: UI-Input fuer einen Wuerfelwurf. Pflichtfeld `check_profile` (z. B. "d20"). Gueltig: integer, Bereich 1..diceSides, Mindestwurf `d2`.
-- `stat`: Wert aus `bastion.stats`. `default` = Stat-Key (falls `name` nicht genutzt werden soll).
-- `item`: Menge aus `bastion.inventory`. `default` = Item-Key.
-- `currency`: Basiswaehrung aus Currency-Objekt, `default` z. B. { "gold": 5 }.
+Allowed sources:
+- `number`: UI input for a number. `default` is optional and suggests a value.
+- `check`: UI input for a die roll. Required `check_profile` (e.g., "d20"). Valid: integer, range 1..diceSides, minimum roll `d2`.
+- `stat`: value from `bastion.stats`. `default` = stat key (if `name` is not used).
+- `item`: quantity from `bastion.inventory`. `default` = item key.
+- `currency`: base currency from currency object, `default` e.g. { "gold": 5 }.
 
-Nicht erlaubt: `market`.
+Not allowed: `market`.
 
-Beispiel-Inputs:
+Example inputs:
 ```json
 [
   { "name": "base_income", "source": "number", "default": 5 },
@@ -1052,7 +1052,7 @@ Beispiel-Inputs:
 ]
 ```
 
-#### Beispiel
+#### Example
 ```json
 {
   "id": "pub_income",
@@ -1075,29 +1075,29 @@ Beispiel-Inputs:
   }
 }
 ```
-#### Verwendung in Orders
+#### Usage in Orders
 ```json
 "effects": [
   { "trigger": "pub_income" }
 ]
 ```
-der Effect ```trigger``` ruft die Mechanik mit dieser ID oder dem `name` auf. UI-Inputs sind `number` und `check`. `stat`, `item`, `currency` kommen automatisch aus dem Session-State.
+The effect `trigger` calls the mechanic by this ID or its `name`. UI inputs are `number` and `check`. `stat`, `item`, `currency` come automatically from the session state.
 
 ### market_tracker
 
-Simuliert Marktpreise oder Angebot/Nachfrage.
+Simulates market prices or supply/demand.
 
-Gut fuer:
-- Shops
-- Handel
-- Wirtschaftssysteme
+Good for:
+- shops
+- trade
+- economy systems
 
-Beispiel:
-- Preise schwanken zwischen -20% und +20%
-- Kategorien wie Waffen, Ruestung, Traenke
+Example:
+- prices fluctuate between -20% and +20%
+- categories like weapons, armor, potions
 
-Nur noetig, wenn du echte Marktmechanik willst.
-Fuer einfache "+10 Gold"-Belohnungen unnoetig.
+Only needed if you want real market mechanics.
+Not needed for simple "+10 gold" rewards.
 
 ```json
 {
@@ -1114,68 +1114,68 @@ Fuer einfache "+10 Gold"-Belohnungen unnoetig.
 }
 ```
 
-## Wann sollte ich Mechanics benutzen?
+## When should I use mechanics?
 
-Benutze sie nur wenn:
+Use them only if:
 
-- einfache Effects nicht reichen
-- du echte Berechnungen brauchst
-- du viele Variablen kombinieren willst
-- du ein Minispiel/System bauen möchtest
+- simple effects are not enough
+- you need real calculations
+- you want to combine many variables
+- you want a mini-game/system
 
- KEINE Mechanics nötig, für:
+NO mechanics needed for:
 - "Gold +10"
 - "Item +1"
 
-## Empfehlung
+## Recommendation
 
-Starte immer ohne Mechanics.Baue zuerst:
-- Facility
-- Orders
-- einfache Effects
+Always start without mechanics. Build first:
+- facility
+- orders
+- simple effects
 
-Wenn du später merkst: "Das wird zu kompliziert".
-Dann erst Mechanics ergänzen.
+If you later realize: "This is getting too complex".
+Then add mechanics.
 
 ---
 
-# Best Practices & Regeln
+# Best Practices & Rules
 
-Dieses Kapitel sammelt einfache Regeln und Empfehlungen,
-damit deine Facilities:
+This chapter collects simple rules and recommendations
+so your facilities:
 
-- leicht lesbar bleiben
-- schnell editierbar sind
-- weniger Fehler verursachen
-- auch für Nicht-Programmierer verständlich sind
+- stay easy to read
+- are quick to edit
+- cause fewer errors
+- are understandable even for non-programmers
 
-Halte deine JSONs so simpel wie möglich.
-Für inspiration schaue dir auch die Core-Json files an, in denen die Standard-Facilities definiert sind.
+Keep your JSONs as simple as possible.
+For inspiration, look at the core JSON files where the standard facilities are defined.
 
 
-## Allgemeine Prinzipien
+## General Principles
 
-✔ einfache Zahlen statt komplizierter Formeln  
-✔ mehrere kleine Orders statt einer riesigen  
-✔ kurze, klare Namen  
-✔ lieber Klartext als „clevere Tricks“
+simple numbers instead of complicated formulas  
+several small orders instead of one huge one  
+short, clear names  
+plain text instead of "clever tricks"
 
-Wenn etwas schwer zu lesen ist → vereinfachen.
+If something is hard to read ? simplify it.
 
 ## IDs
 
-- keine Leerzeichen
-- keine Umlaute
-- keine Sonderzeichen
-- stabil halten (nicht später umbenennen)
+- no spaces
+- no umlauts
+- no special characters
+- keep stable (do not rename later)
 
-Gut:
+Good:
 ```text
 core:garden:t1
 brew_potions
 bulk_harvest
 ```
-Schlecht:
+Bad:
 ```text
 My Garden Level 1
 Potion Order!!!
@@ -1183,106 +1183,105 @@ Potion Order!!!
 
 ## Facility Design
 
-✔ jede Tier-Stufe als eigene Facility  
-✔ Upgrades nur über parent verknüpfen  
-✔ kleine, übersichtliche Orders
+each tier as its own facility  
+upgrades linked only via parent  
+small, readable orders
 
-Vermeide:
-- riesige Monolith-Facilities
-- 20 Orders in einer Stufe
-- überkomplexe Berechnungen
+Avoid:
+- giant monolith facilities
+- 20 orders in one tier
+- overly complex calculations
 
-Besser: mehrere kleine, klare Actions.
+Better: multiple small, clear actions.
 
 ## Orders
 
-✔ duration_turns klein halten (1–3 meistens ideal)  
-✔ klare Beschreibungen schreiben  
-✔ lieber mehrere einfache Outcomes statt verschachtelte Logik  
+keep duration_turns small (1-3 usually ideal)  
+write clear descriptions  
+prefer several simple outcomes instead of nested logic
 
-Beispiel gut:
+Good example:
 - Gather Herbs
 - Sell Goods
 - Brew Potion
 
-Beispiel schlecht:
+Bad example:
 - "Complex Multi-Stage Production Pipeline"
 
 ## Effects
 
-Halte Effects einfach und lesbar.
-Empfohlen:
+Keep effects simple and readable.
+Recommended:
 ```json
 { "gold": 10 }
 { "item": "herb", "qty": 2 }
 { "stat": "reputation", "delta": 1 }
 { "log": "Nice result." }
 ```
-Vermeide:
-- unnötig viele Berechnungen
-- schwer lesbare Werte
+Avoid:
+- unnecessary calculations
+- hard-to-read values
 
-Ein DM sollte sofort verstehen:
-„+10 Gold, +2 Items, +1 Reputation“
+A DM should immediately understand:
+"+10 Gold, +2 Items, +1 Reputation"
 
-## Zahlen & Formate
+## Numbers & Formats
 
-currency immer als Objekt
+currency always as object
 ``` { "gold": 10 }```
 
-qty als Zahl oder einfache Expression
+qty as a number or simple expression
 - ```-2```
 - ```"-${consumption}"```
 
-keine Strings für Zahlen
-  nicht: ```"10"```, sondern: ```10```
+no strings for numbers
+  not: ```"10"```, but: ```10```
 
 
-## Logs verwenden
+## Use Logs
 
-Logs als *outcome* helfen extrem beim Verständnis.
+Logs as *outcome* help a lot for understanding.
 
-Beispiel:
+Example:
 ```json
 { "log": "Workers found rare herbs." }
 ```
-Ohne Log weiß der DM oft nicht, **warum** etwas passiert ist.
+Without a log, the DM often does not know **why** something happened.
 
-## Mechanics sparsam einsetzen
+## Use Mechanics Sparingly
 
-Faustregel: Brauche ich wirklich Berechnungen?
-- NEIN → normale Effects nutzen  
-- JA → formula_engine  
+Rule of thumb: Do I really need calculations?
+- NO ? use normal effects  
+- YES ? formula_engine
 
-Brauche ich nur einen Zähler?
+Do I just need a counter?
 - stat_counter
 
-Brauche ich Marktpreise?
+Do I need market prices?
 - market_tracker
 
-Sonst: weglassen.
+Otherwise: leave it out.
 
-## Komplexität vermeiden
+## Avoid Complexity
 
-Wenn du beim Schreiben denkst: "Das wird kompliziert..."
-- aufteilen.
+If you think: "This is getting complicated..."
+- split it up.
 
-Statt: eine riesige Formel
+Instead of one huge formula
 
-Besser: 2–3 einfache Orders / mehrere Outcomes.
+Better: 2?3 simple orders / multiple outcomes.
 
-## Test-Tipp
+## Test Tip
 
-Neue Facility immer testen mit:
+Always test a new facility with:
 
-- nur 1 NPC
-- 1 Order
-- kleine Zahlen
+- only 1 NPC
+- 1 order
+- small numbers
 
-Wenn das funktioniert, schrittweise erweitern.
-Nicht alles auf einmal bauen.
+If that works, expand step by step.
+Do not build everything at once.
 
-### Goldene Regel
+### Golden Rule
 
-Wenn ein DM ohne Erklärung deine JSON lesen kann, hast du alles richtig gemacht.
-
+If a DM can read your JSON without explanation, you did it right.
