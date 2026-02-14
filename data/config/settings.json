@@ -21,9 +21,6 @@
         "to": "copper",
         "rate": 100
       }
-    ],
-    "hidden": [
-      "platinum"
     ]
   },
   "default_build_costs": {
