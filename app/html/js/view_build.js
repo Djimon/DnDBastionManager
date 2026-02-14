@@ -574,10 +574,11 @@ function renderWizardTreasuryInputs() {
     const currencies = getCurrencyOrder();
     currencies.forEach(currency => {
         const row = document.createElement('div');
-        row.className = 'wizard-treasury-row';
+        row.className = 'treasury-row';
 
         const label = document.createElement('label');
         label.setAttribute('for', `wizard-treasury-${currency}`);
+        label.className = 'treasury-label';
         label.textContent = currency;
 
         const input = document.createElement('input');
@@ -585,6 +586,7 @@ function renderWizardTreasuryInputs() {
         input.min = '0';
         input.id = `wizard-treasury-${currency}`;
         input.dataset.currency = currency;
+        input.className = 'treasury-input';
         const current = appState.wizardInventory.treasury[currency];
         if (!Number.isInteger(current) || current < 0) {
             appState.wizardInventory.treasury[currency] = 0;
@@ -615,12 +617,14 @@ function renderWizardItemsList() {
         list.appendChild(empty);
         return;
     }
+    const group = document.createElement('div');
+    group.className = 'inventory-group';
     appState.wizardInventory.items.forEach((entry, index) => {
         if (!entry || typeof entry !== 'object') {
             return;
         }
         const row = document.createElement('div');
-        row.className = 'wizard-item-row';
+        row.className = 'inventory-item';
 
         const meta = document.createElement('div');
         meta.className = 'wizard-item-meta';
@@ -638,14 +642,15 @@ function renderWizardItemsList() {
 
         const removeBtn = document.createElement('button');
         removeBtn.type = 'button';
-        removeBtn.className = 'btn btn-ghost btn-small';
+        removeBtn.className = 'btn btn-danger btn-small';
         removeBtn.textContent = t('common.remove');
         removeBtn.addEventListener('click', () => removeWizardItem(index));
 
         row.appendChild(meta);
         row.appendChild(removeBtn);
-        list.appendChild(row);
+        group.appendChild(row);
     });
+    list.appendChild(group);
 }
 
 function renderWizardInventoryPanel() {
