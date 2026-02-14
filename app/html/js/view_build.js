@@ -552,6 +552,164 @@ function ensurePlayerState() {
     }
 }
 
+function ensureWizardInventoryState() {
+    if (!appState.wizardInventory || typeof appState.wizardInventory !== 'object') {
+        appState.wizardInventory = { treasury: {}, items: [] };
+    }
+    if (!appState.wizardInventory.treasury || typeof appState.wizardInventory.treasury !== 'object') {
+        appState.wizardInventory.treasury = {};
+    }
+    if (!Array.isArray(appState.wizardInventory.items)) {
+        appState.wizardInventory.items = [];
+    }
+}
+
+function renderWizardTreasuryInputs() {
+    const list = document.getElementById('wizard-treasury-list');
+    if (!list) {
+        return;
+    }
+    ensureWizardInventoryState();
+    list.innerHTML = '';
+    const currencies = getCurrencyOrder();
+    currencies.forEach(currency => {
+        const row = document.createElement('div');
+        row.className = 'wizard-treasury-row';
+
+        const label = document.createElement('label');
+        label.setAttribute('for', `wizard-treasury-${currency}`);
+        label.textContent = currency;
+
+        const input = document.createElement('input');
+        input.type = 'number';
+        input.min = '0';
+        input.id = `wizard-treasury-${currency}`;
+        input.dataset.currency = currency;
+        const current = appState.wizardInventory.treasury[currency];
+        if (!Number.isInteger(current) || current < 0) {
+            appState.wizardInventory.treasury[currency] = 0;
+        }
+        input.value = String(appState.wizardInventory.treasury[currency]);
+        input.addEventListener('input', () => {
+            const parsed = parseInt(input.value, 10);
+            appState.wizardInventory.treasury[currency] = Number.isInteger(parsed) && parsed >= 0 ? parsed : 0;
+        });
+
+        row.appendChild(label);
+        row.appendChild(input);
+        list.appendChild(row);
+    });
+}
+
+function renderWizardItemsList() {
+    const list = document.getElementById('wizard-items-list');
+    if (!list) {
+        return;
+    }
+    ensureWizardInventoryState();
+    list.innerHTML = '';
+    if (appState.wizardInventory.items.length === 0) {
+        const empty = document.createElement('div');
+        empty.className = 'text-muted wizard-items-empty';
+        empty.textContent = t('wizard.items_empty');
+        list.appendChild(empty);
+        return;
+    }
+    appState.wizardInventory.items.forEach((entry, index) => {
+        if (!entry || typeof entry !== 'object') {
+            return;
+        }
+        const row = document.createElement('div');
+        row.className = 'wizard-item-row';
+
+        const meta = document.createElement('div');
+        meta.className = 'wizard-item-meta';
+
+        const nameEl = document.createElement('span');
+        nameEl.className = 'wizard-item-name';
+        nameEl.textContent = entry.item || entry.name || t('common.unknown');
+
+        const qtyEl = document.createElement('span');
+        qtyEl.className = 'wizard-item-qty';
+        qtyEl.textContent = `x${entry.qty}`;
+
+        meta.appendChild(nameEl);
+        meta.appendChild(qtyEl);
+
+        const removeBtn = document.createElement('button');
+        removeBtn.type = 'button';
+        removeBtn.className = 'btn btn-ghost btn-small';
+        removeBtn.textContent = t('common.remove');
+        removeBtn.addEventListener('click', () => removeWizardItem(index));
+
+        row.appendChild(meta);
+        row.appendChild(removeBtn);
+        list.appendChild(row);
+    });
+}
+
+function renderWizardInventoryPanel() {
+    renderWizardTreasuryInputs();
+    renderWizardItemsList();
+}
+
+function addWizardItem() {
+    const nameInput = document.getElementById('wizard-item-name');
+    const qtyInput = document.getElementById('wizard-item-qty');
+    if (!nameInput || !qtyInput) {
+        return;
+    }
+    const name = String(nameInput.value || '').trim();
+    const qty = parseInt(qtyInput.value, 10);
+    if (!name || !Number.isInteger(qty) || qty <= 0) {
+        notifyUser(t('wizard.item_invalid'));
+        return;
+    }
+    ensureWizardInventoryState();
+    const existing = appState.wizardInventory.items.find(entry => entry && typeof entry.item === 'string' && entry.item.toLowerCase() === name.toLowerCase());
+    if (existing) {
+        existing.qty += qty;
+    } else {
+        appState.wizardInventory.items.push({ item: name, qty });
+    }
+    nameInput.value = '';
+    qtyInput.value = '';
+    renderWizardItemsList();
+}
+
+function removeWizardItem(index) {
+    ensureWizardInventoryState();
+    if (!Number.isInteger(index)) {
+        return;
+    }
+    appState.wizardInventory.items.splice(index, 1);
+    renderWizardItemsList();
+}
+
+function getWizardInitialTreasury() {
+    ensureWizardInventoryState();
+    const treasury = {};
+    const inputs = document.querySelectorAll('#wizard-treasury-list input[data-currency]');
+    if (!inputs.length) {
+        return { ...appState.wizardInventory.treasury };
+    }
+    inputs.forEach(input => {
+        const currency = input.dataset.currency;
+        const parsed = parseInt(input.value, 10);
+        treasury[currency] = Number.isInteger(parsed) && parsed >= 0 ? parsed : 0;
+        appState.wizardInventory.treasury[currency] = treasury[currency];
+    });
+    return treasury;
+}
+
+function getWizardInitialInventory() {
+    ensureWizardInventoryState();
+    return appState.wizardInventory.items
+        .filter(entry => entry && typeof entry.item === 'string' && entry.item.trim())
+        .map(entry => ({ item: entry.item.trim(), qty: entry.qty }))
+        .filter(entry => Number.isInteger(entry.qty) && entry.qty > 0);
+}
+
 function populatePlayerClassSelect(selectEl, selectedValues = []) {
     if (!selectEl) {
         return;
@@ -866,6 +1024,7 @@ function initPlayerWizard() {
     loadPlayerClassOptions().then(() => {
         populateAllPlayerClassSelects();
         renderPlayersList();
+        renderWizardInventoryPanel();
     });
 }
 
@@ -970,6 +1129,8 @@ function createSession() {
             classes
         };
     });
+    const initialTreasury = getWizardInitialTreasury();
+    const initialInventory = getWizardInitialInventory();
 
     if (players.length > 0 && players.some(player => !player.name || player.classes.length === 0)) {
         notifyUser(t('alerts.fill_name_class'));
@@ -981,7 +1142,14 @@ function createSession() {
     // Rufe API auf
     if (window.pywebview && window.pywebview.api) {
         window.pywebview.api.create_session(
-            sessionName, bastionName, bastionLocation, bastionDescription, dmName, players
+            sessionName,
+            bastionName,
+            bastionLocation,
+            bastionDescription,
+            dmName,
+            players,
+            initialTreasury,
+            initialInventory
         ).then(response => {
             if (response.success) {
                 logClient('info', 'Session created successfully');
@@ -1013,7 +1181,9 @@ function createSession() {
         appState.session.bastion = { 
             name: bastionName, 
             location: bastionLocation, 
-            description: bastionDescription 
+            description: bastionDescription,
+            treasury: initialTreasury,
+            inventory: initialInventory
         };
         appState.session.players = players;
         

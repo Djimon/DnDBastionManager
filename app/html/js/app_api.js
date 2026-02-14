@@ -269,6 +269,9 @@ async function loadCurrencyModel() {
             if (typeof renderTreasuryControls === 'function') {
                 renderTreasuryControls();
             }
+            if (typeof renderWizardInventoryPanel === 'function') {
+                renderWizardInventoryPanel();
+            }
         }
     } catch (err) {
         logClient('error', `Failed to load currency model: ${err}`);

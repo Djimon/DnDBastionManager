@@ -31,6 +31,14 @@
     "bastion_location_placeholder": "e.g. 'Waterdeep, Dock Ward'",
     "bastion_description": "Description:",
     "bastion_description_placeholder": "Narrative description of the bastion...",
+    "start_inventory": "Start Inventory",
+    "start_treasury": "Starting Treasury",
+    "start_items": "Starting Items",
+    "add_item": "+ Add Item",
+    "item_name_placeholder": "Item name",
+    "item_qty_placeholder": "Qty",
+    "items_empty": "No starting items",
+    "item_invalid": "Please enter an item name and quantity.",
     "players_register": "Register Players",
     "player_name": "Character Name:",
     "player_name_placeholder": "Character Name",
@@ -437,7 +445,8 @@
     "turn_short_singular": "{count}T",
     "turn_short_plural": "{count}T",
     "turn_unknown": "? Turns",
-    "unknown": "?"
+    "unknown": "?",
+    "remove": "Remove"
   },
   "events": {
     "history_button": "Event History",

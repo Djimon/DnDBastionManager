@@ -87,8 +87,17 @@ class Api:
     
     # ===== SLICE 1: SESSION LIFECYCLE =====
     
-    def create_session(self, session_name: str, bastion_name: str, bastion_location: str, 
-                      bastion_description: str, dm_name: str, players: list) -> dict:
+    def create_session(
+        self,
+        session_name: str,
+        bastion_name: str,
+        bastion_location: str,
+        bastion_description: str,
+        dm_name: str,
+        players: list,
+        initial_treasury: dict = None,
+        initial_inventory: list = None,
+    ) -> dict:
         """
         Erstelle eine neue Session (Wizard Step 1).
         
@@ -106,7 +115,9 @@ class Api:
                 bastion_location=bastion_location,
                 bastion_description=bastion_description,
                 dm_name=dm_name,
-                players=players
+                players=players,
+                initial_treasury=initial_treasury,
+                initial_inventory=initial_inventory,
             )
             self._stats_registry.apply_to_session(state)
             self._ensure_treasury_keys(state)

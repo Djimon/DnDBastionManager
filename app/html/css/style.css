@@ -1020,6 +1020,84 @@ legend {
     color: var(--text-dark);
 }
 
+.wizard-start-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1.5rem;
+}
+
+.wizard-start-block {
+    flex: 1 1 240px;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.wizard-start-block h4 {
+    font-size: 1rem;
+    margin: 0;
+}
+
+.wizard-treasury-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.wizard-treasury-row {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.wizard-treasury-row label {
+    min-width: 90px;
+    font-weight: 600;
+}
+
+.wizard-treasury-row input {
+    max-width: 140px;
+}
+
+.wizard-item-inputs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    align-items: center;
+}
+
+.wizard-items-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.wizard-item-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    padding: 0.4rem 0.6rem;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    background: var(--surface);
+}
+
+.wizard-item-meta {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.wizard-item-name {
+    font-weight: 600;
+}
+
+.wizard-item-qty {
+    color: var(--text-light);
+    font-size: 0.9rem;
+}
+
 .form-group input:focus,
 .form-group textarea:focus,
 .form-group select:focus {

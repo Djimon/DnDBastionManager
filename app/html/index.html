@@ -74,6 +74,26 @@
                             </div>
                         </fieldset>
 
+                        <!-- Start Inventory -->
+                        <fieldset>
+                            <legend data-i18n="wizard.start_inventory">Start-Inventar</legend>
+                            <div class="wizard-start-grid">
+                                <div class="wizard-start-block">
+                                    <h4 data-i18n="wizard.start_treasury">Start-Treasury</h4>
+                                    <div id="wizard-treasury-list" class="wizard-treasury-list"></div>
+                                </div>
+                                <div class="wizard-start-block">
+                                    <h4 data-i18n="wizard.start_items">Start-Items</h4>
+                                    <div class="wizard-item-inputs">
+                                        <input type="text" id="wizard-item-name" data-i18n-placeholder="wizard.item_name_placeholder" placeholder="Item-Name" />
+                                        <input type="number" id="wizard-item-qty" min="1" data-i18n-placeholder="wizard.item_qty_placeholder" placeholder="1" />
+                                        <button class="btn btn-secondary btn-small" onclick="addWizardItem()" data-i18n="wizard.add_item">+ Add Item</button>
+                                    </div>
+                                    <div id="wizard-items-list" class="wizard-items-list"></div>
+                                </div>
+                            </div>
+                        </fieldset>
+
                         <!-- Player Registry -->
                         <fieldset>
                             <legend data-i18n="wizard.players_register">Spieler registrieren</legend>

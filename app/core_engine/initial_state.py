@@ -24,6 +24,8 @@ class InitialStateGenerator:
         initial_gold: int = 0,
         initial_silver: int = 0,
         initial_copper: int = 0,
+        initial_treasury: Dict[str, Any] = None,
+        initial_inventory: List[Dict[str, Any]] = None,
     ) -> Dict[str, Any]:
         """
         Erstelle einen neuen Session-State mit all den leeren/initialen Werten.
@@ -37,6 +39,8 @@ class InitialStateGenerator:
             dm_name: Name des DMs
             players: Liste der Spieler
             initial_gold/silver/copper: Startwerte Wallet
+            initial_treasury: optionale Treasury-Overrides (beliebige Waehrungen)
+            initial_inventory: optionale Start-Items [{item, qty}, ...]
         
         Returns:
             Kompletter Session-State als Dict
@@ -45,6 +49,38 @@ class InitialStateGenerator:
         today = datetime.now().strftime("%Y-%m-%d")
         session_slug = sanitize_filename(session_name, fallback="session")
         
+        treasury = {
+            "gold": initial_gold,
+            "silver": initial_silver,
+            "copper": initial_copper,
+        }
+        if isinstance(initial_treasury, dict):
+            for currency, amount in initial_treasury.items():
+                if not isinstance(currency, str) or not currency:
+                    continue
+                if isinstance(amount, bool):
+                    continue
+                if isinstance(amount, int) and amount >= 0:
+                    treasury[currency] = amount
+                elif isinstance(amount, float) and amount >= 0 and amount.is_integer():
+                    treasury[currency] = int(amount)
+
+        inventory: List[Dict[str, Any]] = []
+        if isinstance(initial_inventory, list):
+            for entry in initial_inventory:
+                if not isinstance(entry, dict):
+                    continue
+                name = entry.get("item") or entry.get("name")
+                qty = entry.get("qty") if "qty" in entry else entry.get("quantity")
+                if not isinstance(name, str) or not name.strip():
+                    continue
+                if isinstance(qty, bool):
+                    continue
+                if isinstance(qty, int) and qty > 0:
+                    inventory.append({"item": name.strip(), "qty": qty})
+                elif isinstance(qty, float) and qty > 0 and qty.is_integer():
+                    inventory.append({"item": name.strip(), "qty": int(qty)})
+
         state = {
             # ===== METADATA =====
             "session_id": f"session_{session_slug}_{datetime.now().strftime('%Y%m%d_%H%M%S')}",
@@ -60,13 +96,9 @@ class InitialStateGenerator:
                 "location": bastion_location,
                 "description": bastion_description,
                 
-                "treasury": {
-                    "gold": initial_gold,
-                    "silver": initial_silver,
-                    "copper": initial_copper,
-                },
+                "treasury": treasury,
                 
-                "inventory": [],  # [{ item, qty }, ...]
+                "inventory": inventory,  # [{ item, qty }, ...]
 
                 "stats": {},  # { stat_name: value }
                 
