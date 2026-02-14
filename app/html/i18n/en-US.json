@@ -39,6 +39,7 @@
     "item_qty_placeholder": "Qty",
     "items_empty": "No starting items",
     "item_invalid": "Please enter an item name and quantity.",
+    "treasury_empty": "No starting treasury",
     "players_register": "Register Players",
     "player_name": "Character Name:",
     "player_name_placeholder": "Character Name",

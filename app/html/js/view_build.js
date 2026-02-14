@@ -565,42 +565,27 @@ function ensureWizardInventoryState() {
 }
 
 function renderWizardTreasuryInputs() {
-    const list = document.getElementById('wizard-treasury-list');
-    if (!list) {
+    const currencySelect = document.getElementById('wizard-treasury-currency');
+    if (!currencySelect) {
         return;
     }
     ensureWizardInventoryState();
-    list.innerHTML = '';
     const currencies = getCurrencyOrder();
+    const previous = currencySelect.value;
+    currencySelect.innerHTML = '';
     currencies.forEach(currency => {
-        const row = document.createElement('div');
-        row.className = 'treasury-row';
-
-        const label = document.createElement('label');
-        label.setAttribute('for', `wizard-treasury-${currency}`);
-        label.className = 'treasury-label';
-        label.textContent = currency;
-
-        const input = document.createElement('input');
-        input.type = 'number';
-        input.min = '0';
-        input.id = `wizard-treasury-${currency}`;
-        input.dataset.currency = currency;
-        input.className = 'treasury-input';
-        const current = appState.wizardInventory.treasury[currency];
-        if (!Number.isInteger(current) || current < 0) {
-            appState.wizardInventory.treasury[currency] = 0;
+        const option = document.createElement('option');
+        option.value = currency;
+        option.textContent = currency;
+        if (previous && previous === currency) {
+            option.selected = true;
         }
-        input.value = String(appState.wizardInventory.treasury[currency]);
-        input.addEventListener('input', () => {
-            const parsed = parseInt(input.value, 10);
-            appState.wizardInventory.treasury[currency] = Number.isInteger(parsed) && parsed >= 0 ? parsed : 0;
-        });
-
-        row.appendChild(label);
-        row.appendChild(input);
-        list.appendChild(row);
+        currencySelect.appendChild(option);
     });
+    if (!currencySelect.value && currencies.length) {
+        currencySelect.value = currencies[0];
+    }
+    renderWizardTreasuryList();
 }
 
 function renderWizardItemsList() {
@@ -658,6 +643,53 @@ function renderWizardInventoryPanel() {
     renderWizardItemsList();
 }
 
+function renderWizardTreasuryList() {
+    const list = document.getElementById('wizard-treasury-display');
+    if (!list) {
+        return;
+    }
+    ensureWizardInventoryState();
+    list.innerHTML = '';
+    const entries = Object.entries(appState.wizardInventory.treasury || {})
+        .filter(([, amount]) => Number.isInteger(amount) && amount > 0);
+    if (!entries.length) {
+        const empty = document.createElement('div');
+        empty.className = 'text-muted';
+        empty.textContent = t('wizard.treasury_empty');
+        list.appendChild(empty);
+        return;
+    }
+    entries.forEach(([currency, amount]) => {
+        const line = document.createElement('div');
+        line.className = 'inventory-wallet-line';
+        line.textContent = `${amount} ${currency}`;
+        list.appendChild(line);
+    });
+}
+
+function adjustWizardTreasury(mode = 'add') {
+    const amountEl = document.getElementById('wizard-treasury-amount');
+    const currencyEl = document.getElementById('wizard-treasury-currency');
+    if (!amountEl || !currencyEl) {
+        return;
+    }
+    const amount = parseInt(amountEl.value, 10);
+    const currency = currencyEl.value;
+    if (!Number.isInteger(amount) || amount <= 0 || !currency) {
+        notifyUser(t('treasury.invalid'));
+        return;
+    }
+    ensureWizardInventoryState();
+    const current = Number.isInteger(appState.wizardInventory.treasury[currency])
+        ? appState.wizardInventory.treasury[currency]
+        : 0;
+    const delta = mode === 'remove' ? -amount : amount;
+    const next = Math.max(current + delta, 0);
+    appState.wizardInventory.treasury[currency] = next;
+    amountEl.value = '';
+    renderWizardTreasuryList();
+}
+
 function addWizardItem() {
     const nameInput = document.getElementById('wizard-item-name');
     const qtyInput = document.getElementById('wizard-item-qty');
@@ -693,18 +725,7 @@ function removeWizardItem(index) {
 
 function getWizardInitialTreasury() {
     ensureWizardInventoryState();
-    const treasury = {};
-    const inputs = document.querySelectorAll('#wizard-treasury-list input[data-currency]');
-    if (!inputs.length) {
-        return { ...appState.wizardInventory.treasury };
-    }
-    inputs.forEach(input => {
-        const currency = input.dataset.currency;
-        const parsed = parseInt(input.value, 10);
-        treasury[currency] = Number.isInteger(parsed) && parsed >= 0 ? parsed : 0;
-        appState.wizardInventory.treasury[currency] = treasury[currency];
-    });
-    return treasury;
+    return { ...appState.wizardInventory.treasury };
 }
 
 function getWizardInitialInventory() {

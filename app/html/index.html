@@ -101,7 +101,15 @@
                             <div class="inventory-manage-body">
                                 <section class="inventory-manage-card">
                                     <h4 data-i18n="wizard.start_treasury">Start-Treasury</h4>
-                                    <div id="wizard-treasury-list" class="wizard-treasury-list"></div>
+                                    <div class="wizard-treasury-panel">
+                                        <div class="treasury-row">
+                                            <input type="number" id="wizard-treasury-amount" class="treasury-input" min="0" step="1" placeholder="0" />
+                                            <select id="wizard-treasury-currency" class="treasury-select"></select>
+                                            <button class="btn btn-success btn-small" onclick="adjustWizardTreasury('add')" data-i18n="treasury.mode_add">Add</button>
+                                            <button class="btn btn-danger btn-small" onclick="adjustWizardTreasury('remove')" data-i18n="treasury.mode_remove">Remove</button>
+                                        </div>
+                                        <div id="wizard-treasury-display" class="inventory-wallet-list"></div>
+                                    </div>
                                 </section>
                                 <section class="inventory-manage-card">
                                     <h4 data-i18n="wizard.start_items">Start-Items</h4>

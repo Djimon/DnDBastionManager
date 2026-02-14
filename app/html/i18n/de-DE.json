@@ -39,6 +39,7 @@
     "item_qty_placeholder": "Menge",
     "items_empty": "Keine Start-Items",
     "item_invalid": "Bitte Item-Name und Menge angeben.",
+    "treasury_empty": "Keine Start-Werte",
     "players_register": "Spieler registrieren",
     "player_name": "Character-Name:",
     "player_name_placeholder": "Character Name",

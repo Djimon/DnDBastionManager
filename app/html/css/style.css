@@ -1020,16 +1020,25 @@ legend {
     color: var(--text-dark);
 }
 
-.wizard-treasury-list {
+.wizard-items-list {
     display: flex;
     flex-direction: column;
     gap: 0.5rem;
 }
 
-.wizard-items-list {
+.wizard-treasury-panel {
     display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
+    align-items: flex-start;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.wizard-treasury-panel .treasury-row {
+    flex: 1 1 240px;
+}
+
+.wizard-treasury-panel .inventory-wallet-list {
+    min-width: 160px;
 }
 
 .wizard-item-meta {
