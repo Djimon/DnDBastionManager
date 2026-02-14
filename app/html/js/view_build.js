@@ -643,6 +643,21 @@ function renderWizardInventoryPanel() {
     renderWizardItemsList();
 }
 
+function normalizeWizardTreasury() {
+    ensureWizardInventoryState();
+    const model = getCurrencyModel();
+    if (!model || !model.factor_to_base) {
+        return appState.wizardInventory.treasury;
+    }
+    const baseValue = computeBaseValue(appState.wizardInventory.treasury, model.factor_to_base);
+    if (typeof baseValue !== 'number') {
+        return appState.wizardInventory.treasury;
+    }
+    const normalized = normalizeBaseToWallet(baseValue, model) || {};
+    appState.wizardInventory.treasury = normalized;
+    return normalized;
+}
+
 function renderWizardTreasuryList() {
     const list = document.getElementById('wizard-treasury-display');
     if (!list) {
@@ -650,7 +665,8 @@ function renderWizardTreasuryList() {
     }
     ensureWizardInventoryState();
     list.innerHTML = '';
-    const entries = Object.entries(appState.wizardInventory.treasury || {})
+    const normalized = normalizeWizardTreasury();
+    const entries = Object.entries(normalized || {})
         .filter(([, amount]) => Number.isInteger(amount) && amount > 0);
     if (!entries.length) {
         const empty = document.createElement('div');
@@ -659,7 +675,17 @@ function renderWizardTreasuryList() {
         list.appendChild(empty);
         return;
     }
-    entries.forEach(([currency, amount]) => {
+    const order = typeof getCurrencyDisplayOrder === 'function'
+        ? getCurrencyDisplayOrder()
+        : getCurrencyOrder();
+    order.forEach(currency => {
+        if (!Object.prototype.hasOwnProperty.call(normalized, currency)) {
+            return;
+        }
+        const amount = normalized[currency];
+        if (!Number.isInteger(amount) || amount <= 0) {
+            return;
+        }
         const line = document.createElement('div');
         line.className = 'inventory-wallet-line';
         line.textContent = `${amount} ${currency}`;
@@ -680,12 +706,17 @@ function adjustWizardTreasury(mode = 'add') {
         return;
     }
     ensureWizardInventoryState();
-    const current = Number.isInteger(appState.wizardInventory.treasury[currency])
-        ? appState.wizardInventory.treasury[currency]
-        : 0;
-    const delta = mode === 'remove' ? -amount : amount;
-    const next = Math.max(current + delta, 0);
-    appState.wizardInventory.treasury[currency] = next;
+    const model = getCurrencyModel();
+    const factor = model && model.factor_to_base ? model.factor_to_base[currency] : null;
+    if (!factor) {
+        notifyUser(t('treasury.invalid'));
+        return;
+    }
+    const currentBase = computeBaseValue(appState.wizardInventory.treasury, model.factor_to_base);
+    const deltaBase = (mode === 'remove' ? -amount : amount) * factor;
+    const nextBase = Math.max((typeof currentBase === 'number' ? currentBase : 0) + deltaBase, 0);
+    const normalized = normalizeBaseToWallet(nextBase, model) || {};
+    appState.wizardInventory.treasury = normalized;
     amountEl.value = '';
     renderWizardTreasuryList();
 }

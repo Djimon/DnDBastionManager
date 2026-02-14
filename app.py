@@ -84,6 +84,33 @@ class Api:
             self._ledger.get_treasury_base(session_state)
         except Exception as e:
             logger.warning(f"Failed to ensure treasury_base: {e}")
+
+    def _ensure_treasury_base_from_wallet(self, session_state: dict) -> None:
+        if not isinstance(session_state, dict):
+            return
+        bastion = session_state.get("bastion")
+        if not isinstance(bastion, dict):
+            return
+        existing_base = bastion.get("treasury_base")
+        if isinstance(existing_base, (int, float)) and not isinstance(existing_base, bool):
+            return
+        treasury = bastion.get("treasury")
+        if not isinstance(treasury, dict):
+            return
+        factors = self._ledger.factor_to_base
+        if not isinstance(factors, dict):
+            return
+        total = 0.0
+        for currency, amount in treasury.items():
+            if not isinstance(currency, str) or currency not in factors:
+                continue
+            if isinstance(amount, bool):
+                continue
+            if isinstance(amount, int):
+                total += amount * factors[currency]
+            elif isinstance(amount, float) and amount.is_integer():
+                total += int(amount) * factors[currency]
+        bastion["treasury_base"] = total
     
     # ===== SLICE 1: SESSION LIFECYCLE =====
     
@@ -121,6 +148,7 @@ class Api:
             )
             self._stats_registry.apply_to_session(state)
             self._ensure_treasury_keys(state)
+            self._ensure_treasury_base_from_wallet(state)
             self._ensure_treasury_base(state)
             logger.debug(f"Generated state with session_id: {state.get('session_id')}")
             
@@ -168,6 +196,7 @@ class Api:
             
             if not state_to_save:
                 return {"success": False, "message": "No session to save"}
+            self._ensure_treasury_base_from_wallet(state_to_save)
             self._ensure_treasury_base(state_to_save)
             success, message = self._session_manager.create_session(state_to_save)
             return {"success": success, "message": message}

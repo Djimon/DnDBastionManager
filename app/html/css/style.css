@@ -1041,6 +1041,12 @@ legend {
     min-width: 160px;
 }
 
+.wizard-treasury-summary {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+}
+
 .wizard-item-meta {
     display: flex;
     align-items: center;

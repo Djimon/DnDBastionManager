@@ -40,6 +40,7 @@
     "items_empty": "Keine Start-Items",
     "item_invalid": "Bitte Item-Name und Menge angeben.",
     "treasury_empty": "Keine Start-Werte",
+    "treasury_current": "Aktuelle Startwerte",
     "players_register": "Spieler registrieren",
     "player_name": "Character-Name:",
     "player_name_placeholder": "Character Name",
