@@ -19,7 +19,7 @@ my_first_pack.json
 
   "facilities": [
     {
-      "id": "my.garden:t1",
+      "id": "my.first.pack:garden:t1",
       "name": "Small Garden",
       "description": "Produces a few herbs each turn.",
 
@@ -40,14 +40,14 @@ my_first_pack.json
 Diese Datei definiert: 
 - ein Pack
 - eine Facility
-- Baukosten & Dauer kommen aus den globalen Defaults (Settings)
+- Baukosten & Dauer kommen aus den globalen Defaults (bastion_config.json, optional ueberschrieben durch settings.json)
 - Platz für 1 NPC
 - noch keine Orders
 
 Das reicht bereits, damit die Facility im Tool auftaucht und gebaut werden kann.
 
 **Wichtig:** `build` ist optional. Wenn `build` fehlt oder `build.cost`/`build.duration_turns` nicht gesetzt sind,
-nutzt das System automatisch die globalen Defaults aus `settings.json` (`default_build_costs`).
+nutzt das System automatisch die globalen Defaults aus `bastion_config.json` (ggf. durch `settings.json` ueberschrieben).
 
 ---
 
@@ -59,6 +59,7 @@ Sie enthält:
 
 - allgemeine Pack-Informationen
 - eine Liste von Facilities
+- optional Konfigurationen (config)
 - optional zusätzliche Systeme (Custom Mechanics)
 
 
@@ -71,6 +72,9 @@ Sie enthält:
   "name": "Pack Name",
   "version": 1,
   "author": "Your Name",
+
+  "config": {
+  },
 
   "facilities": [
     { }
@@ -105,8 +109,14 @@ Beispiel:
 
 **author**: Optional. Nur Anzeigezweck.
 
+**config** (Optional): Pack-spezifische Config-Erweiterungen. Erlaubt:
+- currency (types + conversion)
+- check_profiles
+- player_classes
+Damit kannst du reine Config-Packs bauen, ohne Facilities zu definieren.
 
-### facilities (Pflicht)
+
+### facilities (Optional)
 Liste aller Facilities in diesem Pack.
 
 Hier definierst du:
@@ -116,7 +126,8 @@ Hier definierst du:
 - Orders
 - Effekte
 
-Ohne dieses Feld passiert nichts.
+Wenn das Feld fehlt, ist das Pack trotzdem gueltig (z. B. reine Konfig-Packs).
+Wenn es vorhanden aber leer ist, bekommst du eine Warnung.
 
 ### custom_mechanics (Optional)
 Nur für fortgeschrittene Features.
@@ -129,7 +140,7 @@ Für normale Facilities nicht nötig.
 
 Wenn du unsicher bist: einfach weglassen.
 
-## Minimalstruktur
+## Minimalstruktur (Facility-Pack)
 ```json
 {
   "pack_id": "my.pack",
@@ -140,6 +151,17 @@ Wenn du unsicher bist: einfach weglassen.
 ```
 
 Alles andere ist optional.
+
+## Minimalstruktur (Config-Only Pack)
+```json
+{
+  "pack_id": "my.pack",
+  "name": "My Pack",
+  "version": 1,
+  "config": {
+  }
+}
+```
 
 ---
 
@@ -159,7 +181,7 @@ Du definierst hier:
 ## Komplette Beispielstruktur
 ```json
 {
-  "id": "core.garden:garden:t1",
+  "id": "core:garden:t1",
   "name": "Garden",
   "description": "Produces herbs and simple ingredients.",
 
@@ -188,11 +210,12 @@ Regeln:
 - keine Leerzeichen
 - bleibt dauerhaft stabil (nicht später umbenennen)
 
-Empfehlung: *pack.facility:tier*
+Empfehlung: *pack_id:facility:tX*
 
 Beispiele:
 ```text
-core.garden:garden:t1
+core:garden:t1
+core.extended:shop:t2
 my.alchemy:lab:t2
 ```
 
@@ -208,13 +231,13 @@ Typisch:
 3 = großes Upgrade
 
 **parent (Pflicht)**: Verweist auf die vorherige Stufe. So weiß das System: Diese Facility ist ein Upgrade einer anderen.
-Tier 1 (core.garden:garden:**t1**):
+Tier 1 (core:garden:**t1**):
 ```json
  parent: null
  ```
-Tier 2 (core.garden:garden:**t2**):
+Tier 2 (core:garden:**t2**):
 ```json
- "parent": "core.garden:garden:t1"
+ "parent": "core:garden:t1"
  ```
 
 
@@ -228,7 +251,7 @@ Beispiel:
 ```
 - cost → Ressourcen die bezahlt werden
 - duration_turns → wie viele Runden der Bau dauert
-Wenn `build` oder einzelne Felder fehlen, werden die globalen Defaults aus `settings.json` verwendet.
+Wenn `build` oder einzelne Felder fehlen, werden die globalen Defaults aus `bastion_config.json` verwendet (optional durch `settings.json` ueberschrieben).
 
 
 **npc_slots (Pflicht)**: Wie viele NPCs hier gleichzeitig arbeiten können.
@@ -290,7 +313,7 @@ Beispiel: Tier 1 → Tier 2
 ```json
 [
   {
-    "id": "core.garden:garden:t1",
+    "id": "core:garden:t1",
     "name": "Small Garden",
     "tier": 1,
     "parent": null,
@@ -305,10 +328,10 @@ Beispiel: Tier 1 → Tier 2
   },
 
   {
-    "id": "core.garden:garden:t2",
+    "id": "core:garden:t2",
     "name": "Expanded Garden",
     "tier": 2,
-    "parent": "core.garden:garden:t1",
+    "parent": "core:garden:t1",
 
     "build": {
       "cost": { "gold": 500 },
@@ -658,7 +681,7 @@ Nutze es als Vorlage oder kopiere Teile davon.
   "facilities": [
 
     {
-      "id": "example.garden:t1",
+      "id": "example.herbalism:garden:t1",
       "name": "Small Herbal Garden",
       "description": "A small patch for growing basic herbs.",
 
@@ -735,12 +758,12 @@ Nutze es als Vorlage oder kopiere Teile davon.
     },
 
     {
-      "id": "example.garden:t2",
+      "id": "example.herbalism:garden:t2",
       "name": "Expanded Herbal Garden",
       "description": "Larger fields and better tools increase production.",
 
       "tier": 2,
-      "parent": "example.garden:t1",
+      "parent": "example.herbalism:garden:t1",
 
       "build": {
         "cost": { "gold": 500 },
@@ -884,16 +907,22 @@ Im Grunde nur ein zusätzlicher Zähler.
 Minimalbeispiel
 ```json
 {
+  "id": "reputation",
   "name": "Public Reputation",
   "type": "stat_counter",
   "config": {
     "custom_stat_name": "reputation",
     "min_value": -10,
     "max_value": 10,
-    "start": 0
+    "start": 0,
+    "name": "Reputation"
   }
 }
 ```
+
+Hinweis:
+- Der Stat-Key kommt aus `custom_stat_name`, sonst aus `id`/`name`.
+- `min`/`max` sind ebenfalls erlaubt (Alternative zu `min_value`/`max_value`).
 
 Viele einfache Systeme brauchen gar keine extra Mechanik, weil normale "stat" Effects schon reichen.
 #### Verwendung in Orders
@@ -1052,7 +1081,7 @@ Beispiel-Inputs:
   { "trigger": "pub_income" }
 ]
 ```
-der Effect ```trigger``` ruft die Mechanik mit dieser ID auf. UI-Inputs sind `number` und `check`. `stat`, `item`, `currency` kommen automatisch aus dem Session-State.
+der Effect ```trigger``` ruft die Mechanik mit dieser ID oder dem `name` auf. UI-Inputs sind `number` und `check`. `stat`, `item`, `currency` kommen automatisch aus dem Session-State.
 
 ### market_tracker
 
@@ -1142,7 +1171,7 @@ Wenn etwas schwer zu lesen ist → vereinfachen.
 
 Gut:
 ```text
-core.garden:garden:t1
+core:garden:t1
 brew_potions
 bulk_harvest
 ```
@@ -1198,14 +1227,14 @@ Ein DM sollte sofort verstehen:
 
 ## Zahlen & Formate
 
-✔ currency immer als Objekt
+currency immer als Objekt
 ``` { "gold": 10 }```
 
-✔ qty als Zahl oder einfache Expression
+qty als Zahl oder einfache Expression
 - ```-2```
 - ```"-${consumption}"```
 
-✔ keine Strings für Zahlen
+keine Strings für Zahlen
   nicht: ```"10"```, sondern: ```10```
 
 
@@ -1226,17 +1255,17 @@ Faustregel: Brauche ich wirklich Berechnungen?
 - JA → formula_engine  
 
 Brauche ich nur einen Zähler?
-→ stat_counter
+- stat_counter
 
 Brauche ich Marktpreise?
-→ market_tracker
+- market_tracker
 
 Sonst: weglassen.
 
 ## Komplexität vermeiden
 
 Wenn du beim Schreiben denkst: "Das wird kompliziert..."
-→ aufteilen.
+- aufteilen.
 
 Statt: eine riesige Formel
 

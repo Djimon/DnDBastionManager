@@ -1,5 +1,5 @@
 ﻿# DnD Bastion Manager
-![Status](https://img.shields.io/badge/status-WIP-yellow)
+![Status](https://img.shields.io/badge/status-v1.0-brightgreen)
 ![Tech/Engine](https://img.shields.io/badge/tech%2Fengine-pywebview-2A2A2A)
 ![Language](https://img.shields.io/badge/language-Python%20%7C%20JavaScript-3776AB)
 ![Docs](https://img.shields.io/badge/docs-concepts-brightgreen)
@@ -53,7 +53,8 @@ flowchart TD
 ```
 
 ## Status
-Status: Prototype in active development.
+Status: v1.0 released (2026-02-14).
+Build/Release notes: see `RELEASE.md`.
 
 
 ## Docs
