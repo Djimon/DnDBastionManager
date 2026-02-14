@@ -126,6 +126,62 @@ function renderOrderProgressIndicators(facilityId) {
     });
 }
 
+function getUpgradeDurationTurns(facilityId, entry) {
+    const status = entry && entry.build_status && entry.build_status.status;
+    if (status !== 'upgrading') {
+        return null;
+    }
+    const targetId = entry.build_status.target_id;
+    if (targetId) {
+        const targetDef = appState.facilityById[targetId];
+        const build = targetDef && typeof targetDef.build === 'object' ? targetDef.build : null;
+        if (build && Number.isInteger(build.duration_turns) && build.duration_turns > 0) {
+            return build.duration_turns;
+        }
+    }
+    const currentDef = appState.facilityById[facilityId];
+    const tier = currentDef && Number.isInteger(currentDef.tier) ? currentDef.tier : null;
+    if (tier !== null && appState.config && appState.config.default_build_costs) {
+        const key = `upgrade_tier_${tier}`;
+        const defaults = appState.config.default_build_costs[key];
+        if (defaults && Number.isInteger(defaults.duration_turns) && defaults.duration_turns > 0) {
+            return defaults.duration_turns;
+        }
+    }
+    return null;
+}
+
+function renderUpgradeProgressIndicator(facilityId) {
+    const wrap = document.getElementById('detail-upgrade-progress-wrap');
+    const container = document.getElementById('detail-upgrade-progress');
+    if (!wrap || !container) {
+        return;
+    }
+    container.innerHTML = '';
+
+    const entry = getFacilityEntry(facilityId);
+    const stateEntry = (appState.facilityStates || []).find(item => item && item.facility_id === facilityId);
+    if (!entry || !stateEntry || stateEntry.state !== 'upgrading') {
+        wrap.classList.add('hidden');
+        return;
+    }
+    const remaining = Number.isInteger(stateEntry.remaining_turns) ? stateEntry.remaining_turns : null;
+    const duration = getUpgradeDurationTurns(facilityId, entry);
+    if (!Number.isInteger(remaining) || !Number.isInteger(duration) || duration <= 0) {
+        wrap.classList.add('hidden');
+        return;
+    }
+
+    wrap.classList.remove('hidden');
+    const progress = Math.min(Math.max(duration - remaining, 0), duration);
+    const badge = document.createElement('div');
+    badge.className = 'order-progress-circle upgrade-progress-circle';
+    badge.style.setProperty('--segments', Math.max(duration, 1));
+    badge.style.setProperty('--progress', Math.max(progress, 0));
+    badge.innerHTML = `<span>${remaining}</span>`;
+    container.appendChild(badge);
+}
+
 // ===== VIEW 3: TURN CONSOLE =====
 
 function selectFacility(facilityId, element = null) {
@@ -213,6 +269,7 @@ function selectFacility(facilityId, element = null) {
     renderOrdersPanel(facilityId);
     updateFacilityTabIndicators(facilityId);
     renderOrderProgressIndicators(facilityId);
+    renderUpgradeProgressIndicator(facilityId);
     renderInventoryPanel();
 }
 

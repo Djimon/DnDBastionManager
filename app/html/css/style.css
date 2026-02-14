@@ -35,6 +35,7 @@
     --status-fail-text: #9f3a2e;
     --turn-sidebar-width: clamp(16%, 18%, 22%);
     --turn-inventory-width: clamp(16%, 20%, 30%);
+    --upgrade-accent: #2f7fd6;
 }
 
 body {
@@ -73,6 +74,7 @@ body.theme-dark {
     --status-muted-text: #9aa3ab;
     --status-fail-bg: #3a2323;
     --status-fail-text: #e29a93;
+    --upgrade-accent: #5aa4ff;
 }
 
 h1,
@@ -1960,6 +1962,14 @@ body:not(.theme-dark) .placeholder-item.facility-disabled .tag {
     margin-bottom: 1rem;
 }
 
+.detail-progress-group {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+}
+
 .detail-header h3 {
     margin: 0;
 }
@@ -2013,6 +2023,18 @@ body.theme-dark .order-progress-circle {
         conic-gradient(var(--accent) 0 var(--progress-angle), var(--badge) var(--progress-angle) 360deg),
         repeating-conic-gradient(transparent 0 calc(var(--segment-angle) - 2deg), rgba(255, 255, 255, 0.35) calc(var(--segment-angle) - 2deg) var(--segment-angle));
     box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.2);
+}
+
+.order-progress-circle.upgrade-progress-circle {
+    background:
+        conic-gradient(var(--upgrade-accent) 0 var(--progress-angle), var(--badge) var(--progress-angle) 360deg),
+        repeating-conic-gradient(transparent 0 calc(var(--segment-angle) - 2deg), rgba(0, 0, 0, 0.15) calc(var(--segment-angle) - 2deg) var(--segment-angle));
+}
+
+body.theme-dark .order-progress-circle.upgrade-progress-circle {
+    background:
+        conic-gradient(var(--upgrade-accent) 0 var(--progress-angle), var(--badge) var(--progress-angle) 360deg),
+        repeating-conic-gradient(transparent 0 calc(var(--segment-angle) - 2deg), rgba(255, 255, 255, 0.35) calc(var(--segment-angle) - 2deg) var(--segment-angle));
 }
 
 .order-progress-circle::after {
