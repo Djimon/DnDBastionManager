@@ -896,6 +896,19 @@ function generatePlayerId() {
     return `player_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
 }
 
+function ensurePlayerId(player) {
+    if (!player || typeof player !== 'object') {
+        return null;
+    }
+    const current = player.player_id;
+    if (typeof current === 'string' && current.trim()) {
+        return current;
+    }
+    const created = generatePlayerId();
+    player.player_id = created;
+    return created;
+}
+
 function beginEditPlayer(index, listType = 'wizard') {
     if (!Number.isInteger(index)) {
         return;
@@ -1087,6 +1100,7 @@ function renderPlayersListInto(list) {
                     notifyUser(t('alerts.fill_name_class'));
                     return;
                 }
+                ensurePlayerId(player);
                 player.name = nextName;
                 player.level = nextLevel;
                 setPlayerClasses(player, nextClasses);
@@ -1169,7 +1183,8 @@ function addPlayerFromInputs(nameInput, classSelect, levelInput, listType = 'wiz
         return;
     }
 
-    const player = { name, level, player_id: generatePlayerId() };
+    const player = { name, level };
+    ensurePlayerId(player);
     setPlayerClasses(player, classes);
     context.players.push(player);
     renderPlayersList();
