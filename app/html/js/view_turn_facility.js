@@ -812,6 +812,7 @@ function renderOrdersPanel(facilityId) {
         updateGlobalActionLocks();
         updateFacilityTabIndicators(facilityId);
         renderOrderProgressIndicators(facilityId);
+        renderUpgradeProgressIndicator(facilityId);
         return;
     }
 
@@ -975,6 +976,7 @@ function renderOrdersPanel(facilityId) {
     updateGlobalActionLocks();
     updateFacilityTabIndicators(facilityId);
     renderOrderProgressIndicators(facilityId);
+    renderUpgradeProgressIndicator(facilityId);
 }
 
 function openFormulaInputModal(facilityId, orderId, triggerId, formulaDef, savedInputs = {}) {
