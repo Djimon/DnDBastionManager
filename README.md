@@ -58,11 +58,8 @@ Build/Release notes: see `RELEASE.md`.
 
 
 ## Docs
-- [Bastion System Concept](docs/concepts/bastion.md)
-- [UI Concept](docs/concepts/ui_concept.md)
-- [Facility How-To](docs/concepts/facility_how_to.md)
-- [Development Plan](docs/concepts/bastion_manager_Development_plan.md)
-- [Development Slices](docs/concepts/DEVELOPMENT_SLICES.md)
+- [Custom Packs How-To](dcustom_packs_how_to.md)
+
 
 ## License
 Use, forks, and reuse are allowed with attribution (e.g., in README/docs or credits).
