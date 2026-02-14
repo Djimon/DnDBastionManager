@@ -989,6 +989,17 @@ fieldset {
     grid-column: auto;
 }
 
+.wizard-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.wizard-section + .wizard-section {
+    border-top: 1px dashed var(--border);
+    padding-top: 1.25rem;
+}
+
 legend {
     padding: 0 1rem;
     font-weight: 600;
@@ -1024,6 +1035,34 @@ legend {
     display: flex;
     flex-direction: column;
     gap: 0.5rem;
+}
+
+.wizard-section-title {
+    font-size: 1rem;
+    font-weight: 600;
+    margin-bottom: 0.75rem;
+    color: var(--text-dark);
+}
+
+.wizard-player-row {
+    display: flex;
+    align-items: flex-end;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+}
+
+.wizard-player-row .form-group {
+    margin-bottom: 0;
+    flex: 1 1 180px;
+}
+
+.wizard-player-row .btn {
+    margin-bottom: 0.1rem;
+    flex: 0 0 auto;
+}
+
+.wizard-section .players-list {
+    margin-top: 1rem;
 }
 
 .wizard-treasury-panel {

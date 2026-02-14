@@ -552,6 +552,34 @@ function ensurePlayerState() {
     }
 }
 
+function ensureWizardPlayerState() {
+    if (!Array.isArray(appState.wizardPlayers)) {
+        appState.wizardPlayers = [];
+    }
+    if (!('wizardPlayerEditingIndex' in appState)) {
+        appState.wizardPlayerEditingIndex = null;
+    }
+}
+
+function resolvePlayerContext(listType) {
+    if (listType === 'management') {
+        ensurePlayerState();
+        return { players: appState.session.players, editKey: 'playerEditingIndex' };
+    }
+    ensureWizardPlayerState();
+    return { players: appState.wizardPlayers, editKey: 'wizardPlayerEditingIndex' };
+}
+
+function getPlayerEditingIndex(listType) {
+    const context = resolvePlayerContext(listType);
+    return appState[context.editKey];
+}
+
+function setPlayerEditingIndex(listType, value) {
+    const context = resolvePlayerContext(listType);
+    appState[context.editKey] = value;
+}
+
 function ensureWizardInventoryState() {
     if (!appState.wizardInventory || typeof appState.wizardInventory !== 'object') {
         appState.wizardInventory = { treasury: {}, items: [] };
@@ -861,16 +889,16 @@ function sanitizePlayerLevel(raw) {
     return 1;
 }
 
-function beginEditPlayer(index) {
+function beginEditPlayer(index, listType = 'wizard') {
     if (!Number.isInteger(index)) {
         return;
     }
-    appState.playerEditingIndex = index;
+    setPlayerEditingIndex(listType, index);
     renderPlayersList();
 }
 
-function cancelEditPlayer() {
-    appState.playerEditingIndex = null;
+function cancelEditPlayer(listType = 'wizard') {
+    setPlayerEditingIndex(listType, null);
     renderPlayersList();
 }
 
@@ -896,7 +924,13 @@ function populateAllPlayerClassSelects() {
 function renderPlayersListInto(list) {
     list.innerHTML = '';
 
-    if (appState.session.players.length === 0) {
+    const listType = list && list.dataset && list.dataset.playerList === 'management'
+        ? 'management'
+        : 'wizard';
+    const context = resolvePlayerContext(listType);
+    const players = context.players;
+
+    if (players.length === 0) {
         const empty = document.createElement('p');
         empty.className = 'text-muted players-empty';
         empty.textContent = t('wizard.players_empty');
@@ -904,7 +938,7 @@ function renderPlayersListInto(list) {
         return;
     }
 
-    appState.session.players.forEach((player, index) => {
+    players.forEach((player, index) => {
         const row = document.createElement('div');
         row.className = 'player-item';
         const classes = normalizePlayerClasses(player);
@@ -973,13 +1007,13 @@ function renderPlayersListInto(list) {
         editBtn.type = 'button';
         editBtn.className = 'btn btn-secondary btn-small';
         editBtn.textContent = t('wizard.edit_player');
-        editBtn.addEventListener('click', () => beginEditPlayer(index));
+        editBtn.addEventListener('click', () => beginEditPlayer(index, listType));
 
         const removeBtn = document.createElement('button');
         removeBtn.type = 'button';
         removeBtn.className = 'btn btn-danger btn-small';
         removeBtn.textContent = t('wizard.remove_player');
-        removeBtn.addEventListener('click', () => removePlayer(index));
+        removeBtn.addEventListener('click', () => removePlayer(index, listType));
 
         actions.appendChild(editBtn);
         actions.appendChild(removeBtn);
@@ -989,7 +1023,7 @@ function renderPlayersListInto(list) {
 
         row.appendChild(summary);
 
-        if (appState.playerEditingIndex === index) {
+        if (getPlayerEditingIndex(listType) === index) {
             const edit = document.createElement('div');
             edit.className = 'player-edit';
 
@@ -1032,7 +1066,7 @@ function renderPlayersListInto(list) {
             cancelBtn.type = 'button';
             cancelBtn.className = 'btn btn-secondary btn-small';
             cancelBtn.textContent = t('wizard.cancel_edit');
-            cancelBtn.addEventListener('click', () => cancelEditPlayer());
+            cancelBtn.addEventListener('click', () => cancelEditPlayer(listType));
 
             const saveBtn = document.createElement('button');
             saveBtn.type = 'button';
@@ -1049,7 +1083,7 @@ function renderPlayersListInto(list) {
                 player.name = nextName;
                 player.level = nextLevel;
                 setPlayerClasses(player, nextClasses);
-                appState.playerEditingIndex = null;
+                setPlayerEditingIndex(listType, null);
                 renderPlayersList();
             });
 
@@ -1069,6 +1103,7 @@ function renderPlayersListInto(list) {
 
 function renderPlayersList() {
     ensurePlayerState();
+    ensureWizardPlayerState();
     const lists = getPlayerLists();
     if (!lists.length) {
         return;
@@ -1077,7 +1112,7 @@ function renderPlayersList() {
 }
 
 function initPlayerWizard() {
-    ensurePlayerState();
+    ensureWizardPlayerState();
     loadPlayerClassOptions().then(() => {
         populateAllPlayerClassSelects();
         renderPlayersList();
@@ -1106,18 +1141,18 @@ function addPlayer() {
     const nameInput = document.getElementById('player-name');
     const classSelect = document.getElementById('player-class');
     const levelInput = document.getElementById('player-level');
-    addPlayerFromInputs(nameInput, classSelect, levelInput);
+    addPlayerFromInputs(nameInput, classSelect, levelInput, 'wizard');
 }
 
 function addPlayerFromManagement() {
     const nameInput = document.getElementById('player-manage-name');
     const classSelect = document.getElementById('player-manage-class');
     const levelInput = document.getElementById('player-manage-level');
-    addPlayerFromInputs(nameInput, classSelect, levelInput);
+    addPlayerFromInputs(nameInput, classSelect, levelInput, 'management');
 }
 
-function addPlayerFromInputs(nameInput, classSelect, levelInput) {
-    ensurePlayerState();
+function addPlayerFromInputs(nameInput, classSelect, levelInput, listType = 'wizard') {
+    const context = resolvePlayerContext(listType);
     const name = nameInput ? nameInput.value.trim() : '';
     const classes = getSelectedPlayerClasses(classSelect);
     const level = sanitizePlayerLevel(levelInput ? levelInput.value : null);
@@ -1129,7 +1164,7 @@ function addPlayerFromInputs(nameInput, classSelect, levelInput) {
 
     const player = { name, level };
     setPlayerClasses(player, classes);
-    appState.session.players.push(player);
+    context.players.push(player);
     renderPlayersList();
 
     if (nameInput) {
@@ -1145,17 +1180,18 @@ function addPlayerFromInputs(nameInput, classSelect, levelInput) {
     }
 }
 
-function removePlayer(index) {
-    ensurePlayerState();
+function removePlayer(index, listType = 'wizard') {
+    const context = resolvePlayerContext(listType);
     if (!Number.isInteger(index)) {
         return;
     }
-    appState.session.players.splice(index, 1);
-    if (Number.isInteger(appState.playerEditingIndex)) {
-        if (appState.playerEditingIndex === index) {
-            appState.playerEditingIndex = null;
-        } else if (appState.playerEditingIndex > index) {
-            appState.playerEditingIndex -= 1;
+    context.players.splice(index, 1);
+    const editIndex = getPlayerEditingIndex(listType);
+    if (Number.isInteger(editIndex)) {
+        if (editIndex === index) {
+            setPlayerEditingIndex(listType, null);
+        } else if (editIndex > index) {
+            setPlayerEditingIndex(listType, editIndex - 1);
         }
     }
     renderPlayersList();
@@ -1176,8 +1212,8 @@ function createSession() {
         return;
     }
 
-    ensurePlayerState();
-    const players = appState.session.players.map(player => {
+    ensureWizardPlayerState();
+    const players = appState.wizardPlayers.map(player => {
         const classes = normalizePlayerClasses(player);
         return {
             name: player.name ? String(player.name).trim() : '',

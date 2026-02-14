@@ -44,85 +44,91 @@
                     <h2 data-i18n="wizard.title">Neue Session erstellen</h2>
                     
                     <div class="wizard-form">
-                        <!-- Session Info -->
-                        <fieldset>
-                            <legend data-i18n="wizard.session_info">Session-Informationen</legend>
-                            <div class="form-group">
-                                <label for="dm-name" data-i18n="wizard.dm_name">DM-Name:</label>
-                                <input type="text" id="dm-name" placeholder="z.B. 'Djih'" data-i18n-placeholder="wizard.dm_placeholder" />
+                        <fieldset class="wizard-panel">
+                            <legend data-i18n="wizard.session_panel">Session</legend>
+
+                            <div class="wizard-section">
+                                <div class="form-group">
+                                    <label for="dm-name" data-i18n="wizard.dm_name">DM-Name:</label>
+                                    <input type="text" id="dm-name" placeholder="z.B. 'Djih'" data-i18n-placeholder="wizard.dm_placeholder" />
+                                </div>
+                                <div class="form-group">
+                                    <label for="session-name" data-i18n="wizard.session_name">Session-Name:</label>
+                                    <input type="text" id="session-name" placeholder="z.B. 'Campaign Session 1'" data-i18n-placeholder="wizard.session_placeholder" />
+                                </div>
                             </div>
-                            <div class="form-group">
-                                <label for="session-name" data-i18n="wizard.session_name">Session-Name:</label>
-                                <input type="text" id="session-name" placeholder="z.B. 'Campaign Session 1'" data-i18n-placeholder="wizard.session_placeholder" />
+
+                            <div class="wizard-section">
+                                <div class="wizard-section-title" data-i18n="wizard.player_add_title">Charakter hinzufügen</div>
+                                <div class="wizard-player-row">
+                                    <div class="form-group">
+                                        <label for="player-name" data-i18n="wizard.player_name">Character-Name:</label>
+                                        <input type="text" id="player-name" placeholder="Character Name" data-i18n-placeholder="wizard.player_name_placeholder" />
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="player-class" data-i18n="wizard.player_class">Klasse:</label>
+                                        <select id="player-class" class="player-class-select"></select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="player-level" data-i18n="wizard.player_level">Level (optional):</label>
+                                        <input type="number" id="player-level" placeholder="5" min="1" max="20" data-i18n-placeholder="wizard.player_level_placeholder" />
+                                    </div>
+                                    <button class="btn btn-success" onclick="addPlayer()" data-i18n="wizard.add_player">+ Add Player</button>
+                                </div>
+                                <div class="inventory-manage-divider"></div>
+                                <div class="wizard-section-title" data-i18n="wizard.players_registered">Registrierte Spieler</div>
+                                <div id="players-list" class="players-list" data-player-list="wizard">
+                                    <!-- Dynamic: filled by JS -->
+                                </div>
                             </div>
                         </fieldset>
 
-                        <!-- Bastion Config -->
-                        <fieldset>
-                            <legend data-i18n="wizard.bastion_config">Bastion-Konfiguration</legend>
-                            <div class="form-group">
-                                <label for="bastion-name" data-i18n="wizard.bastion_name">Bastion-Name:</label>
-                                <input type="text" id="bastion-name" placeholder="z.B. 'Shadowkeep'" data-i18n-placeholder="wizard.bastion_name_placeholder" />
-                            </div>
-                            <div class="form-group">
-                                <label for="bastion-location" data-i18n="wizard.bastion_location">Standort/Region:</label>
-                                <input type="text" id="bastion-location" placeholder="z.B. 'Waterdeep, Dock Ward'" data-i18n-placeholder="wizard.bastion_location_placeholder" />
-                            </div>
-                            <div class="form-group">
-                                <label for="bastion-description" data-i18n="wizard.bastion_description">Beschreibung:</label>
-                                <textarea id="bastion-description" placeholder="Narrative Beschreibung der Bastion..." data-i18n-placeholder="wizard.bastion_description_placeholder"></textarea>
-                            </div>
-                        </fieldset>
+                        <fieldset class="wizard-panel">
+                            <legend data-i18n="wizard.bastion_panel">Bastion</legend>
 
-                        <!-- Player Registry -->
-                        <fieldset>
-                            <legend data-i18n="wizard.players_register">Spieler registrieren</legend>
-                            <div id="players-list" class="players-list" data-player-list="wizard">
-                                <!-- Dynamic: filled by JS -->
+                            <div class="wizard-section">
+                                <div class="form-group">
+                                    <label for="bastion-name" data-i18n="wizard.bastion_name">Bastion-Name:</label>
+                                    <input type="text" id="bastion-name" placeholder="z.B. 'Shadowkeep'" data-i18n-placeholder="wizard.bastion_name_placeholder" />
+                                </div>
+                                <div class="form-group">
+                                    <label for="bastion-location" data-i18n="wizard.bastion_location">Standort/Region:</label>
+                                    <input type="text" id="bastion-location" placeholder="z.B. 'Waterdeep, Dock Ward'" data-i18n-placeholder="wizard.bastion_location_placeholder" />
+                                </div>
+                                <div class="form-group">
+                                    <label for="bastion-description" data-i18n="wizard.bastion_description">Beschreibung:</label>
+                                    <textarea id="bastion-description" placeholder="Narrative Beschreibung der Bastion..." data-i18n-placeholder="wizard.bastion_description_placeholder"></textarea>
+                                </div>
                             </div>
-                            <div class="form-group">
-                                <label for="player-name" data-i18n="wizard.player_name">Character-Name:</label>
-                                <input type="text" id="player-name" placeholder="Character Name" data-i18n-placeholder="wizard.player_name_placeholder" />
-                            </div>
-                            <div class="form-group">
-                                <label for="player-class" data-i18n="wizard.player_class">Klasse:</label>
-                                <select id="player-class" class="player-class-select"></select>
-                            </div>
-                            <div class="form-group">
-                                <label for="player-level" data-i18n="wizard.player_level">Level (optional):</label>
-                                <input type="number" id="player-level" placeholder="5" min="1" max="20" data-i18n-placeholder="wizard.player_level_placeholder" />
-                            </div>
-                            <button class="btn btn-secondary" onclick="addPlayer()" data-i18n="wizard.add_player">+ Add Player</button>
-                        </fieldset>
 
-                        <!-- Start Inventory -->
-                        <fieldset>
-                            <legend data-i18n="wizard.start_inventory">Start-Inventar</legend>
-                            <div class="inventory-manage-body">
-                                <section class="inventory-manage-card">
-                                    <h4 data-i18n="wizard.start_treasury">Start-Treasury</h4>
-                                    <div class="wizard-treasury-panel">
+                            <div class="wizard-section">
+                                <h4 data-i18n="wizard.start_inventory">Start-Inventar</h4>
+                                <div class="inventory-manage-body">
+                                    <section class="inventory-manage-card">
+                                        <h4 data-i18n="wizard.start_treasury">Start-Treasury</h4>
+                                        <div class="wizard-treasury-panel">
+                                            <div class="treasury-row">
+                                                <input type="number" id="wizard-treasury-amount" class="treasury-input" min="0" step="1" placeholder="0" />
+                                                <select id="wizard-treasury-currency" class="treasury-select"></select>
+                                                <button class="btn btn-success btn-small" onclick="adjustWizardTreasury('add')" data-i18n="treasury.mode_add">Add</button>
+                                                <button class="btn btn-danger btn-small" onclick="adjustWizardTreasury('remove')" data-i18n="treasury.mode_remove">Remove</button>
+                                            </div>
+                                            <div class="wizard-treasury-summary">
+                                                <div class="inventory-wallet-label" data-i18n="wizard.treasury_current">Aktuelle Startwerte</div>
+                                                <div id="wizard-treasury-display" class="inventory-wallet-list"></div>
+                                            </div>
+                                        </div>
+                                    </section>
+                                    <section class="inventory-manage-card">
+                                        <h4 data-i18n="wizard.start_items">Start-Items</h4>
                                         <div class="treasury-row">
-                                            <input type="number" id="wizard-treasury-amount" class="treasury-input" min="0" step="1" placeholder="0" />
-                                            <select id="wizard-treasury-currency" class="treasury-select"></select>
-                                            <button class="btn btn-success btn-small" onclick="adjustWizardTreasury('add')" data-i18n="treasury.mode_add">Add</button>
-                                            <button class="btn btn-danger btn-small" onclick="adjustWizardTreasury('remove')" data-i18n="treasury.mode_remove">Remove</button>
+                                            <input type="text" id="wizard-item-name" class="inventory-item-input" data-i18n-placeholder="wizard.item_name_placeholder" placeholder="Item-Name" />
+                                            <input type="number" id="wizard-item-qty" class="treasury-input" min="1" data-i18n-placeholder="wizard.item_qty_placeholder" placeholder="1" />
+                                            <button class="btn btn-success btn-small" onclick="addWizardItem()" data-i18n="wizard.add_item">+ Add Item</button>
                                         </div>
-                                        <div class="wizard-treasury-summary">
-                                            <div class="inventory-wallet-label" data-i18n="wizard.treasury_current">Aktuelle Startwerte</div>
-                                            <div id="wizard-treasury-display" class="inventory-wallet-list"></div>
-                                        </div>
-                                    </div>
-                                </section>
-                                <section class="inventory-manage-card">
-                                    <h4 data-i18n="wizard.start_items">Start-Items</h4>
-                                    <div class="treasury-row">
-                                        <input type="text" id="wizard-item-name" class="inventory-item-input" data-i18n-placeholder="wizard.item_name_placeholder" placeholder="Item-Name" />
-                                        <input type="number" id="wizard-item-qty" class="treasury-input" min="1" data-i18n-placeholder="wizard.item_qty_placeholder" placeholder="1" />
-                                        <button class="btn btn-success btn-small" onclick="addWizardItem()" data-i18n="wizard.add_item">+ Add Item</button>
-                                    </div>
-                                    <div id="wizard-items-list" class="wizard-items-list"></div>
-                                </section>
+                                        <div id="wizard-items-list" class="wizard-items-list"></div>
+                                    </section>
+                                </div>
                             </div>
                         </fieldset>
 
