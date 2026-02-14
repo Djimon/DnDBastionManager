@@ -10,6 +10,7 @@
     "facility_refund_ratio": 0.3,
     "buildable_tier": 1
   },
+  "facility_owner_limit": 3,
 
   "currency": {
     "types": [

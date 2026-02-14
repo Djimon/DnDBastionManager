@@ -9,7 +9,7 @@ logger = setup_logger("config_manager")
 
 
 ALLOWED_PACK_CONFIG_KEYS = {"currency", "check_profiles", "player_classes"}
-ALLOWED_SETTINGS_KEYS = {"currency", "default_build_costs", "npc_progression", "check_profiles"}
+ALLOWED_SETTINGS_KEYS = {"currency", "default_build_costs", "npc_progression", "check_profiles", "facility_owner_limit"}
 ALLOWED_SETTINGS_CURRENCY_KEYS = {"conversion", "hidden"}
 ALLOWED_CHECK_PROFILE_LEVELS = {"default", "apprentice", "experienced", "master"}
 
@@ -124,8 +124,14 @@ class ConfigManager:
             self._validate_npc_progression(settings.get("npc_progression"), base_config, errors)
         if "check_profiles" in settings:
             self._validate_check_profiles(settings.get("check_profiles"), base_config, errors)
+        if "facility_owner_limit" in settings:
+            self._validate_facility_owner_limit(settings.get("facility_owner_limit"), errors)
 
         return errors, warnings
+
+    def _validate_facility_owner_limit(self, value: Any, errors: List[str]) -> None:
+        if not isinstance(value, int) or isinstance(value, bool) or value <= 0:
+            errors.append("settings.facility_owner_limit must be positive int")
 
     def _load_settings(self, base_config: Dict[str, Any]) -> Tuple[Dict[str, Any], List[str], List[str]]:
         if not self.settings_path.exists():
@@ -331,6 +337,10 @@ class ConfigManager:
                                 profile[key][sub_key] = sub_value
                         else:
                             profile[key] = value
+
+        owner_limit = settings.get("facility_owner_limit")
+        if isinstance(owner_limit, int) and owner_limit > 0:
+            updated["facility_owner_limit"] = owner_limit
 
         return updated
 

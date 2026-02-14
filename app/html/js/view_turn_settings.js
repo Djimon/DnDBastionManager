@@ -46,6 +46,7 @@ function renderSettingsModal(config, baseConfig = null, settings = null, coreCon
     const fallbackCore = coreConfig || appState.coreConfig || fallbackBase;
     renderSettingsCurrency(fallbackBase, config, activeSettings, fallbackCore);
     renderSettingsBuildCosts(config);
+    renderSettingsFacilityOwner(config);
     renderSettingsNpcProgression(config);
     renderSettingsCheckProfiles(config);
     const status = document.getElementById('settings-status');
@@ -226,6 +227,32 @@ function renderSettingsBuildCosts(config) {
 
         container.appendChild(block);
     });
+}
+
+function renderSettingsFacilityOwner(config) {
+    const container = document.getElementById('settings-facility-owner');
+    if (!container) {
+        return;
+    }
+    container.innerHTML = '';
+    const limit = config && Number.isInteger(config.facility_owner_limit) ? config.facility_owner_limit : null;
+    const row = document.createElement('div');
+    row.className = 'settings-row';
+    row.dataset.settingsGroup = 'facility_owner';
+    row.dataset.field = 'facility_owner_limit';
+
+    const label = document.createElement('label');
+    label.textContent = t('settings.facility_owner_limit');
+
+    const input = document.createElement('input');
+    input.type = 'number';
+    input.min = '1';
+    input.step = '1';
+    input.value = Number.isInteger(limit) ? limit : '';
+
+    row.appendChild(label);
+    row.appendChild(input);
+    container.appendChild(row);
 }
 
 function renderSettingsNpcProgression(config) {
@@ -634,6 +661,24 @@ function collectSettingsFromForm(config) {
             defaultBuildCosts[costKey][field] = value;
         });
         settings.default_build_costs = defaultBuildCosts;
+    }
+
+    const ownerRows = document.querySelectorAll('#settings-facility-owner .settings-row');
+    if (ownerRows.length) {
+        ownerRows.forEach(row => {
+            const input = row.querySelector('input');
+            const field = row.dataset.field;
+            if (field !== 'facility_owner_limit') {
+                return;
+            }
+            const raw = input ? input.value : '';
+            const value = parseInt(raw, 10);
+            if (!Number.isInteger(value) || value <= 0) {
+                errors.push(t('settings.value_invalid', { field: t('settings.facility_owner_limit') }));
+                return;
+            }
+            settings.facility_owner_limit = value;
+        });
     }
 
     const npcRows = document.querySelectorAll('#settings-npc-progression .settings-row');

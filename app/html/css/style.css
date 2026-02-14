@@ -2035,6 +2035,23 @@ body:not(.theme-dark) .placeholder-item.facility-disabled .tag {
     margin-bottom: 1.5rem;
 }
 
+.detail-name-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.detail-owner-label {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--text-light);
+}
+
+.tag-owner {
+    border-color: var(--accent);
+}
+
 .detail-header {
     display: flex;
     align-items: center;

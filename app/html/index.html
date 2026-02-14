@@ -269,7 +269,13 @@
                                         </div>
                                     </div>
                                     <div class="detail-info">
-                                        <p><strong data-i18n="details.name">Name:</strong> <span id="detail-name">[Facility Name]</span></p>
+                                        <p class="detail-name-row">
+                                            <strong data-i18n="details.name">Name:</strong>
+                                            <span id="detail-name">[Facility Name]</span>
+                                            <span class="detail-owner-label" data-i18n="details.owner_label">owned by:</span>
+                                            <span id="detail-owner-tag" class="tag tag-owner tag-muted"></span>
+                                            <button id="detail-owner-action" class="btn btn-secondary btn-small" onclick="openOwnerModal()" data-i18n="details.owner_set">Besitzer festlegen</button>
+                                        </p>
                                         <p><strong data-i18n="details.description">Beschreibung:</strong> <span id="detail-desc">[Placeholder]</span></p>
                                         <p><strong data-i18n="details.tier">Tier:</strong> <span id="detail-tier">★★</span></p>
                                         <p><strong data-i18n="details.slots">NPC Slots:</strong> <span id="detail-slots">2/3</span><span id="detail-slot-bubbles" class="slot-bubbles"></span></p>
@@ -324,7 +330,7 @@
                                                 <label for="order-select" data-i18n="orders.order_label">Order:</label>
                                                 <select id="order-select"></select>
                                             </div>
-                                            <button class="btn btn-primary" onclick="startOrder()" data-i18n="orders.start">Order starten</button>
+                                            <button id="order-start-btn" class="btn btn-primary" onclick="startOrder()" data-i18n="orders.start">Order starten</button>
                                             <p id="order-new-hint" class="text-muted"></p>
                                         </div>
                                         <div id="order-preview" class="order-preview">
@@ -606,6 +612,27 @@
         </div>
     </div>
 
+    <!-- Owner Modal -->
+    <div id="owner-modal" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 data-i18n="owner.title">Besitzer festlegen</h3>
+                <button class="modal-close" onclick="closeModal('owner-modal')">x</button>
+            </div>
+            <div class="modal-tab-content active">
+                <p id="owner-modal-info" class="text-muted"></p>
+                <div class="form-group">
+                    <label for="owner-select" data-i18n="owner.select_label">Spieler</label>
+                    <select id="owner-select"></select>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" onclick="closeModal('owner-modal')" data-i18n="common.confirm_no">Abbrechen</button>
+                    <button id="owner-save" class="btn btn-primary" onclick="saveOwnerSelection()" data-i18n="details.owner_set">Besitzer festlegen</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Confirm Modal -->
     <div id="confirm-modal" class="modal hidden">
         <div class="modal-content confirm-modal-content">
@@ -663,6 +690,11 @@
                 <section class="settings-section">
                     <h4 data-i18n="settings.build_costs_title">Default Build Costs</h4>
                     <div id="settings-build-costs" class="settings-list"></div>
+                </section>
+
+                <section class="settings-section">
+                    <h4 data-i18n="settings.facility_owner_title">Facility Owner</h4>
+                    <div id="settings-facility-owner" class="settings-list"></div>
                 </section>
 
                 <section class="settings-section">

@@ -49,6 +49,13 @@ class OrderEngine:
         if not facility_entry:
             return {"success": False, "message": f"Facility not found in bastion: {facility_id}"}
 
+        owner_id = facility_entry.get("owner_player_id")
+        if not isinstance(owner_id, str) or not owner_id.strip():
+            return {"success": False, "message": "Facility has no owner"}
+        players = session_state.get("players", [])
+        if not isinstance(players, list) or not any(isinstance(p, dict) and p.get("player_id") == owner_id for p in players):
+            return {"success": False, "message": "Facility owner not found"}
+
         build_status = facility_entry.get("build_status", {})
         status = build_status.get("status") if isinstance(build_status, dict) else None
         if status in ["building", "upgrading"]:

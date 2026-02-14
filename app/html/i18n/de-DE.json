@@ -150,7 +150,17 @@
     "slots": "NPC Slots:",
     "allowed_professions": "Erlaubte Berufe:",
     "allowed_professions_any": "Alle",
-    "status": "Status:"
+    "status": "Status:",
+    "owner_label": "owned by:",
+    "owner_none": "kein Besitzer",
+    "owner_set": "Besitzer festlegen",
+    "owner_change": "Besitzer wechseln"
+  },
+  "owner": {
+    "title": "Besitzer festlegen",
+    "select_label": "Spieler",
+    "no_players": "Keine Spieler verfügbar.",
+    "limit_info": "Limit: {limit} Facilities pro Spieler."
   },
   "upgrade": {
     "title": "Upgrade",
@@ -247,7 +257,8 @@
     "outcome_placeholder": "[Effekte: +20 Gold, +1 Heat, Event: ...]",
     "event_chance": "Chance auf Event",
     "no_orders_for_level": "Keine Orders für dieses Level.",
-    "no_orders_configured": "Keine Orders in dieser Facility."
+    "no_orders_configured": "Keine Orders in dieser Facility.",
+    "owner_required": "Keine Orders möglich: kein Besitzer gesetzt."
   },
   "inventory": {
     "title": "Inventar",
@@ -312,6 +323,8 @@
     "currency_conversion_title": "Umrechnung",
     "currency_hide_label": "Verstecken",
     "build_costs_title": "Standard-Baukosten",
+    "facility_owner_title": "Facility Besitzer",
+    "facility_owner_limit": "Max. Facilities pro Spieler",
     "npc_progression_title": "NSC-Progression",
     "check_profiles_title": "Check-Profile",
     "cancel_button": "Abbrechen",

@@ -117,6 +117,14 @@ class FacilityManager:
             return float(value)
         return default
 
+    def _get_facility_owner_limit(self) -> int:
+        if not isinstance(self.config, dict):
+            return 3
+        value = self.config.get("facility_owner_limit")
+        if isinstance(value, int) and value > 0:
+            return value
+        return 3
+
     def _load_facility_catalog(self) -> Dict[str, Dict[str, Any]]:
         catalog: Dict[str, Dict[str, Any]] = {}
         pack_dirs = [
@@ -289,6 +297,36 @@ class FacilityManager:
 
     def demolish_facility(self, session_state: Dict[str, Any], facility_id: str) -> Dict[str, Any]:
         return self._facility_lifecycle.demolish_facility(session_state, facility_id)
+
+    def set_facility_owner(self, session_state: Dict[str, Any], facility_id: str, player_id: str) -> Dict[str, Any]:
+        if not session_state:
+            return {"success": False, "message": "No session loaded"}
+        if not facility_id:
+            return {"success": False, "message": "Missing facility_id"}
+        if not isinstance(player_id, str) or not player_id.strip():
+            return {"success": False, "message": "Missing player_id"}
+
+        facility_entry = self._find_facility_entry(session_state, facility_id)
+        if not facility_entry:
+            return {"success": False, "message": f"Facility not found in bastion: {facility_id}"}
+
+        players = session_state.get("players")
+        if not isinstance(players, list):
+            return {"success": False, "message": "No players available"}
+        owner = next((p for p in players if isinstance(p, dict) and p.get("player_id") == player_id), None)
+        if not owner:
+            return {"success": False, "message": "Player not found"}
+
+        limit = self._get_facility_owner_limit()
+        current_owner = facility_entry.get("owner_player_id")
+        if current_owner != player_id:
+            facilities = session_state.get("bastion", {}).get("facilities", [])
+            count = len([f for f in facilities if isinstance(f, dict) and f.get("owner_player_id") == player_id])
+            if count >= limit:
+                return {"success": False, "message": f"Owner limit reached ({limit})"}
+
+        facility_entry["owner_player_id"] = player_id
+        return {"success": True, "message": "Owner updated", "facility": facility_entry}
 
     def advance_turn(self, session_state: Dict[str, Any]) -> Dict[str, Any]:
         return self._facility_lifecycle.advance_turn(session_state)

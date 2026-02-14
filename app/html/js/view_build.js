@@ -889,6 +889,13 @@ function sanitizePlayerLevel(raw) {
     return 1;
 }
 
+function generatePlayerId() {
+    if (window.crypto && typeof window.crypto.randomUUID === 'function') {
+        return `player_${window.crypto.randomUUID()}`;
+    }
+    return `player_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
+}
+
 function beginEditPlayer(index, listType = 'wizard') {
     if (!Number.isInteger(index)) {
         return;
@@ -1162,7 +1169,7 @@ function addPlayerFromInputs(nameInput, classSelect, levelInput, listType = 'wiz
         return;
     }
 
-    const player = { name, level };
+    const player = { name, level, player_id: generatePlayerId() };
     setPlayerClasses(player, classes);
     context.players.push(player);
     renderPlayersList();
@@ -1215,7 +1222,11 @@ function createSession() {
     ensureWizardPlayerState();
     const players = appState.wizardPlayers.map(player => {
         const classes = normalizePlayerClasses(player);
+        const playerId = typeof player.player_id === 'string' && player.player_id.trim()
+            ? player.player_id
+            : generatePlayerId();
         return {
+            player_id: playerId,
             name: player.name ? String(player.name).trim() : '',
             level: sanitizePlayerLevel(player.level),
             class: classes.join(' / '),

@@ -150,7 +150,17 @@
     "slots": "NPC Slots:",
     "allowed_professions": "Allowed Professions:",
     "allowed_professions_any": "Any",
-    "status": "Status:"
+    "status": "Status:",
+    "owner_label": "owned by:",
+    "owner_none": "no owner",
+    "owner_set": "Set owner",
+    "owner_change": "Change owner"
+  },
+  "owner": {
+    "title": "Set owner",
+    "select_label": "Player",
+    "no_players": "No players available.",
+    "limit_info": "Limit: {limit} facilities per player."
   },
   "upgrade": {
     "title": "Upgrade",
@@ -247,7 +257,8 @@
     "outcome_placeholder": "[Effects preview: +20 gold, +1 Heat, Event: ...]",
     "event_chance": "Chance of event",
     "no_orders_for_level": "No orders for this level.",
-    "no_orders_configured": "No orders configured for this facility."
+    "no_orders_configured": "No orders configured for this facility.",
+    "owner_required": "Orders blocked: no owner set."
   },
   "inventory": {
     "title": "Inventory",
@@ -312,6 +323,8 @@
     "currency_conversion_title": "Conversion",
     "currency_hide_label": "Hide",
     "build_costs_title": "Default Build Costs",
+    "facility_owner_title": "Facility Owner",
+    "facility_owner_limit": "Max facilities per player",
     "npc_progression_title": "NPC Progression",
     "check_profiles_title": "Check Profiles",
     "cancel_button": "Cancel",

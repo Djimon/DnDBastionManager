@@ -262,6 +262,7 @@ function selectFacility(facilityId, element = null) {
         }
         statusEl.textContent = statusText;
     }
+    renderFacilityOwner(facilityId, entry);
 
     updateUpgradeSection(facilityId);
     renderSlotBubbles(facility, entry);
@@ -316,6 +317,155 @@ function setFacilityPanelState(hasSelection) {
 function getFacilityEntry(facilityId) {
     const facilities = (appState.session && appState.session.bastion && appState.session.bastion.facilities) || [];
     return facilities.find(item => item && item.facility_id === facilityId) || null;
+}
+
+function getFacilityOwnerLimit() {
+    const limit = appState && appState.config ? appState.config.facility_owner_limit : null;
+    return Number.isInteger(limit) && limit > 0 ? limit : 3;
+}
+
+function getFacilityOwnerId(entry) {
+    const owner = entry && typeof entry === 'object' ? entry.owner_player_id : null;
+    if (typeof owner === 'string' && owner.trim()) {
+        return owner;
+    }
+    return null;
+}
+
+function getPlayerById(playerId) {
+    if (!playerId) {
+        return null;
+    }
+    const players = appState && appState.session && Array.isArray(appState.session.players)
+        ? appState.session.players
+        : [];
+    return players.find(player => player && player.player_id === playerId) || null;
+}
+
+function getOwnerFacilityCounts() {
+    const facilities = appState && appState.session && appState.session.bastion && Array.isArray(appState.session.bastion.facilities)
+        ? appState.session.bastion.facilities
+        : [];
+    const counts = {};
+    facilities.forEach(entry => {
+        const ownerId = getFacilityOwnerId(entry);
+        if (!ownerId) {
+            return;
+        }
+        counts[ownerId] = (counts[ownerId] || 0) + 1;
+    });
+    return counts;
+}
+
+function facilityHasOwner(facilityId) {
+    const entry = getFacilityEntry(facilityId);
+    const ownerId = getFacilityOwnerId(entry);
+    return !!(ownerId && getPlayerById(ownerId));
+}
+
+function renderFacilityOwner(facilityId, entry = null) {
+    const ownerTag = document.getElementById('detail-owner-tag');
+    const ownerAction = document.getElementById('detail-owner-action');
+    if (!ownerTag || !ownerAction) {
+        return;
+    }
+    const facilityEntry = entry || getFacilityEntry(facilityId);
+    const ownerId = getFacilityOwnerId(facilityEntry);
+    const owner = ownerId ? getPlayerById(ownerId) : null;
+    if (owner) {
+        ownerTag.textContent = owner.name || t('common.unknown');
+        ownerTag.classList.remove('tag-muted');
+    } else {
+        ownerTag.textContent = t('details.owner_none');
+        ownerTag.classList.add('tag-muted');
+    }
+    const hasPlayers = appState && appState.session && Array.isArray(appState.session.players)
+        ? appState.session.players.some(player => player && typeof player.player_id === 'string' && player.player_id)
+        : false;
+    ownerAction.textContent = owner ? t('details.owner_change') : t('details.owner_set');
+    ownerAction.disabled = !hasPlayers;
+}
+
+function openOwnerModal() {
+    const modal = document.getElementById('owner-modal');
+    const select = document.getElementById('owner-select');
+    const info = document.getElementById('owner-modal-info');
+    const saveBtn = document.getElementById('owner-save');
+    const facilityId = appState.selectedFacilityId;
+    if (!modal || !select || !facilityId) {
+        return;
+    }
+    const entry = getFacilityEntry(facilityId);
+    const ownerId = getFacilityOwnerId(entry);
+    const players = appState && appState.session && Array.isArray(appState.session.players)
+        ? appState.session.players.filter(player => player && typeof player.player_id === 'string' && player.player_id)
+        : [];
+    const limit = getFacilityOwnerLimit();
+    const counts = getOwnerFacilityCounts();
+
+    select.innerHTML = '';
+    if (info) {
+        info.textContent = t('owner.limit_info', { limit });
+    }
+
+    if (!players.length) {
+        if (info) {
+            info.textContent = t('owner.no_players');
+        }
+        select.disabled = true;
+        if (saveBtn) {
+            saveBtn.disabled = true;
+        }
+        modal.classList.remove('hidden');
+        return;
+    }
+
+    players.forEach(player => {
+        const count = counts[player.player_id] || 0;
+        const option = document.createElement('option');
+        option.value = player.player_id;
+        option.textContent = `${player.name || t('common.unknown')} (${count}/${limit})`;
+        if (count >= limit && player.player_id !== ownerId) {
+            option.disabled = true;
+        }
+        select.appendChild(option);
+    });
+
+    if (ownerId) {
+        select.value = ownerId;
+    }
+    select.disabled = false;
+    if (saveBtn) {
+        saveBtn.disabled = false;
+        saveBtn.textContent = ownerId ? t('details.owner_change') : t('details.owner_set');
+    }
+    modal.classList.remove('hidden');
+}
+
+async function saveOwnerSelection() {
+    const facilityId = appState.selectedFacilityId;
+    const select = document.getElementById('owner-select');
+    if (!facilityId || !select) {
+        return;
+    }
+    const ownerId = select.value;
+    if (!ownerId) {
+        notifyUser(t('owner.no_players'));
+        return;
+    }
+    if (!(window.pywebview && window.pywebview.api && window.pywebview.api.set_facility_owner)) {
+        notifyUser(t('alerts.pywebview_unavailable'));
+        return;
+    }
+    const response = await window.pywebview.api.set_facility_owner(facilityId, ownerId);
+    if (!response || !response.success) {
+        notifyUser(response && response.message ? response.message : t('alerts.error_prefix', { message: 'unknown error' }));
+        return;
+    }
+    await refreshSessionState();
+    renderFacilityOwner(facilityId);
+    renderOrdersPanel(facilityId);
+    closeModal('owner-modal');
 }
 
 function getFacilityOrders(entry) {
@@ -694,6 +844,10 @@ function renderOrdersPanel(facilityId) {
     const assignedNpcs = entry && Array.isArray(entry.assigned_npcs) ? entry.assigned_npcs : [];
     const orders = facility && Array.isArray(facility.orders) ? facility.orders : [];
     const existingOrders = getFacilityOrders(entry);
+    const ownerId = getFacilityOwnerId(entry);
+    const owner = ownerId ? getPlayerById(ownerId) : null;
+    const ownerMissing = !owner;
+    const startBtn = document.getElementById('order-start-btn');
 
     npcSelect.innerHTML = '';
     if (assignedNpcs.length === 0) {
@@ -703,7 +857,7 @@ function renderOrdersPanel(facilityId) {
         npcSelect.appendChild(opt);
         npcSelect.disabled = true;
     } else {
-        npcSelect.disabled = false;
+        npcSelect.disabled = ownerMissing;
         assignedNpcs.forEach(npc => {
             const opt = document.createElement('option');
             opt.value = npc.npc_id;
@@ -740,6 +894,9 @@ function renderOrdersPanel(facilityId) {
                 opt.textContent = `${order.name || order.id}${durationLabel}`;
                 orderSelect.appendChild(opt);
             });
+        }
+        if (ownerMissing) {
+            orderSelect.disabled = true;
         }
         const preview = document.getElementById('order-preview');
         if (preview && orderSelect.disabled) {
@@ -796,7 +953,11 @@ function renderOrdersPanel(facilityId) {
     updateOrderPreview();
 
     if (hint) {
-        hint.textContent = '';
+        hint.textContent = ownerMissing ? t('orders.owner_required') : '';
+    }
+
+    if (startBtn) {
+        startBtn.disabled = ownerMissing;
     }
 
     if (evalAllBtn) {
@@ -1260,6 +1421,10 @@ async function startOrder() {
     const npcSelect = document.getElementById('order-npc-select');
     const orderSelect = document.getElementById('order-select');
     if (!facilityId || !npcSelect || !orderSelect) {
+        return;
+    }
+    if (!facilityHasOwner(facilityId)) {
+        notifyUser(t('orders.owner_required'));
         return;
     }
     const npcId = npcSelect.value;

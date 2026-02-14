@@ -3,6 +3,7 @@ Session State Structure & Initial State Generator
 Basiert auf Leitplanke: docs/examples/Session_save.json
 """
 import json
+import uuid
 from typing import Dict, List, Any
 from datetime import datetime
 from .logger import setup_logger
@@ -81,6 +82,19 @@ class InitialStateGenerator:
                 elif isinstance(qty, float) and qty > 0 and qty.is_integer():
                     inventory.append({"item": name.strip(), "qty": int(qty)})
 
+        normalized_players: List[Dict[str, Any]] = []
+        used_player_ids = set()
+        for entry in players or []:
+            if not isinstance(entry, dict):
+                continue
+            player = dict(entry)
+            raw_id = player.get("player_id")
+            if not isinstance(raw_id, str) or not raw_id.strip() or raw_id in used_player_ids:
+                raw_id = f"player_{uuid.uuid4().hex[:8]}"
+            player["player_id"] = raw_id
+            used_player_ids.add(raw_id)
+            normalized_players.append(player)
+
         state = {
             # ===== METADATA =====
             "session_id": f"session_{session_slug}_{datetime.now().strftime('%Y%m%d_%H%M%S')}",
@@ -108,7 +122,7 @@ class InitialStateGenerator:
             },
             
             # ===== PLAYERS =====
-            "players": players or [],
+            "players": normalized_players,
             
             # ===== LOADED PACKS =====
             "loaded_packs": [],  # [pack_id, ...]
@@ -119,7 +133,7 @@ class InitialStateGenerator:
             "event_history": [],  # [{ turn, event_id, text }, ...]
         }
         
-        logger.debug(f"Generated state with {len(players or [])} players and initial treasury")
+        logger.debug(f"Generated state with {len(normalized_players)} players and initial treasury")
         return state
     
     @staticmethod

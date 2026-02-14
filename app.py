@@ -340,6 +340,15 @@ class Api:
         except Exception as e:
             return {"success": False, "message": str(e)}
 
+    def set_facility_owner(self, facility_id: str, player_id: str) -> dict:
+        """Assign or change facility owner."""
+        try:
+            if not self.current_session:
+                return {"success": False, "message": "No session loaded"}
+            return self._facility_manager.set_facility_owner(self.current_session, facility_id, player_id)
+        except Exception as e:
+            return {"success": False, "message": str(e)}
+
     def get_facility_states(self) -> dict:
         """Return resolved facility states."""
         try:
