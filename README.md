@@ -58,7 +58,7 @@ Build/Release notes: see `RELEASE.md`.
 
 
 ## Docs
-- [Custom Packs How-To](dcustom_packs_how_to.md)
+- [Custom Packs How-To](custom_packs_how_to.md)
 
 
 ## License
