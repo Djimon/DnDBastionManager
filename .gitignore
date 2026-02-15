@@ -36,3 +36,6 @@ wheels/
 session_log.csv
 Session_save.json
 data/sessions/
+
+# misc
+*ps1
